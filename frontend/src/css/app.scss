@@ -1,0 +1,48 @@
+// app global css
+// src/css/app.scss
+body.dark-mode {
+  background: #121212;
+  color: #e0e0e0;
+
+  .q-page {
+    background: #1a1a1a !important;
+  }
+
+  .q-card {
+    background: #2d2d2d;
+    border-color: #444;
+  }
+
+  .q-drawer {
+    background: #2d2d2d;
+    border-color: #444;
+  }
+
+  .q-header {
+    background: #1e1e1e !important;
+  }
+
+  .q-toolbar {
+    background: #1e1e1e;
+  }
+
+  .q-item {
+    color: #e0e0e0;
+  }
+
+  .q-item--active {
+    background: rgba(66, 165, 245, 0.15) !important;
+  }
+
+  .q-separator {
+    background: #444;
+  }
+
+  .q-breadcrumbs__el {
+    color: #b0b0b0;
+  }
+
+  .q-breadcrumbs__el--active {
+    color: #e0e0e0;
+  }
+}

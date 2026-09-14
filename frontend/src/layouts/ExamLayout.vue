@@ -1,0 +1,70 @@
+<!-- src/layouts/ExamLayout.vue -->
+<template>
+  <q-layout view="hHh lpr fFf" class="bg-grey-2">
+    <q-header elevated class="bg-dark text-white">
+      <q-toolbar>
+        <q-toolbar-title class="text-subtitle1">
+          <q-icon name="school" class="q-mr-sm" /> Ujian: {{ examStore.currentExamName || 'CBT Engine' }}
+        </q-toolbar-title>
+
+        <!-- Fullscreen Button -->
+        <q-btn v-if="!examStore.fullscreenEnabled" flat round icon="fullscreen" @click="examStore.enableFullscreen()">
+          <q-tooltip>Aktifkan Fullscreen</q-tooltip>
+        </q-btn>
+        <q-chip v-else color="positive" text-color="white" icon="fullscreen_exit" dense>
+          Fullscreen
+        </q-chip>
+
+        <q-separator dark vertical class="q-mx-sm" />
+
+        <q-chip color="negative" text-color="white" icon="timer">
+          {{ formattedTime }}
+        </q-chip>
+      </q-toolbar>
+    </q-header>
+
+    <q-drawer v-model="showNav" show-if-above bordered :width="200" class="bg-white">
+      <div class="q-pa-md grid-navigation">
+        <q-btn v-for="(q, i) in examStore.questions" :key="q.id"
+          :color="examStore.answers[q.id] ? 'positive' : (i === examStore.currentIndex ? 'primary' : 'grey-4')"
+          text-color="white" dense class="q-ma-xs" style="width: 35px; height: 35px;"
+          @click="examStore.currentIndex = i">
+          {{ i + 1 }}
+        </q-btn>
+      </div>
+      <div class="q-pa-md">
+        <q-btn color="negative" label="Selesai" class="full-width" @click="submitExam" />
+      </div>
+    </q-drawer>
+
+    <q-page-container>
+      <router-view />
+    </q-page-container>
+  </q-layout>
+</template>
+
+<script setup>
+import { ref, computed } from 'vue'
+import { useExamStore } from '@/stores/exam/examActive'
+
+const examStore = useExamStore()
+const showNav = ref(true)
+
+const formattedTime = computed(() => {
+  const mins = Math.floor(examStore.timeLeft / 60)
+  const secs = examStore.timeLeft % 60
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+})
+
+const submitExam = () => {
+  // Logic konfirmasi submit (sudah ada di ExamRoom.vue)
+}
+</script>
+
+<style scoped>
+.grid-navigation {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+}
+</style>

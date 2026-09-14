@@ -1,0 +1,58 @@
+/* src/css/fonts.css */
+
+/* Font Arab - Amiri (load dari jsDelivr CDN yang lebih stabil) */
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src:
+    url('https://cdn.jsdelivr.net/npm/@fontsource/amiri@4.5.0/files/amiri-arabic-400-normal.woff2')
+      format('woff2'),
+    url('https://cdn.jsdelivr.net/npm/@fontsource/amiri@4.5.0/files/amiri-arabic-400-normal.woff')
+      format('woff');
+}
+
+/* Font Sunda - Noto Sans Sundanese */
+@font-face {
+  font-family: 'Noto Sans Sundanese';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/notosanssundanese/v11/FwZH6_84xUvk3iKw9i1VjQx5mDQw7o0gU0s.woff2')
+    format('woff2');
+}
+
+/* Utility class untuk teks Arab - PERBAIKAN: tambah display block & unicode-bidi */
+.text-arabic {
+  font-family: 'Amiri', 'Traditional Arabic', 'Arial', serif;
+  direction: rtl;
+  unicode-bidi: bidi-override; /* Paksa RTL direction */
+  text-align: right;
+  font-size: 1.6em;
+  line-height: 2.2;
+  display: block; /* PENTING: span harus jadi block agar direction bekerja */
+  margin: 0.5em 0;
+  padding: 0.5em;
+  background: linear-gradient(to left, rgba(25, 118, 210, 0.05), transparent);
+  border-right: 3px solid #1976d2;
+  border-radius: 4px;
+}
+
+/* Font Sunda */
+.text-sundanese {
+  font-family: 'Noto Sans Sundanese', sans-serif;
+  font-size: 1.4em;
+  line-height: 2;
+  display: block;
+  margin: 0.5em 0;
+  padding: 0.5em;
+  background: rgba(76, 175, 80, 0.05);
+  border-left: 3px solid #4caf50;
+  border-radius: 4px;
+}
+
+/* Fallback: jika font belum ter-load, tampilkan teks dengan font system default */
+.text-arabic:not(:empty) {
+  font-family: 'Amiri', 'Traditional Arabic', 'Arabic Typesetting', 'Arial', serif;
+}
