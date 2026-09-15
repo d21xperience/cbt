@@ -34,7 +34,11 @@
 
     <!-- List Soal -->
     <q-list bordered separator>
-      <q-item v-for="(q, idx) in questionsStore.parsedQuestions" :key="idx" :class="{ 'bg-red-1': q._error }">
+      <q-item
+        v-for="(q, idx) in questionsStore.parsedQuestions"
+        :key="idx"
+        :class="{ 'bg-red-1': q._error }"
+      >
         <q-item-section avatar>
           <q-avatar :color="q._error ? 'negative' : 'primary'" text-color="white">
             {{ q._rowNumber || idx + 1 }}
@@ -45,25 +49,33 @@
           <q-item-label>
             <q-badge :color="getTypeColor(q.question_type)" :label="q.question_type" />
             <span class="q-ml-sm text-weight-medium">
-              {{ q.question_text?.substring(0, 100) }}{{ (q.question_text?.length || 0) > 100 ? '...' : '' }}
+              {{ q.question_text?.substring(0, 100)
+              }}{{ (q.question_text?.length || 0) > 100 ? '...' : '' }}
             </span>
           </q-item-label>
 
           <q-item-label caption>
             <div class="row q-gutter-sm">
-              <span>Bobot: <b>{{ q.score || 10 }}</b></span>
-              <span v-if="q.correct_option">| Jawaban: <b>{{ q.correct_option }}</b></span>
-              <span v-if="q._error" class="text-negative">
-                | Error: {{ q._error }}
-              </span>
+              <span
+                >Bobot: <b>{{ q.score || 10 }}</b></span
+              >
+              <span v-if="q.correct_option"
+                >| Jawaban: <b>{{ q.correct_option }}</b></span
+              >
+              <span v-if="q._error" class="text-negative"> | Error: {{ q._error }} </span>
             </div>
           </q-item-label>
 
           <!-- Opsi PG -->
           <div v-if="q.question_type === 'PG' && q.options" class="q-mt-xs">
-            <q-chip v-for="(opt, key) in q.options" :key="key" dense size="sm"
+            <q-chip
+              v-for="(opt, key) in q.options"
+              :key="key"
+              dense
+              size="sm"
               :color="q.correct_option === key ? 'positive' : 'grey-3'"
-              :text-color="q.correct_option === key ? 'white' : 'black'">
+              :text-color="q.correct_option === key ? 'white' : 'black'"
+            >
               {{ key }}: {{ opt?.substring(0, 30) }}{{ (opt?.length || 0) > 30 ? '...' : '' }}
             </q-chip>
           </div>
@@ -74,9 +86,14 @@
     <!-- Submit Button -->
     <q-card-actions align="right" class="q-pa-md">
       <q-btn flat color="grey" icon="close" label="Batal" @click="$emit('cleared')" />
-      <q-btn color="positive" icon="check_circle" :label="`Import ${questionsStore.validQuestions.length} Soal`"
-        :loading="questionsStore.isSubmitting" :disable="questionsStore.validQuestions.length === 0"
-        @click="confirmSubmit" />
+      <q-btn
+        color="positive"
+        icon="check_circle"
+        :label="`Import ${questionsStore.validQuestions.length} Soal`"
+        :loading="questionsStore.isSubmitting"
+        :disable="questionsStore.validQuestions.length === 0"
+        @click="confirmSubmit"
+      />
     </q-card-actions>
   </q-card>
 </template>
@@ -86,7 +103,7 @@ import { useQuasar } from 'quasar'
 import { useQuestionsStore } from '@/stores/exam/questions'
 
 const props = defineProps({
-  examId: { type: String, required: true }
+  examId: { type: String, required: true },
 })
 
 const emit = defineEmits(['submitted', 'cleared'])
@@ -101,7 +118,7 @@ const getTypeColor = (type) => {
     MATCHING: 'purple',
     HOTSPOT: 'pink',
     AUDIO: 'teal',
-    CODING: 'indigo'
+    CODING: 'indigo',
   }
   return colors[type] || 'grey'
 }
@@ -113,7 +130,7 @@ const confirmSubmit = () => {
     html: true,
     cancel: { label: 'Batal', flat: true },
     ok: { label: 'Ya, Import', color: 'positive', flat: true },
-    persistent: true
+    persistent: true,
   }).onOk(async () => {
     try {
       const result = await questionsStore.submitQuestions(props.examId)
@@ -121,7 +138,7 @@ const confirmSubmit = () => {
     } catch (error) {
       $q.notify({
         type: 'negative',
-        message: error.response?.data?.message || 'Gagal mengimport soal'
+        message: error.response?.data?.message || 'Gagal mengimport soal',
       })
     }
   })

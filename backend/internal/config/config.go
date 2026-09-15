@@ -15,6 +15,8 @@ type Config struct {
 	// TAMBAHAN BARU
 	JWTSecret     string `mapstructure:"JWT_SECRET"`
 	SiakadBaseURL string `mapstructure:"SIAKAD_BASE_URL"`
+
+	CredentialsEncryptionKey string `mapstructure:"CREDENTIALS_ENCRYPTION_KEY"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

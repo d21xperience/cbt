@@ -9,7 +9,7 @@ import { ref, watch, onMounted } from 'vue'
 
 const props = defineProps({
   content: { type: String, default: '' },
-  tag: { type: String, default: 'span' }
+  tag: { type: String, default: 'span' },
 })
 
 const renderedContent = ref('')

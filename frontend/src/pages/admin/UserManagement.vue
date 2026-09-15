@@ -4,18 +4,35 @@
     <div class="text-h5 q-mb-md">Manajemen Pengguna</div>
 
     <q-tabs v-model="tab" dense class="q-mb-md" align="left">
-      <q-tab v-for="role in roles" :key="role" :name="role" :label="role.charAt(0).toUpperCase() + role.slice(1)" />
+      <q-tab
+        v-for="role in roles"
+        :key="role"
+        :name="role"
+        :label="role.charAt(0).toUpperCase() + role.slice(1)"
+      />
     </q-tabs>
 
     <q-tab-panels v-model="tab" animated>
       <q-tab-panel v-for="role in roles" :key="role" :name="role" class="q-pa-none">
-        <UserTable :role="role" :data="userStore.getUsersByRole(role)" :columns="getColumns(role)"
-          @add="openForm(role, null)" @edit="openForm(role, $event)" @delete="confirmDelete(role, $event)" />
+        <UserTable
+          :role="role"
+          :data="userStore.getUsersByRole(role)"
+          :columns="getColumns(role)"
+          @add="openForm(role, null)"
+          @edit="openForm(role, $event)"
+          @delete="confirmDelete(role, $event)"
+        />
       </q-tab-panel>
     </q-tab-panels>
 
-    <UserFormDialog v-model="formDialog" :role="currentRole" :user="selectedUser" :loading="submitting"
-      @submit="handleSubmit" ref="formDialogRef" />
+    <UserFormDialog
+      v-model="formDialog"
+      :role="currentRole"
+      :user="selectedUser"
+      :loading="submitting"
+      @submit="handleSubmit"
+      ref="formDialogRef"
+    />
 
     <q-dialog v-model="deleteDialog" persistent>
       <q-card>
@@ -33,7 +50,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
-import { useUserStore } from '@/stores/admin/questions'
+import { useUserStore } from '@/stores/admin/users'
 import { useUserConfig } from '@/composables/admin/useUserConfig'
 import UserTable from '@/components/ui/UserTable.vue'
 import UserFormDialog from '@/components/ui/UserFormDialog.vue'
@@ -56,7 +73,7 @@ const deleteTarget = ref(null)
 const deleteRole = ref('')
 const deleting = ref(false)
 
-onMounted(() => roles.forEach(role => userStore.fetchUsers(role)))
+onMounted(() => roles.forEach((role) => userStore.fetchUsers(role)))
 
 function openForm(role, user) {
   currentRole.value = role

@@ -3,9 +3,11 @@ package usecase
 import (
 	"cbt-engine-service/internal/cbt/domain"
 	"cbt-engine-service/internal/cbt/repository"
+	"cbt-engine-service/internal/cbt/repository/sqlite"
 	"context"
 	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -102,59 +104,90 @@ func (uc *ExamUseCase) getQuestionsWithSingleflight(ctx context.Context, examID 
 	return result.([]domain.Question), nil
 }
 
-// SubmitAnswer dicatat setiap kali peserta mengklik opsi jawaban
+// SESUDAH — konsisten dengan BatchSubmitAnswers
 func (uc *ExamUseCase) SubmitAnswer(ctx context.Context, participantID, examID, questionID, answer string) error {
 	return uc.answerRepo.SaveAnswer(participantID, examID, domain.ParticipantAnswer{
-		QuestionID: questionID,
-		Answer:     answer,
-		Timestamp:  time.Now().Unix(),
+		ParticipantID: participantID,
+		ExamID:        examID,
+		QuestionID:    questionID,
+		Answer:        answer,
+		Timestamp:     time.Now().Unix(),
 	})
 }
 
 // FinishExam dipanggil saat waktu habis atau peserta klik "Kumpulkan"
 func (uc *ExamUseCase) FinishExam(ctx context.Context, participantID, examID string) (*domain.ExamResult, error) {
-	answers, _ := uc.answerRepo.GetAnswers(participantID, examID)
-	questions, _ := uc.getQuestionsWithSingleflight(ctx, examID)
+	answers, err := uc.answerRepo.GetAnswers(participantID, examID)
+	if err != nil {
+		return nil, fmt.Errorf("gagal ambil jawaban: %w", err)
+	}
+	questions, err := uc.getQuestionsWithSingleflight(ctx, examID)
+	if err != nil {
+		return nil, fmt.Errorf("gagal ambil soal: %w", err)
+	}
 
-	totalScore := float64(0)
-	maxPossibleScore := float64(0)
-	essayCount := 0
+	var (
+		totalScore       float64
+		maxPossibleScore float64
+		correctCount     int
+		essayCount       int
+	)
 
 	for _, q := range questions {
 		maxPossibleScore += q.Score
 
-		if ans, ok := answers[q.ID]; ok {
-			score := uc.gradeAnswer(q, ans)
-			if score == -1 {
-				essayCount++ // Essay akan dinilai nanti oleh worker
-			} else {
-				totalScore += score
+		ans, hasAnswer := answers[q.ID]
+		if !hasAnswer {
+			if q.QuestionType == domain.TypeEssay {
+				essayCount++
 			}
+			continue
+		}
+
+		score := uc.gradeAnswer(q, ans)
+		if score == -1 {
+			// essay / coding menunggu review manual
+			essayCount++
+			continue
+		}
+		totalScore += score
+		if score >= q.Score {
+			correctCount++ // untuk PG, score penuh = benar
 		}
 	}
 
-	// Hitung skor sementara (tanpa essay)
-	finalScore := float64(0)
-	if maxPossibleScore > 0 {
-		finalScore = (totalScore / maxPossibleScore) * 100
+	// finalScore = persentase terhadap total yang BISA dinilai otomatis
+	// Jika ada essay, kita hitung terhadap max soal NON-essay agar tidak unfair
+	var finalScore float64
+	nonEssayMax := maxPossibleScore
+	if essayCount > 0 {
+		// kurangi bobot essay dari denominator agar skor tidak "turun" sebelum essay dinilai
+		for _, q := range questions {
+			if q.QuestionType == domain.TypeEssay {
+				nonEssayMax -= q.Score
+			}
+		}
+	}
+	if nonEssayMax > 0 {
+		finalScore = (totalScore / nonEssayMax) * 100
 	}
 
 	result := &domain.ExamResult{
 		ParticipantID:  participantID,
 		ExamID:         examID,
 		TotalQuestions: len(questions),
-		CorrectAnswers: int(totalScore), // adaptasi
+		CorrectAnswers: correctCount, // ← FIXED: jumlah soal benar, bukan totalScore
 		FinalScore:     finalScore,
 		Status:         "SUBMITTED",
 		SubmittedAt:    time.Now(),
 	}
-
-	// Jika ada essay, status jadi "GRADING" (menunggu worker)
 	if essayCount > 0 {
-		result.Status = "GRADING_ESSAY"
+		result.Status = "NEEDS_REVIEW"
 	}
 
-	uc.resultRepo.SaveResult(result)
+	if err := uc.resultRepo.SaveResult(result); err != nil {
+		return nil, fmt.Errorf("gagal simpan hasil: %w", err)
+	}
 	return result, nil
 }
 
@@ -511,4 +544,105 @@ func getCol(record []string, colMap map[string]int, colName string) string {
 		return ""
 	}
 	return strings.TrimSpace(record[idx])
+}
+
+// ============================================
+// TIMER & BATCHING (Phase 3)
+// ============================================
+
+var (
+	ErrExamNotStarted = errors.New("exam_not_started")
+	ErrExamExpired    = errors.New("exam_expired")
+	ErrExamNoSession  = errors.New("no_active_session")
+)
+
+// sessionRepo disuntikkan via setter agar backward-compatible dengan constructor lama
+type sessionRepoSetter interface {
+	SetSessionRepository(repo repository.SessionRepository)
+}
+
+// CheckTimer — validasi apakah peserta boleh akses ujian saat ini
+// Mengembalikan (status, remaining_seconds, error)
+func (uc *ExamUseCase) CheckTimer(ctx context.Context, participantID, examID string, sessRepo repository.SessionRepository) (domain.TimerResponse, error) {
+	now := time.Now()
+
+	if sessRepo == nil {
+		// Fallback: jika belum di-wire, anggap ACTIVE dengan 1 jam. Untuk backward-compat.
+		return domain.TimerResponse{
+			Status:           domain.ExamActive,
+			RemainingSeconds: 3600,
+			ServerTime:       now.Unix(),
+		}, nil
+	}
+
+	sess, err := sessRepo.GetParticipantSession(ctx, participantID, examID)
+	if err != nil {
+		return domain.TimerResponse{}, err
+	}
+	if sess == nil {
+		return domain.TimerResponse{}, ErrExamNoSession
+	}
+
+	status := sess.DeriveStatus(now, false)
+	resp := domain.TimerResponse{
+		Status:           status,
+		RemainingSeconds: sess.RemainingSeconds(now),
+		ServerTime:       now.Unix(),
+		SessionID:        sess.ID,
+	}
+
+	switch status {
+	case domain.ExamNotStarted:
+		return resp, ErrExamNotStarted
+	case domain.ExamExpired:
+		return resp, ErrExamExpired
+	}
+	return resp, nil
+}
+
+// BatchSubmitAnswers — simpan banyak jawaban sekaligus (Redis HSet via repo)
+// Idempotent: aman dipanggil berulang dengan payload sama.
+func (uc *ExamUseCase) BatchSubmitAnswers(ctx context.Context, participantID, examID string, items []domain.AnswerBatchItem) error {
+	if len(items) == 0 {
+		return nil
+	}
+	now := time.Now().Unix()
+	batch := make([]domain.ParticipantAnswer, 0, len(items))
+	for _, it := range items {
+		if it.QuestionID == "" {
+			continue
+		}
+		batch = append(batch, domain.ParticipantAnswer{
+			ParticipantID: participantID,
+			ExamID:        examID,
+			QuestionID:    it.QuestionID,
+			Answer:        it.Answer,
+			Timestamp:     now,
+		})
+	}
+	if len(batch) == 0 {
+		return nil
+	}
+	return uc.answerRepo.SaveAnswersBatch(participantID, examID, batch)
+}
+
+// Passthrough untuk akses ParticipantExam & History dari examDB
+// (examDB juga mengimplementasi interface ini — lihat exam_db.go)
+
+// GetParticipantExams — daftar ujian peserta
+func (uc *ExamUseCase) GetParticipantExams(ctx context.Context, participantID string) ([]sqlite.ParticipantExam, error) {
+	db, ok := uc.questionRepo.(*sqlite.ExamDB)
+	if !ok {
+		return nil, errors.New("examDB bukan tipe yang diharapkan")
+	}
+	return db.GetParticipantExams(ctx, participantID)
+}
+
+// GetParticipantHistory — riwayat ujian peserta
+func (uc *ExamUseCase) GetParticipantHistory(ctx context.Context, participantID string) ([]map[string]any, error) {
+	db, ok := uc.resultRepo.(*sqlite.ExamDB)
+	if !ok {
+		return nil, errors.New("examDB bukan tipe yang diharapkan")
+	}
+	return db.GetParticipantHistory(ctx, participantID)
 }

@@ -1,43 +1,31 @@
-// # Layanan login & logout global
 // src/services/AuthService.js
 import { api } from '@/boot/axios'
 
-// Gunakan object literal, bukan class, untuk menghindari error 'this'
 export const AuthService = {
   login(credentials, role) {
-    // Kirim role agar backend/mock bisa membedakan
-    console.log('LOGIN....')
-    console.log(credentials, role)
+    const normalizedRole = String(role || '').toUpperCase()
 
-    let response = null
-    switch (role) {
+    switch (normalizedRole) {
       case 'SUPER_ADMIN':
-        response = api.post('/auth/superadmin/login', {
-          ...credentials,
-          role: 'SUPER_ADMIN',
-        })
-        break
+        return api.post('/auth/super/login', credentials)
+
       case 'ADMIN':
-        // login untuk admin/guru
-        response = api.post('/auth/admin/login', {
-          ...credentials,
-          role: 'ADMIN',
+        return api.post('/auth/admin/login', credentials)
+
+      case 'PARTICIPANT':
+        // Peserta login pakai username + password dari kartu
+        return api.post('/auth/exam/login', {
+          username: credentials.username || '',
+          password: credentials.password || '',
         })
-        break
 
       default:
-        response = api.post('/auth/exam/login', {
-          ...credentials,
-          role: 'PARTICIPANT',
-        })
-        break
+        return Promise.reject(new Error(`Unknown role: ${role}`))
     }
-
-    return response
   },
 
   logout() {
-    return api.post('/auth/logout')
+    return api.post('/auth/logout').catch(() => {})
   },
 
   refreshToken() {

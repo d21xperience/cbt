@@ -16,6 +16,7 @@ import (
 	cbtSqliteRepo "cbt-engine-service/internal/cbt/repository/sqlite"
 	cbtUc "cbt-engine-service/internal/cbt/usecase"
 	"cbt-engine-service/internal/config"
+	"cbt-engine-service/internal/crypto"
 	"cbt-engine-service/internal/middleware"
 	proctoringRepo "cbt-engine-service/internal/proctoring/repository"
 	proctoringUc "cbt-engine-service/internal/proctoring/usecase"
@@ -72,6 +73,15 @@ func main() {
 	defer db.Close()
 	log.Info().Msg("✅ Database SQLite berhasil diaktifkan dengan PRAGMA Optimized")
 
+	// Crypto cipher untuk credential
+	if cfg.CredentialsEncryptionKey == "" {
+		log.Fatal().Msg("CREDENTIALS_ENCRYPTION_KEY wajib diisi di .env")
+	}
+	credCipher, err := crypto.NewCipherFromHex(cfg.CredentialsEncryptionKey)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Gagal init encryption cipher")
+	}
+	log.Info().Msg("✅ Encryption cipher siap")
 	// ==========================================
 	// 3. REDIS INITIALIZATION
 	// ==========================================
@@ -94,6 +104,9 @@ func main() {
 	// ==========================================
 	// 4. JWT AUTH INITIALIZATION
 	// ==========================================
+	if cfg.JWTSecret == "" || len(cfg.JWTSecret) < 32 {
+		log.Fatal().Msg("JWT_SECRET wajib di-set, minimal 32 karakter")
+	}
 	auth.Init(cfg.JWTSecret)
 	log.Info().Msg("✅ JWT Secret berhasil dimuat")
 
@@ -103,7 +116,7 @@ func main() {
 	// Scheduling
 	siakadClient := schedulingRepo.NewSiakadSyncClient(cfg.SiakadBaseURL)
 	localAuthDB := schedulingRepo.NewLocalAuthDB(db)
-
+	adminDB := schedulingRepo.NewAdminDB(db)
 	// CBT Core
 	examDB := cbtSqliteRepo.NewExamDB(db)
 	examCache := cbtRedisRepo.NewExamCache(rdb)
@@ -118,14 +131,9 @@ func main() {
 	// 6. USECASE LAYER
 	// ==========================================
 	schedulingUC := schedulingUc.NewSchedulingUseCase(localAuthDB, siakadClient)
-
-	// Untuk ExamUseCase, kita butuh interface ExternalService.
-	// Di monolith, kita bisa langsung passing schedulingUC atau localAuthDB jika sudah memenuhi interface.
-	// (Asumsi: schedulingUC sudah mengimplementasikan method ValidateParticipant)
+	adminLoginUC := schedulingUc.NewAdminLoginUseCase(adminDB) // ← NEW
 	examUC := cbtUc.NewExamUseCase(examDB, examCache, examDB, examCache)
-
 	proctoringUC := proctoringUc.NewProctoringUseCase(proctoringRedis)
-
 	redisFlush := func() error { return rdb.FlushAll(context.Background()).Err() }
 	archiveUC := archiveUc.NewArchiveUseCase(archiveDB, siakadClient, redisFlush)
 
@@ -147,37 +155,72 @@ func main() {
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS",
 	}))
+	// Session repo (baru)
+	sessionDB := cbtSqliteRepo.NewSessionDB(db)
+	tokenDB := cbtSqliteRepo.NewTokenDB(db)
+	tokenUC := cbtUc.NewTokenUseCase(tokenDB, sessionDB)
+
+	credRepo := schedulingRepo.NewCredentialsDB(db)
+	participantAuthUC := schedulingUc.NewParticipantAuthUseCase(credRepo, credCipher)
+	credentialsUC := schedulingUc.NewCredentialsUseCase(credRepo, credCipher)
 
 	// ==========================================
 	// 8. ROUTING & MIDDLEWARE WIRING
 	// ==========================================
-	handler := cbtHttp.NewCBTHandler(schedulingUC, examUC, archiveUC, proctoringUC)
+	handler := cbtHttp.NewCBTHandler(
+		schedulingUC, adminLoginUC,
+		participantAuthUC, credentialsUC, // ← NEW
+		examUC, archiveUC, proctoringUC,
+		sessionDB,
+		tokenUC,
+	)
 	api := app.Group("/api/v1/cbt")
 
 	// A. PUBLIC ROUTES (Tanpa Token)
 	authGroup := api.Group("/auth")
 	authGroup.Post("/admin/login", handler.HandleAdminLogin)
+	authGroup.Post("/super/login", handler.HandleSuperAdminLogin) // ← NEW
 	authGroup.Post("/exam/login", handler.HandleLogin)
 
+	// Super admin public endpoints (stub untuk single-tenant)
+	superPub := api.Group("/super")
+	superPub.Get("/schools", handler.HandleListSchools) // ← NEW
+	superPub.Get("/schools/:slug/config", handler.HandleGetTenantConfig)
 	// B. ADMIN ROUTES (Wajib JWT Admin)
 	admin := api.Group("/admin", middleware.JWTAuth())
 	admin.Post("/sync", handler.HandleSync)
+	// Admin/proctor token routes
 	admin.Post("/session", handler.HandleCreateSession)
+	admin.Get("/sessions", handler.HandleListSessions)
+	admin.Get("/sessions/:sessionId/token", handler.HandleGetCurrentToken)
+	admin.Post("/sessions/:sessionId/token/rotate", handler.HandleRotateTokenManual)
 	admin.Post("/archive", handler.HandleArchive)
 	admin.Post("/participants/import-external", handler.HandleImportExternalCSV)
 	admin.Get("/questions/template", handler.HandleDownloadTemplate)
+	// D1: credential management
+	admin.Post("/credentials/generate", handler.HandleGenerateCredentials)
+	admin.Get("/credentials/view", handler.HandleViewCredentials)
+
 	// C. EXAM ROUTES (Wajib JWT Peserta + Cek Banned di Redis)
 	exam := api.Group("/exam", middleware.ExamAuth(rdb))
+	exam.Get("/active", handler.HandleGetActiveExams)  // ← NEW
+	exam.Get("/history", handler.HandleGetExamHistory) // ← NEW
 	exam.Post("/start", handler.HandleStartExam)
 	exam.Post("/answer", handler.HandleSubmitAnswer)
+	exam.Post("/answers/batch", handler.HandleBatchAnswer) // ← NEW
+	exam.Get("/timer", handler.HandleGetTimer)
 	exam.Post("/submit", handler.HandleFinishExam)
-	// exam.Post("/heartbeat", handler.HandleHeartbeat)
-	// exam.Post("/telemetry", handler.HandleTelemetry)
+	exam.Post("/:examId/verify-token", handler.HandleVerifyToken)
+	exam.Post("/heartbeat", handler.HandleHeartbeat)
+	exam.Post("/telemetry", handler.HandleTelemetry)
 
 	// Health Check
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"status": "OK", "service": "CBT Engine"})
 	})
+	rotatorCtx, rotatorCancel := context.WithCancel(context.Background())
+	defer rotatorCancel()
+	go cbtUc.StartTokenRotator(rotatorCtx, sessionDB, tokenUC)
 
 	// ==========================================
 	// 9. GRACEFUL SHUTDOWN

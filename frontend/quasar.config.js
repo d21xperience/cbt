@@ -68,9 +68,18 @@ export default defineConfig((/* ctx */) => {
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#devserver
+    // SESUDAH
     devServer: {
-      // https: true,
-      open: true, // opens browser window automatically
+      open: true,
+      port: 9000,
+      proxy: {
+        // Semua request ke /api/* diteruskan ke backend Go
+        '/api': {
+          target: 'http://localhost:8082',
+          changeOrigin: true,
+          // Tidak rewrite — backend sudah serve /api/v1/cbt/*
+        },
+      },
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework

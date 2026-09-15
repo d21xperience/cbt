@@ -10,14 +10,26 @@
     </div>
 
     <!-- Switch Komponen berdasarkan Tipe Soal -->
-    <PGQuestion v-if="question.question_type === 'PG'" :question="question" :model-value="currentAnswer"
-      @update:model-value="val => $emit('update:answer', val)" />
+    <PGQuestion
+      v-if="question.question_type === 'PG'"
+      :question="question"
+      :model-value="currentAnswer"
+      @update:model-value="(val) => $emit('update:answer', val)"
+    />
 
-    <EssayQuestion v-else-if="question.question_type === 'ESSAY'" :question="question" :model-value="currentAnswer"
-      @update:model-value="val => $emit('update:answer', val)" />
+    <EssayQuestion
+      v-else-if="question.question_type === 'ESSAY'"
+      :question="question"
+      :model-value="currentAnswer"
+      @update:model-value="(val) => $emit('update:answer', val)"
+    />
 
-    <AudioQuestion v-else-if="question.question_type === 'AUDIO'" :question="question" :model-value="currentAnswer"
-      @update:model-value="val => $emit('update:answer', val)" />
+    <AudioQuestion
+      v-else-if="question.question_type === 'AUDIO'"
+      :question="question"
+      :model-value="currentAnswer"
+      @update:model-value="(val) => $emit('update:answer', val)"
+    />
 
     <div v-else class="text-negative text-center q-pa-md">
       Tipe soal "{{ question.question_type }}" belum didukung.
@@ -34,7 +46,7 @@ import MathText from '@/components/ui/MathText.vue'
 
 const props = defineProps({
   question: { type: Object, required: true },
-  answer: { type: [String, Object], default: null }
+  answer: { type: [String, Object], default: null },
 })
 
 defineEmits(['update:answer'])

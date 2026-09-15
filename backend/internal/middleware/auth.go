@@ -66,6 +66,6 @@ func validateJWT(c *fiber.Ctx, requiredRole string, redisClient *redis.Client) e
 	c.Locals("userID", claims.UserID)
 	c.Locals("role", claims.Role)
 	c.Locals("examID", claims.ExamID)
-
+	c.Locals("tenantID", claims.TenantID)
 	return c.Next()
 }

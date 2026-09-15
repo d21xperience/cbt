@@ -6,10 +6,11 @@ import { LocalStorage } from 'quasar'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    user: LocalStorage.getItem('cbt_user') || null,
+    user: LocalStorage.getItem('cbt_user') || null, // ← LocalStorage, bukan localStorage
     token: LocalStorage.getItem('cbt_token') || null,
     role: LocalStorage.getItem('cbt_role') || null,
     isAuthenticated: !!LocalStorage.getItem('cbt_token'),
+    cbtExamId: LocalStorage.getItem('cbt_exam_id'),
   }),
   getters: {
     getUser: (state) => state.user,
@@ -27,12 +28,14 @@ export const useAuthStore = defineStore('auth', {
       }
       return {}
     },
+    // Getter
+    getExamId: (state) => state.cbtExamId,
   },
   actions: {
     async login(credentials, role) {
       try {
         const response = await AuthService.login(credentials, role)
-        console.log("login...",response)
+        console.log('login...', response)
         const { token, user } = response.data
         // Simpan ke state
         this.token = token
@@ -43,7 +46,7 @@ export const useAuthStore = defineStore('auth', {
         // Simpan ke LocalStorage (agar tidak hilang saat refresh)
         LocalStorage.setItem('cbt_token', token)
         LocalStorage.setItem('cbt_role', role)
-        LocalStorage.setItem('cbt_user', user)
+        LocalStorage.setItem('cbt_user', JSON.stringify(user))
 
         return { success: true, user }
       } catch (error) {
@@ -54,27 +57,35 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async participantLogin(credentials) {
-      // credentials = { id: '...', exam_identifier: '...' }
+      // credentials = { username, password }
       const response = await AuthService.login(credentials, 'participant')
-      console.log('✔ response', response)
-      const { role, token, user } = response.data
-      console.log(role)
+      const data = response.data
+      const token = data.token
+      const user = data.user
+      const role = data.role
+
       this.token = token
       this.user = user
       this.role = role
       this.isAuthenticated = true
-      LocalStorage.setItem('cbt_token', token)
-      LocalStorage.setItem('cbt_role', role)
-      LocalStorage.setItem('cbt_user', user)
-      return { success: true, user }
+
+      LocalStorage.set('cbt_token', token)
+      LocalStorage.set('cbt_role', role)
+      LocalStorage.set('cbt_user', user) // ← object, biar Quasar stringify
+      LocalStorage.set('cbt_eligible_exams', data.eligible_exams || [])
+
+      return { success: true, user, eligibleExams: data.eligible_exams }
     },
 
     clearSession() {
-      localStorage.clear()
+      LocalStorage.remove('cbt_token')
+      LocalStorage.remove('cbt_role')
+      LocalStorage.remove('cbt_user')
+      LocalStorage.remove('cbt_eligible_exams')
       this.token = null
       this.role = null
-      this.activeSchoolId = null
-      this.schoolSlug = null
+      this.user = null
+      this.isAuthenticated = false
     },
 
     logout() {
@@ -94,15 +105,21 @@ export const useAuthStore = defineStore('auth', {
     restoreSession() {
       const token = LocalStorage.getItem('cbt_token')
       const role = LocalStorage.getItem('cbt_role')
-      const user = LocalStorage.getItem('cbt_user')
+      const user = LocalStorage.getItem('cbt_user') // ← sudah object (parsed)
       if (token && role && user) {
         this.token = token
         this.role = role
-        this.user = JSON.parse(user)
+        this.user = user // ← langsung, tidak perlu JSON.parse
         this.isAuthenticated = true
         return true
       }
       return false
+    },
+    // Setelah verify token sukses, ganti JWT-A dengan JWT-B
+    setExamToken(jwtB, examId) {
+      this.token = jwtB
+      LocalStorage.set('cbt_token', jwtB)
+      LocalStorage.set('cbt_exam_id', examId)
     },
   },
 })

@@ -21,7 +21,10 @@ export const useAdminDashboardStore = defineStore('adminDashboard', () => {
   const syncFromSiakad = async (pembelajaranId, semesterId) => {
     isSyncing.value = true
     try {
-      const res = await api.post('/admin/sync', { pembelajaran_id: pembelajaranId, semester_id: semesterId })
+      const res = await api.post('/admin/sync', {
+        pembelajaran_id: pembelajaranId,
+        semester_id: semesterId,
+      })
       syncHistory.value.unshift({
         id: Date.now(),
         timestamp: new Date().toISOString(),
@@ -40,5 +43,15 @@ export const useAdminDashboardStore = defineStore('adminDashboard', () => {
     }
   }
 
-  return { stats, syncHistory, isSyncing, sessions, examsDropdown, fetchDashboardStats, syncFromSiakad }
+  return {
+    stats,
+    syncHistory,
+    isSyncing,
+    sessions,
+    examsDropdown,
+    fetchDashboardStats,
+    syncFromSiakad,
+  }
 })
+
+export const useAdminStore = useAdminDashboardStore

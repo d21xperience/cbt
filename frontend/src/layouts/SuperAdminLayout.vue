@@ -33,9 +33,7 @@
       <q-scroll-area class="fit">
         <!-- Banner Profil Ringkas -->
         <div class="q-pa-md bg-grey-2 text-center border-bottom">
-          <q-avatar size="60px" class="bg-primary text-white q-mb-sm">
-            SA
-          </q-avatar>
+          <q-avatar size="60px" class="bg-primary text-white q-mb-sm"> SA </q-avatar>
           <div class="text-weight-bold text-grey-9">Utama Superadmin</div>
           <div class="text-caption text-primary text-weight-medium">Akses Tingkat Sistem</div>
         </div>
@@ -46,8 +44,15 @@
             Navigasi Utama
           </q-item-label>
 
-          <q-item v-for="(menu, index) in menuList" :key="index" clickable v-ripple :to="menu.to" exact
-            active-class="bg-blue-1 text-primary text-weight-bold">
+          <q-item
+            v-for="(menu, index) in menuList"
+            :key="index"
+            clickable
+            v-ripple
+            :to="menu.to"
+            exact
+            active-class="bg-blue-1 text-primary text-weight-bold"
+          >
             <q-item-section avatar>
               <q-icon :name="menu.icon" />
             </q-item-section>
@@ -62,8 +67,12 @@
     <!-- Konten Halaman Dinamis -->
     <q-page-container>
       <router-view v-slot="{ Component }">
-        <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut" mode="out-in"
-          :duration="200">
+        <transition
+          enter-active-class="animated fadeIn"
+          leave-active-class="animated fadeOut"
+          mode="out-in"
+          :duration="200"
+        >
           <component :is="Component" />
         </transition>
       </router-view>
@@ -88,23 +97,23 @@ const menuList = [
   {
     label: 'Dashboard Overview',
     icon: 'dashboard',
-    to: { name: 'super-dashboard' }
+    to: { name: 'super-dashboard' },
   },
   {
     label: 'Manajemen Tenant Sekolah',
     icon: 'domain',
-    to: { name: 'manajemen-sekolah' }
+    to: { name: 'manajemen-sekolah' },
   },
   {
     label: 'Billing & Keuangan',
     icon: 'receipt_long', // Menggunakan icon struk/invoice bawaan Quasar
-    to: { name: 'manajemen-biling' }
+    to: { name: 'manajemen-biling' },
   },
   {
     label: 'Log Telemetri Server',
     icon: 'monitor_heart', // Menggunakan icon rekam medis jantung untuk kesehatan server
-    to: { name: 'log-telemetri' }
-  }
+    to: { name: 'log-telemetri' },
+  },
 ]
 
 const toggleLeftDrawer = () => {
@@ -117,12 +126,12 @@ const handleLogout = () => {
     title: 'Konfirmasi Keluar',
     message: 'Apakah Anda yakin ingin keluar dari panel Superadmin?',
     cancel: true,
-    persistent: true
+    persistent: true,
   }).onOk(() => {
     logout()
     $q.notify({
       type: 'positive',
-      message: 'Anda berhasil keluar dari sistem.'
+      message: 'Anda berhasil keluar dari sistem.',
     })
 
     // Redirect ke halaman login auth pusat

@@ -1,33 +1,51 @@
-// # API pengerjaan, deteksi telemetri, & heartbeat
-// src/services/ExamService.js
+// src/services/exam/ActiveExamService.js
+// PHASE 3/5: aligned dengan backend /api/v1/cbt/exam/*
 import { api } from '@/boot/axios'
 
-export const ExamService = {
-  // Ambil daftar ujian untuk peserta (hari ini)
-  getTodayExams() {
-    return api.get('/exams/active')
+export const ActiveExamService = {
+  // ---- Participant listing ----
+  getActiveExams() {
+    return api.get('/exam/active')
   },
-
-  // Ambil riwayat ujian peserta
   getExamHistory() {
-    return api.get('/exams/history')
+    return api.get('/exam/history')
   },
 
-  // Verifikasi token sebelum masuk ujian
-  verifyToken(participantId, examId, token) {
-    return api.post(`/exams/${examId}/verify-token`, {
-      participant_id: participantId,
-      exam_id: examId,
-      token: token,
+  // ---- Timer ----
+  getTimer() {
+    return api.get('/exam/timer')
+  },
+
+  // ---- Exam lifecycle ----
+  startExam() {
+    return api.post('/exam/start')
+  },
+  saveAnswer(questionId, answer) {
+    return api.post('/exam/answer', { question_id: questionId, answer })
+  },
+  saveAnswersBatch(answers, idempotencyKey) {
+    return api.post('/exam/answers/batch', {
+      idempotency_key: idempotencyKey,
+      answers,
     })
   },
-
-  // Mulai ujian (dapatkan session)
-  startExam(examId) {
-    return api.post(`/exams/${examId}/start`)
+  submitExam() {
+    return api.post('/exam/submit')
   },
 
-  getActiveExams(participantId) {
-    return api.get('/exams/active', { params: { participant_id: participantId } })
+  // ---- Token (proctor gated) ----
+  verifyToken(examId, token) {
+    return api.post(`/exam/${examId}/verify-token`, { token })
+  },
+
+  // ---- Proctoring ----
+  heartbeat() {
+    return api.post('/exam/heartbeat')
+  },
+  sendTelemetry(eventType) {
+    return api.post('/exam/telemetry', { event_type: eventType })
   },
 }
+
+// backward-compat alias
+export const ExamService = ActiveExamService

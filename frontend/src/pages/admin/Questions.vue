@@ -10,21 +10,41 @@
     <q-card class="q-mb-md">
       <q-card-section>
         <div class="row items-center q-gutter-md">
-          <q-select v-model="selectedExamId" :options="examOptions" label="Pilih Ujian" outlined emit-value map-options
-            class="col" :rules="[val => !!val || 'Ujian wajib dipilih']">
+          <q-select
+            v-model="selectedExamId"
+            :options="examOptions"
+            label="Pilih Ujian"
+            outlined
+            emit-value
+            map-options
+            class="col"
+            :rules="[(val) => !!val || 'Ujian wajib dipilih']"
+          >
             <template v-slot:prepend><q-icon name="school" /></template>
           </q-select>
 
-          <q-btn color="grey-7" icon="download" label="Download Template" @click="showTemplateDialog = true"
-            :disable="!selectedExamId" />
+          <q-btn
+            color="grey-7"
+            icon="download"
+            label="Download Template"
+            @click="showTemplateDialog = true"
+            :disable="!selectedExamId"
+          />
         </div>
       </q-card-section>
     </q-card>
 
     <!-- Tabs: Upload / Paste -->
     <q-card>
-      <q-tabs v-model="tab" dense class="text-grey" active-color="primary" indicator-color="primary" align="justify"
-        narrow-indicator>
+      <q-tabs
+        v-model="tab"
+        dense
+        class="text-grey"
+        active-color="primary"
+        indicator-color="primary"
+        align="justify"
+        narrow-indicator
+      >
         <q-tab name="upload" icon="upload_file" label="Upload File (CSV/Excel)" />
         <q-tab name="paste" icon="content_paste" label="Paste Manual" />
       </q-tabs>
@@ -45,20 +65,22 @@
     </q-card>
 
     <!-- Preview & Submit (muncul jika ada soal) -->
-    <QuestionPreview v-if="questionsStore.parsedQuestions.length > 0" :exam-id="selectedExamId"
-      @submitted="onSubmitSuccess" @cleared="questionsStore.clearParsedQuestions()" />
+    <QuestionPreview
+      v-if="questionsStore.parsedQuestions.length > 0"
+      :exam-id="selectedExamId"
+      @submitted="onSubmitSuccess"
+      @cleared="questionsStore.clearParsedQuestions()"
+    />
 
     <!-- Dialog Download Template -->
     <q-dialog v-model="showTemplateDialog">
-      <q-card style="min-width: 400px;">
+      <q-card style="min-width: 400px">
         <q-card-section class="bg-primary text-white">
           <div class="text-h6">Download Template Soal</div>
         </q-card-section>
 
         <q-card-section>
-          <div class="text-body2 q-mb-md">
-            Pilih format template yang ingin didownload:
-          </div>
+          <div class="text-body2 q-mb-md">Pilih format template yang ingin didownload:</div>
 
           <q-list bordered separator>
             <q-item clickable @click="downloadTemplate('csv')" v-ripple>
@@ -67,7 +89,9 @@
               </q-item-section>
               <q-item-section>
                 <q-item-label>CSV (Comma Separated Values)</q-item-label>
-                <q-item-label caption>Bisa dibuka di Excel, Google Sheets, atau text editor</q-item-label>
+                <q-item-label caption
+                  >Bisa dibuka di Excel, Google Sheets, atau text editor</q-item-label
+                >
               </q-item-section>
             </q-item>
 
@@ -107,7 +131,7 @@ const selectedExamId = ref('')
 const showTemplateDialog = ref(false)
 
 const examOptions = computed(() =>
-  questionsStore.exams.map(e => ({ label: e.name, value: e.id }))
+  questionsStore.exams.map((e) => ({ label: e.name, value: e.id })),
 )
 
 const downloadTemplate = async (format) => {
@@ -115,13 +139,13 @@ const downloadTemplate = async (format) => {
     await questionsStore.downloadTemplate(format)
     $q.notify({
       type: 'positive',
-      message: `Template ${format.toUpperCase()} berhasil didownload`
+      message: `Template ${format.toUpperCase()} berhasil didownload`,
     })
     showTemplateDialog.value = false
   } catch {
     $q.notify({
       type: 'negative',
-      message: 'Gagal mendownload template'
+      message: 'Gagal mendownload template',
     })
   }
 }
@@ -137,7 +161,7 @@ const onSubmitSuccess = (data) => {
   $q.notify({
     type: 'positive',
     message: `${data.imported_count} soal berhasil diimport!`,
-    timeout: 3000
+    timeout: 3000,
   })
 }
 

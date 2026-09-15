@@ -84,7 +84,9 @@
                 <q-card flat bordered class="bg-blue-1">
                   <q-card-section class="q-py-xs q-px-sm text-center">
                     <div class="text-caption text-grey-7">Total Soal</div>
-                    <div class="text-h6 text-weight-bold" aria-live="polite">{{ stats.totalQuestions }}</div>
+                    <div class="text-h6 text-weight-bold" aria-live="polite">
+                      {{ stats.totalQuestions }}
+                    </div>
                   </q-card-section>
                 </q-card>
               </div>
@@ -92,7 +94,9 @@
                 <q-card flat bordered class="bg-green-1">
                   <q-card-section class="q-py-xs q-px-sm text-center">
                     <div class="text-caption text-grey-7">Peserta</div>
-                    <div class="text-h6 text-weight-bold" aria-live="polite">{{ stats.totalParticipants }}</div>
+                    <div class="text-h6 text-weight-bold" aria-live="polite">
+                      {{ stats.totalParticipants }}
+                    </div>
                   </q-card-section>
                 </q-card>
               </div>
@@ -100,7 +104,6 @@
           </div>
 
           <!-- Footer Actions -->
-
         </q-list>
       </q-scroll-area>
     </q-drawer>
@@ -134,7 +137,7 @@
 
     <!-- Notification Dialog -->
     <q-dialog v-model="showNotifications" :aria-label="'Notifications'">
-      <q-card style="min-width: 350px; max-width: 500px;">
+      <q-card style="min-width: 350px; max-width: 500px">
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6">Notifikasi</div>
           <q-space />
@@ -166,9 +169,7 @@
           <span class="q-ml-sm text-h6">Konfirmasi Keluar</span>
         </q-card-section>
 
-        <q-card-section>
-          Apakah Anda yakin ingin keluar dari panel admin?
-        </q-card-section>
+        <q-card-section> Apakah Anda yakin ingin keluar dari panel admin? </q-card-section>
 
         <q-card-actions align="right">
           <q-btn flat label="Batal" color="grey" v-close-popup aria-label="Batal" />
@@ -180,7 +181,6 @@
 </template>
 
 <script setup>
-
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -223,11 +223,32 @@ const mainNavItems = [
 ]
 
 const managementNavItems = [
-  { name: 'participants', label: 'Data Peserta', icon: 'group', to: { name: 'admin-participants' } },
-  { name: 'examCard', label: 'Kartu Ujian', icon: 'card_membership', to: { name: 'admin-exam-card' } },
-  { name: 'questions', label: 'Buat Jadwal', icon: 'schedule', to: { name: 'admin-exam-management' } },
+  {
+    name: 'participants',
+    label: 'Data Peserta',
+    icon: 'group',
+    to: { name: 'admin-participants' },
+  },
+  {
+    name: 'examCard',
+    label: 'Kartu Ujian',
+    icon: 'card_membership',
+    to: { name: 'admin-exam-card' },
+  },
+  {
+    name: 'questions',
+    label: 'Buat Jadwal',
+    icon: 'schedule',
+    to: { name: 'admin-exam-management' },
+  },
   { name: 'questions', label: 'Kelola Soal', icon: 'quiz', to: { name: 'admin-questions' } },
   { name: 'archive', label: 'Archive Semester', icon: 'archive', to: { name: 'admin-archive' } },
+  // Cari area q-item / navigation dan tambahkan:
+  {
+    icon: 'vpn_key',
+    label: 'Token Ujian',
+    to: { name: 'admin-token-display' },
+  },
 ]
 
 const stats = ref({ totalQuestions: 0, totalParticipants: 0 })
@@ -253,9 +274,30 @@ const isActiveRoute = (to) => {
 }
 
 const notifications = ref([
-  { id: 1, icon: 'warning', color: 'orange', title: 'Ujian Akan Berakhir', message: 'Sesi ujian akan berakhir dalam 30 menit', time: '5m ago' },
-  { id: 2, icon: 'check_circle', color: 'green', title: 'Sinkronisasi Berhasil', message: 'Data mahasiswa berhasil disinkronkan', time: '1h ago' },
-  { id: 3, icon: 'error', color: 'red', title: 'Gagal Mengupload Soal', message: 'Terjadi kesalahan pada file soal', time: '2h ago' },
+  {
+    id: 1,
+    icon: 'warning',
+    color: 'orange',
+    title: 'Ujian Akan Berakhir',
+    message: 'Sesi ujian akan berakhir dalam 30 menit',
+    time: '5m ago',
+  },
+  {
+    id: 2,
+    icon: 'check_circle',
+    color: 'green',
+    title: 'Sinkronisasi Berhasil',
+    message: 'Data mahasiswa berhasil disinkronkan',
+    time: '1h ago',
+  },
+  {
+    id: 3,
+    icon: 'error',
+    color: 'red',
+    title: 'Gagal Mengupload Soal',
+    message: 'Terjadi kesalahan pada file soal',
+    time: '2h ago',
+  },
 ])
 
 // const toggleLeftDrawer = () => {
@@ -271,14 +313,24 @@ const logout = () => {
 const refreshData = async () => {
   isRefreshing.value = true
   try {
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000))
     stats.value = {
       totalQuestions: Math.floor(Math.random() * 100) + 50,
       totalParticipants: Math.floor(Math.random() * 200) + 100,
     }
-    $q.notify({ type: 'positive', message: 'Data berhasil di-refresh', position: 'top-right', timeout: 3000 })
+    $q.notify({
+      type: 'positive',
+      message: 'Data berhasil di-refresh',
+      position: 'top-right',
+      timeout: 3000,
+    })
   } catch (error) {
-    $q.notify({ type: 'negative', message: 'Gagal refresh data: ' + (error.message || 'Unknown error'), position: 'top-right', timeout: 3000 })
+    $q.notify({
+      type: 'negative',
+      message: 'Gagal refresh data: ' + (error.message || 'Unknown error'),
+      position: 'top-right',
+      timeout: 3000,
+    })
   } finally {
     isRefreshing.value = false
   }
@@ -287,7 +339,8 @@ const refreshData = async () => {
 const showHelp = () => {
   $q.dialog({
     title: 'Bantuan',
-    message: 'Untuk bantuan lebih lanjut, hubungi administrator sistem.\n\nShortcuts:\nCtrl+D: Toggle Dark Mode\nCtrl+1: Dashboard\nCtrl+2: Kelola Soal\nCtrl+Q: Logout',
+    message:
+      'Untuk bantuan lebih lanjut, hubungi administrator sistem.\n\nShortcuts:\nCtrl+D: Toggle Dark Mode\nCtrl+1: Dashboard\nCtrl+2: Kelola Soal\nCtrl+Q: Logout',
     persistent: true,
     ok: 'OK',
   })
@@ -297,8 +350,12 @@ let intervalId = null
 const updateDateTime = () => {
   const now = new Date()
   currentDateTime.value = now.toLocaleString('id-ID', {
-    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   })
 }
 
@@ -471,7 +528,9 @@ body.dark-mode {
   z-index: 9999;
   border-radius: 0 0 4px 4px;
   opacity: 0;
-  transition: top 0.2s, opacity 0.2s;
+  transition:
+    top 0.2s,
+    opacity 0.2s;
 
   &:focus {
     top: 0;

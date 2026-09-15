@@ -14,7 +14,7 @@ export const useSuperTenantStore = defineStore('superTenant', () => {
 
   const fetchSchools = async () => {
     try {
-      const res = await api.get('/api/v1/cbt/super/schools')
+      const res = await api.get('/super/schools')
       schoolList.value = res.data
     } catch (err) {
       console.error('Gagal mengambil data sekolah:', err)
@@ -24,7 +24,7 @@ export const useSuperTenantStore = defineStore('superTenant', () => {
   const triggerLocalTunnelTransfer = async (schoolId) => {
     Loading.show({ message: 'Membuat paket enkripsi data & membuka Cloudflare Tunnel...' })
     try {
-      await api.post('/cbt/super/archive/tunnel-transfer', { school_id: schoolId })
+      await api.post('/super/archive/tunnel-transfer', { school_id: schoolId })
       return true
     } catch {
       return false
@@ -35,3 +35,4 @@ export const useSuperTenantStore = defineStore('superTenant', () => {
 
   return { schoolList, globalStats, fetchSchools, triggerLocalTunnelTransfer }
 })
+export const useSuperAdminStore = useSuperTenantStore

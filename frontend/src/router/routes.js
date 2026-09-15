@@ -112,6 +112,11 @@ const routes = [
         name: 'admin-user-management',
         component: () => import('@/pages/admin/UserManagement.vue'),
       },
+      {
+        path: 'token-ujian',
+        name: 'admin-token-display',
+        component: () => import('@/pages/admin/TokenDisplay.vue'),
+      },
     ],
     meta: { requiresAuth: true, roles: ['ADMIN'] },
   },
@@ -142,8 +147,14 @@ const routes = [
   {
     path: '/exam',
     component: () => import('@/layouts/ExamLayout.vue'),
-    children: [{ path: '', component: () => import('@/pages/exam/ExamRoom.vue') }],
     meta: { requiresAuth: true, roles: ['PARTICIPANT'] },
+    children: [
+      {
+        path: '',
+        name: 'exam-room', // ← TAMBAH
+        component: () => import('@/pages/exam/ExamRoom.vue'),
+      },
+    ],
   },
   // Catchall
   { path: '/:catchAll(.*)*', component: () => import('@/pages/ErrorNotFound.vue') },

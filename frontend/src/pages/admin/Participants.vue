@@ -6,18 +6,48 @@
         <q-icon name="group" color="primary" size="md" class="q-mr-sm" />
         Data Peserta
       </div>
-      <q-btn color="primary" icon="upload_file" label="Import Peserta" @click="showImportDialog = true" />
+      <q-btn
+        color="primary"
+        icon="upload_file"
+        label="Import Peserta"
+        @click="showImportDialog = true"
+      />
     </div>
 
     <!-- Filter -->
     <q-card class="q-mb-md">
       <q-card-section>
         <div class="row q-gutter-md">
-          <q-select v-model="filter.exam_id" :options="examOptions" label="Filter Ujian" outlined dense emit-value
-            map-options clearable class="col" />
-          <q-select v-model="filter.source" :options="sourceOptions" label="Filter Sumber" outlined dense emit-value
-            map-options clearable class="col" />
-          <q-input v-model="filter.search" label="Cari Nama/NISN" outlined dense clearable class="col">
+          <q-select
+            v-model="filter.exam_id"
+            :options="examOptions"
+            label="Filter Ujian"
+            outlined
+            dense
+            emit-value
+            map-options
+            clearable
+            class="col"
+          />
+          <q-select
+            v-model="filter.source"
+            :options="sourceOptions"
+            label="Filter Sumber"
+            outlined
+            dense
+            emit-value
+            map-options
+            clearable
+            class="col"
+          />
+          <q-input
+            v-model="filter.search"
+            label="Cari Nama/NISN"
+            outlined
+            dense
+            clearable
+            class="col"
+          >
             <template v-slot:prepend><q-icon name="search" /></template>
           </q-input>
         </div>
@@ -26,18 +56,35 @@
 
     <!-- Table -->
     <q-card>
-      <q-table :rows="filteredParticipants" :columns="columns" row-key="id" flat bordered :loading="loading"
-        no-data-label="Belum ada data peserta">
+      <q-table
+        :rows="filteredParticipants"
+        :columns="columns"
+        row-key="id"
+        flat
+        bordered
+        :loading="loading"
+        no-data-label="Belum ada data peserta"
+      >
         <template v-slot:body-cell-source="props">
           <q-td :props="props">
-            <q-badge :color="props.row.source === 'SIAKAD' ? 'primary' : 'orange'" :label="props.row.source" />
+            <q-badge
+              :color="props.row.source === 'SIAKAD' ? 'primary' : 'orange'"
+              :label="props.row.source"
+            />
           </q-td>
         </template>
 
         <template v-slot:body-cell-actions="props">
           <q-td :props="props">
-            <q-btn v-if="props.row.source === 'EXTERNAL'" flat round dense icon="delete" color="negative"
-              @click="confirmDelete(props.row)">
+            <q-btn
+              v-if="props.row.source === 'EXTERNAL'"
+              flat
+              round
+              dense
+              icon="delete"
+              color="negative"
+              @click="confirmDelete(props.row)"
+            >
               <q-tooltip>Hapus peserta</q-tooltip>
             </q-btn>
             <span v-else class="text-caption text-grey">
@@ -49,7 +96,13 @@
     </q-card>
 
     <!-- Dialog Import -->
-    <q-dialog v-model="showImportDialog" persistent maximized transition-show="slide-up" transition-hide="slide-down">
+    <q-dialog
+      v-model="showImportDialog"
+      persistent
+      maximized
+      transition-show="slide-up"
+      transition-hide="slide-down"
+    >
       <q-card>
         <q-bar class="bg-primary text-white">
           <q-space />
@@ -84,8 +137,13 @@
                 <q-input v-model="importForm.school_name" label="Nama Sekolah Asal" outlined
                   :rules="[val => !!val || 'Nama sekolah wajib diisi']" /> -->
 
-                <q-file v-model="importForm.csv_file" label="File CSV" accept=".csv" outlined
-                  :rules="[val => !!val || 'File CSV wajib dipilih']">
+                <q-file
+                  v-model="importForm.csv_file"
+                  label="File CSV"
+                  accept=".csv"
+                  outlined
+                  :rules="[(val) => !!val || 'File CSV wajib dipilih']"
+                >
                   <template v-slot:prepend><q-icon name="attach_file" /></template>
                 </q-file>
 
@@ -112,8 +170,15 @@
                 </q-banner>
               </div>
 
-              <q-table :rows="adminStore.importPreview" :columns="previewColumns" row-key="_rowNumber" flat bordered
-                dense :rows-per-page-options="[10, 25, 50]">
+              <q-table
+                :rows="adminStore.importPreview"
+                :columns="previewColumns"
+                row-key="_rowNumber"
+                flat
+                bordered
+                dense
+                :rows-per-page-options="[10, 25, 50]"
+              >
                 <template v-slot:body-cell-_error="props">
                   <q-td :props="props">
                     <q-badge v-if="props.row._error" color="negative" :label="props.row._error" />
@@ -124,8 +189,13 @@
 
               <div class="row q-gutter-sm q-mt-md">
                 <q-btn color="primary" label="Kembali" flat @click="step = 1" />
-                <q-btn color="positive" :label="`Import ${validCount} Peserta`" :disable="validCount === 0"
-                  :loading="adminStore.isImporting" @click="confirmImport" />
+                <q-btn
+                  color="positive"
+                  :label="`Import ${validCount} Peserta`"
+                  :disable="validCount === 0"
+                  :loading="adminStore.isImporting"
+                  @click="confirmImport"
+                />
                 <q-btn flat color="grey" label="Batal" v-close-popup />
               </div>
             </q-step>
@@ -153,26 +223,26 @@ const step = ref(1)
 const filter = reactive({
   exam_id: null,
   source: null,
-  search: ''
+  search: '',
 })
 
 const importForm = reactive({
   exam_id: '',
   semester_id: '',
   school_name: '',
-  csv_file: null
+  csv_file: null,
 })
 
 const sourceOptions = [
   { label: 'SIAKAD (Dapodik)', value: 'SIAKAD' },
-  { label: 'Eksternal', value: 'EXTERNAL' }
+  { label: 'Eksternal', value: 'EXTERNAL' },
 ]
 
 // eslint-disable-next-line no-unused-vars
 const semesterOptions = [
   { label: '2025/2026 - Ganjil', value: '20251' },
   { label: '2025/2026 - Genap', value: '20252' },
-  { label: '2026/2027 - Ganjil', value: '20261' }
+  { label: '2026/2027 - Ganjil', value: '20261' },
 ]
 
 const columns = [
@@ -183,7 +253,7 @@ const columns = [
   // { name: 'school_name', label: 'Sekolah', field: 'school_name', align: 'left' },
   { name: 'source', label: 'Status', field: 'source', align: 'center' },
   // { name: 'source', label: 'Sumber', field: 'source', align: 'center' },
-  { name: 'actions', label: 'Aksi', field: 'actions', align: 'center' }
+  { name: 'actions', label: 'Aksi', field: 'actions', align: 'center' },
 ]
 
 const previewColumns = [
@@ -191,21 +261,23 @@ const previewColumns = [
   { name: 'participant_id', label: 'ID Peserta', field: 'participant_id', align: 'left' },
   { name: 'name', label: 'Nama', field: 'name', align: 'left' },
   { name: 'class', label: 'Kelas', field: 'class', align: 'left' },
-  { name: '_error', label: 'Status', field: '_error', align: 'center' }
+  { name: '_error', label: 'Status', field: '_error', align: 'center' },
 ]
 
 const examOptions = computed(() =>
-  questionsStore.exams.map(e => ({ label: e.name, value: e.id }))
+  questionsStore.exams.map((e) => ({ label: e.name, value: e.id })),
 )
 
 const filteredParticipants = computed(() => {
-  return adminStore.participants.filter(p => {
+  return adminStore.participants.filter((p) => {
     if (filter.exam_id && p.exam_id !== filter.exam_id) return false
     if (filter.source && p.source !== filter.source) return false
     if (filter.search) {
       const search = filter.search.toLowerCase()
-      if (!p.name.toLowerCase().includes(search) &&
-        !p.participant_id.toLowerCase().includes(search)) {
+      if (
+        !p.name.toLowerCase().includes(search) &&
+        !p.participant_id.toLowerCase().includes(search)
+      ) {
         return false
       }
     }
@@ -213,9 +285,7 @@ const filteredParticipants = computed(() => {
   })
 })
 
-const validCount = computed(() =>
-  adminStore.importPreview.filter(p => !p._error).length
-)
+const validCount = computed(() => adminStore.importPreview.filter((p) => !p._error).length)
 
 const nextStep = async () => {
   if (!importForm.csv_file) return
@@ -225,13 +295,13 @@ const nextStep = async () => {
       importForm.csv_file,
       importForm.exam_id,
       importForm.semester_id,
-      importForm.school_name
+      importForm.school_name,
     )
     step.value = 2
   } catch (error) {
     $q.notify({
       type: 'negative',
-      message: error.response?.data?.message || 'Gagal memproses file'
+      message: error.response?.data?.message || 'Gagal memproses file',
     })
   }
 }
@@ -243,19 +313,19 @@ const confirmImport = () => {
     html: true,
     cancel: { label: 'Batal', flat: true },
     ok: { label: 'Ya, Import', color: 'positive', flat: true },
-    persistent: true
+    persistent: true,
   }).onOk(async () => {
     try {
       const result = await adminStore.confirmImportParticipants(
         importForm.exam_id,
         importForm.semester_id,
-        importForm.school_name
+        importForm.school_name,
       )
 
       $q.notify({
         type: 'positive',
         message: `${result.imported_count} peserta berhasil diimport!`,
-        timeout: 3000
+        timeout: 3000,
       })
 
       // Reset form
@@ -271,7 +341,7 @@ const confirmImport = () => {
     } catch (error) {
       $q.notify({
         type: 'negative',
-        message: error.response?.data?.message || 'Gagal mengimport peserta'
+        message: error.response?.data?.message || 'Gagal mengimport peserta',
       })
     }
   })
@@ -284,7 +354,7 @@ const confirmDelete = (participant) => {
     html: true,
     cancel: { label: 'Batal', flat: true },
     ok: { label: 'Ya, Hapus', color: 'negative', flat: true },
-    persistent: true
+    persistent: true,
   }).onOk(async () => {
     try {
       await adminStore.deleteParticipant(participant.id)
@@ -298,10 +368,7 @@ const confirmDelete = (participant) => {
 onMounted(async () => {
   loading.value = true
   try {
-    await Promise.all([
-      adminStore.fetchParticipants(),
-      questionsStore.fetchExams()
-    ])
+    await Promise.all([adminStore.fetchParticipants(), questionsStore.fetchExams()])
   } catch {
     $q.notify({ type: 'negative', message: 'Gagal memuat data' })
   } finally {

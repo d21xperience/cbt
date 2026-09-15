@@ -1,10 +1,29 @@
 <template>
   <q-layout view="hHh lpR fFf">
-    <AppHeader title="CBT" :badge="authStore.user?.role" :show-menu-toggle="true" :drawer-open="leftDrawerOpen"
-      :show-notifications="false" :notification-count="3" :show-refresh="true" :is-refreshing="isRefreshing"
-      @toggle-drawer="toggleDrawer" @notifications-click="showNotifications = true" @logout="confirmLogout" />
-    <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-grey-1" :width="280" :breakpoint="1024"
-      id="admin-drawer" role="navigation" aria-label="Main navigation">
+    <AppHeader
+      title="CBT"
+      :badge="authStore.user?.role"
+      :show-menu-toggle="true"
+      :drawer-open="leftDrawerOpen"
+      :show-notifications="false"
+      :notification-count="3"
+      :show-refresh="true"
+      :is-refreshing="isRefreshing"
+      @toggle-drawer="toggleDrawer"
+      @notifications-click="showNotifications = true"
+      @logout="confirmLogout"
+    />
+    <q-drawer
+      v-model="leftDrawerOpen"
+      show-if-above
+      bordered
+      class="bg-grey-1"
+      :width="280"
+      :breakpoint="1024"
+      id="admin-drawer"
+      role="navigation"
+      aria-label="Main navigation"
+    >
       <!-- Drawer Header -->
       <!-- <div class="q-py-md q-px-md bg-primary text-white">
         <div class="flex items-center">
@@ -26,10 +45,22 @@
             Main Navigation
           </q-item-label>
 
-          <q-item v-for="item in mainNavItems" :key="item.name" clickable v-ripple :to="item.to"
-            active-class="bg-blue-1 text-primary" exact :aria-current="isActiveRoute(item.to) ? 'page' : undefined">
+          <q-item
+            v-for="item in mainNavItems"
+            :key="item.name"
+            clickable
+            v-ripple
+            :to="item.to"
+            active-class="bg-blue-1 text-primary"
+            exact
+            :aria-current="isActiveRoute(item.to) ? 'page' : undefined"
+          >
             <q-item-section avatar>
-              <q-icon :name="item.icon" :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'" aria-hidden="true" />
+              <q-icon
+                :name="item.icon"
+                :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'"
+                aria-hidden="true"
+              />
             </q-item-section>
             <q-item-section>
               {{ item.label }}
@@ -93,7 +124,6 @@
           </div> -->
 
           <!-- Footer Actions -->
-
         </q-list>
       </q-scroll-area>
     </q-drawer>
@@ -106,10 +136,10 @@
 <script setup>
 import { useRouter, useRoute } from 'vue-router'
 
-import AppHeader from '@/components/ui/AppHeader.vue';
+import AppHeader from '@/components/ui/AppHeader.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useLayout } from '@/composables/ui/useLayout'
-import { ref } from 'vue';
+import { ref } from 'vue'
 // Use layout composable for common logic
 const { leftDrawerOpen, toggleDrawer, confirmLogout } = useLayout()
 const authStore = useAuthStore()
@@ -147,7 +177,4 @@ const isActiveRoute = (to) => {
 //     isRefreshing.value = false
 //   }
 // }
-
-
-
 </script>

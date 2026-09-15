@@ -5,9 +5,10 @@
       <template v-slot:avatar>
         <q-icon name="info" color="primary" />
       </template>
-      Upload file CSV atau Excel berisi soal ujian. File akan di-parse dan divalidasi sebelum di-submit.
-      <br><br>
-      <b>Format yang didukung:</b> .csv, .xlsx, .xls<br>
+      Upload file CSV atau Excel berisi soal ujian. File akan di-parse dan divalidasi sebelum
+      di-submit.
+      <br /><br />
+      <b>Format yang didukung:</b> .csv, .xlsx, .xls<br />
       <b>Maksimal ukuran:</b> 5 MB
     </q-banner>
 
@@ -72,7 +73,7 @@ import { useQuasar } from 'quasar'
 import { useQuestionsStore } from '@/stores/exam/questions'
 
 const props = defineProps({
-  examId: { type: String, required: true }
+  examId: { type: String, required: true },
 })
 
 const emit = defineEmits(['parsed'])
@@ -101,7 +102,7 @@ const parseFile = async () => {
   if (!selectedFile.value) {
     $q.notify({
       type: 'warning',
-      message: 'Pilih file terlebih dahulu'
+      message: 'Pilih file terlebih dahulu',
     })
     return
   }
@@ -112,7 +113,7 @@ const parseFile = async () => {
     $q.notify({
       type: result.invalid > 0 ? 'warning' : 'positive',
       message: `Berhasil parse ${result.total} soal (${result.valid} valid, ${result.invalid} error)`,
-      timeout: 3000
+      timeout: 3000,
     })
 
     if (result.valid > 0) {
@@ -123,7 +124,7 @@ const parseFile = async () => {
   } catch (error) {
     $q.notify({
       type: 'negative',
-      message: error.response?.data?.message || error.message || 'Gagal memproses file'
+      message: error.response?.data?.message || error.message || 'Gagal memproses file',
     })
   }
 }

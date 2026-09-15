@@ -6,7 +6,7 @@
       <div class="text-subtitle2 text-grey-7 q-mt-md">Memvalidasi Akun Pendidik...</div>
     </div>
     <!-- 2. KEADAAN DIBLOKIR: Sekolah ditangguhkan oleh Super Admin -->
-    <div v-else-if="isSuspended" class="text-center q-pa-xl" style="max-width: 500px;">
+    <div v-else-if="isSuspended" class="text-center q-pa-xl" style="max-width: 500px">
       <q-icon name="gavel" color="negative" size="100px" />
       <div class="text-h4 text-negative q-mt-md text-weight-bold">Akses Ditangguhkan</div>
       <div class="text-subtitle1 text-grey-7 q-mt-sm">
@@ -15,13 +15,19 @@
       <q-separator class="q-my-md" />
       <div class="text-body2 text-grey-6">
         Silakan hubungi tim super admin untuk informasi lebih lanjut.
-        <br>
+        <br />
         <span class="text-caption">(Kode: TENANT_SUSPENDED)</span>
       </div>
-      <q-btn class="q-mt-lg" color="primary" outline label="Kembali ke Beranda" icon="home"
-        @click="$router.push('/')" />
+      <q-btn
+        class="q-mt-lg"
+        color="primary"
+        outline
+        label="Kembali ke Beranda"
+        icon="home"
+        @click="$router.push('/')"
+      />
     </div>
-    <q-card v-else style="width: 380px; max-width: 90vw;" class="shadow-2 rounded-borders">
+    <q-card v-else style="width: 380px; max-width: 90vw" class="shadow-2 rounded-borders">
       <q-card-section class="bg-teal text-white text-center q-pa-md">
         <q-icon name="supervisor_account" size="md" class="q-mb-xs" />
         <div class="text-h6 text-weight-bold">{{ schoolName }}</div>
@@ -30,24 +36,46 @@
 
       <q-card-section class="q-pt-lg">
         <q-form @submit.prevent="onTeacherSubmit" class="q-gutter-md">
-          <q-input v-model="username" label="NIP / Username Guru" outlined stack-label dense
-            :rules="[val => !!val || 'NIP atau Username wajib diisi']">
+          <q-input
+            v-model="username"
+            label="NIP / Username Guru"
+            outlined
+            stack-label
+            dense
+            :rules="[(val) => !!val || 'NIP atau Username wajib diisi']"
+          >
             <template v-slot:prepend><q-icon name="badge" color="teal" /></template>
           </q-input>
 
-          <PasswordInput v-model="password" label="Kata Sandi Guru" dense :rules="[val => !!val || 'Sandi wajib diisi']"
-            class="q-mb-md" />
+          <PasswordInput
+            v-model="password"
+            label="Kata Sandi Guru"
+            dense
+            :rules="[(val) => !!val || 'Sandi wajib diisi']"
+            class="q-mb-md"
+          />
 
           <div>
-            <q-btn label="Masuk Ruang Proktor" type="submit" color="teal" class="full-width text-weight-bold"
-              :loading="loading" />
+            <q-btn
+              label="Masuk Ruang Proktor"
+              type="submit"
+              color="teal"
+              class="full-width text-weight-bold"
+              :loading="loading"
+            />
           </div>
         </q-form>
       </q-card-section>
 
       <q-card-actions align="center" class="q-pb-md">
-        <q-btn flat no-caps label="Beralih Ke Login Siswa" color="grey-7" icon="arrow_back"
-          :to="{ name: 'participant-login', query: $route.query }" />
+        <q-btn
+          flat
+          no-caps
+          label="Beralih Ke Login Siswa"
+          color="grey-7"
+          icon="arrow_back"
+          :to="{ name: 'participant-login', query: $route.query }"
+        />
       </q-card-actions>
     </q-card>
   </q-page>
@@ -58,7 +86,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from '@/stores/auth'
-import { useTenant } from '@/composables/super/useTenant';
+import { useTenant } from '@/composables/super/useTenant'
 
 import PasswordInput from '@/components/ui/PasswordInput.vue'
 
@@ -66,7 +94,7 @@ const router = useRouter()
 const $q = useQuasar()
 const authStore = useAuthStore()
 // eslint-disable-next-line no-unused-vars
-const { checkingTenant, schoolTitle, displayLogo, loadTenantConfig, isSuspended } = useTenant();
+const { checkingTenant, schoolTitle, displayLogo, loadTenantConfig, isSuspended } = useTenant()
 
 // State Reaktif Multi-Tenant
 
@@ -76,28 +104,35 @@ const loading = ref(false)
 const schoolName = ref('CBT School Node')
 
 onMounted(async () => {
-  authStore.clearSession();
+  authStore.clearSession()
   // 2. Load konfigurasi tenant (logo, nama sekolah)
-  await loadTenantConfig();
+  await loadTenantConfig()
 })
 
 const onTeacherSubmit = async () => {
   loading.value = true
   try {
-    const tes = await authStore.login({
-      username: username.value,
-      password: password.value
-    }, 'ADMIN')
+    const tes = await authStore.login(
+      {
+        username: username.value,
+        password: password.value,
+      },
+      'ADMIN',
+    )
     // Sesuai kode logika bawaan Anda (jika !tes berarti sukses)
     if (!tes) {
-      $q.notify({ type: 'positive', message: `Selamat datang di panel admin ${schoolName.value}! 😁` })
+      $q.notify({
+        type: 'positive',
+        message: `Selamat datang di panel admin ${schoolName.value}! 😁`,
+      })
       router.push('/admin')
     }
   } catch (err) {
     console.log(err)
     $q.notify({
       type: 'negative',
-      message: err.response?.data?.message || 'Login gagal. Periksa kembali kredensial proktor Anda.'
+      message:
+        err.response?.data?.message || 'Login gagal. Periksa kembali kredensial proktor Anda.',
     })
   } finally {
     loading.value = false

@@ -4,12 +4,20 @@
     <div class="q-mb-md row justify-between items-center">
       <div>
         <h5 class="q-my-none text-weight-bold text-primary">Sistem Manajemen Penagihan SaaS</h5>
-        <div class="text-caption text-grey-7">Otomatisasi invoice sewa CBT, rekonsiliasi pembayaran, dan penagihan
-          piutang tenant.</div>
+        <div class="text-caption text-grey-7">
+          Otomatisasi invoice sewa CBT, rekonsiliasi pembayaran, dan penagihan piutang tenant.
+        </div>
       </div>
       <!-- 🖨️ Tombol Cetak Laporan Rekapitulasi -->
       <div>
-        <q-btn color="primary" icon="assessment" label="Cetak Laporan" no-caps padding="sm lg" @click="printReport">
+        <q-btn
+          color="primary"
+          icon="assessment"
+          label="Cetak Laporan"
+          no-caps
+          padding="sm lg"
+          @click="printReport"
+        >
           <q-tooltip>Cetak rekap tagihan berdasarkan filter aktif</q-tooltip>
         </q-btn>
       </div>
@@ -21,10 +29,13 @@
         <q-card flat bordered class="bg-green-1 text-green-9">
           <q-card-section class="row items-center justify-between">
             <div>
-              <div class="text-caption text-weight-medium text-uppercase">Pendapatan Masuk (Lunas)</div>
+              <div class="text-caption text-weight-medium text-uppercase">
+                Pendapatan Masuk (Lunas)
+              </div>
               <!-- Gunakan billingStore.summary -->
-              <div class="text-h5 text-weight-bolder">Rp {{ billingStore.summary.total_revenue?.toLocaleString('id-ID')
-                || 0 }}</div>
+              <div class="text-h5 text-weight-bolder">
+                Rp {{ billingStore.summary.total_revenue?.toLocaleString('id-ID') || 0 }}
+              </div>
             </div>
             <q-icon name="account_balance_wallet" size="md" />
           </q-card-section>
@@ -35,9 +46,11 @@
         <q-card flat bordered class="bg-orange-1 text-orange-9">
           <q-card-section class="row items-center justify-between">
             <div>
-              <div class="text-caption text-weight-medium text-uppercase">Total Piutang Berjalan</div>
-              <div class="text-h5 text-weight-bolder">Rp {{
-                billingStore.summary.total_receivables?.toLocaleString('id-ID') || 0 }}
+              <div class="text-caption text-weight-medium text-uppercase">
+                Total Piutang Berjalan
+              </div>
+              <div class="text-h5 text-weight-bolder">
+                Rp {{ billingStore.summary.total_receivables?.toLocaleString('id-ID') || 0 }}
               </div>
             </div>
             <q-icon name="pending_actions" size="md" />
@@ -50,8 +63,10 @@
           <q-card-section class="row items-center justify-between">
             <div>
               <div class="text-caption text-weight-medium text-uppercase">Invoice Jatuh Tempo</div>
-              <div class="text-h5 text-weight-bolder">{{ billingStore.summary.overdue_count || 0 }} <span
-                  class="text-subtitle2 text-weight-light">Sekolah</span></div>
+              <div class="text-h5 text-weight-bolder">
+                {{ billingStore.summary.overdue_count || 0 }}
+                <span class="text-subtitle2 text-weight-light">Sekolah</span>
+              </div>
             </div>
             <q-icon name="gavel" size="md" />
           </q-card-section>
@@ -61,8 +76,16 @@
 
     <!-- Filter Tab Status Invoice -->
     <!-- Gunakan v-model="billingStore.currentTab" -->
-    <q-tabs v-model="billingStore.currentTab" dense class="text-grey bg-white rounded-borders q-mb-md"
-      active-color="primary" indicator-color="primary" align="left" flat bordered>
+    <q-tabs
+      v-model="billingStore.currentTab"
+      dense
+      class="text-grey bg-white rounded-borders q-mb-md"
+      active-color="primary"
+      indicator-color="primary"
+      align="left"
+      flat
+      bordered
+    >
       <q-tab name="ALL" label="Semua Tagihan" />
       <q-tab name="UNPAID" label="Belum Bayar" />
       <q-tab name="OVERDUE" label="Jatuh Tempo" />
@@ -72,14 +95,23 @@
 
     <!-- Tabel Master Invoice -->
     <!-- Gunakan billingStore.filteredInvoices dan billingStore.loading -->
-    <q-table :rows="billingStore.filteredInvoices" :columns="columns" row-key="id" flat bordered
-      :loading="billingStore.loading">
-
+    <q-table
+      :rows="billingStore.filteredInvoices"
+      :columns="columns"
+      row-key="id"
+      flat
+      bordered
+      :loading="billingStore.loading"
+    >
       <!-- Slot Modifikasi Kolom Status Visual -->
       <template v-slot:body-cell-status="props">
         <q-td :props="props" class="text-center">
-          <q-chip dense :color="getStatusColor(props.row.status)" text-color="white"
-            class="text-weight-bold text-caption">
+          <q-chip
+            dense
+            :color="getStatusColor(props.row.status)"
+            text-color="white"
+            class="text-weight-bold text-caption"
+          >
             {{ props.row.status }}
           </q-chip>
         </q-td>
@@ -87,35 +119,57 @@
 
       <!-- Slot Format Nominal Rupiah -->
       <template v-slot:body-cell-total="props">
-        <q-td :props="props">
-          Rp {{ props.row.total_amount.toLocaleString('id-ID') }}
-        </q-td>
+        <q-td :props="props"> Rp {{ props.row.total_amount.toLocaleString('id-ID') }} </q-td>
       </template>
 
       <!-- Slot Tombol Aksi Dinamis dan Relevan -->
       <template v-slot:body-cell-actions="props">
         <q-td :props="props" class="q-gutter-xs text-center">
           <!-- Aksi 1: Bayar -->
-          <q-btn v-if="['UNPAID', 'OVERDUE'].includes(props.row.status)" dense round color="green" icon="payments"
-            @click="billingStore.payInvoice(props.row)">
+          <q-btn
+            v-if="['UNPAID', 'OVERDUE'].includes(props.row.status)"
+            dense
+            round
+            color="green"
+            icon="payments"
+            @click="billingStore.payInvoice(props.row)"
+          >
             <q-tooltip>Konfirmasi Terima Pembayaran</q-tooltip>
           </q-btn>
 
           <!-- Aksi 2: Kirim Pengingat WhatsApp Instan -->
-          <q-btn v-if="['UNPAID', 'OVERDUE'].includes(props.row.status)" dense round color="teal" icon="send"
-            @click="billingStore.sendReminder(props.row)">
+          <q-btn
+            v-if="['UNPAID', 'OVERDUE'].includes(props.row.status)"
+            dense
+            round
+            color="teal"
+            icon="send"
+            @click="billingStore.sendReminder(props.row)"
+          >
             <q-tooltip>Kirim Invoice Ke WA Sekolah</q-tooltip>
           </q-btn>
 
           <!-- Aksi 3: Cetak Struk (Fungsi tetap di komponen) -->
-          <q-btn v-if="props.row.status !== 'VOID'" dense round color="grey-9" icon="print"
-            @click="printReceipt(props.row)">
+          <q-btn
+            v-if="props.row.status !== 'VOID'"
+            dense
+            round
+            color="grey-9"
+            icon="print"
+            @click="printReceipt(props.row)"
+          >
             <q-tooltip>Cetak Struk Transaksi</q-tooltip>
           </q-btn>
 
           <!-- Aksi 4: Pembatalan Tagihan (Void) -->
-          <q-btn v-if="['UNPAID', 'OVERDUE'].includes(props.row.status)" dense round color="red" icon="block"
-            @click="billingStore.voidInvoice(props.row)">
+          <q-btn
+            v-if="['UNPAID', 'OVERDUE'].includes(props.row.status)"
+            dense
+            round
+            color="red"
+            icon="block"
+            @click="billingStore.voidInvoice(props.row)"
+          >
             <q-tooltip>Batalkan/Void Invoice</q-tooltip>
           </q-btn>
         </q-td>
@@ -135,7 +189,7 @@ const billingStore = useBillingStore()
 const { printReport } = usePrintReport({
   data: billingStore.filteredInvoices,
   summary: billingStore.summary,
-  currentTab: billingStore.currentTab
+  currentTab: billingStore.currentTab,
 })
 // Inisialisasi Store
 
@@ -146,24 +200,30 @@ const columns = [
   { name: 'due', label: 'Jatuh Tempo', field: 'due_date', align: 'left' },
   { name: 'total', label: 'Total Tagihan', align: 'right' },
   { name: 'status', label: 'Status', align: 'center' },
-  { name: 'actions', label: 'Aksi Keuangan', align: 'center' }
+  { name: 'actions', label: 'Aksi Keuangan', align: 'center' },
 ]
 
 // Helper UI untuk warna chip status
 const getStatusColor = (status) => {
   switch (status) {
-    case 'PAID': return 'positive'
-    case 'UNPAID': return 'warning'
-    case 'OVERDUE': return 'red-7'
-    case 'VOID': return 'grey-6'
-    default: return 'primary'
+    case 'PAID':
+      return 'positive'
+    case 'UNPAID':
+      return 'warning'
+    case 'OVERDUE':
+      return 'red-7'
+    case 'VOID':
+      return 'grey-6'
+    default:
+      return 'primary'
   }
 }
 
 // Logic Cetak Struk (Tetap di komponen karena manipulasi DOM/Window)
 const printReceipt = (invoice) => {
   const printWindow = window.open('', '_blank')
-  printWindow.document.write(`
+  printWindow.document.write(
+    `
     <html>
       <head>
         <title>KUITANSI RESMI CBT ENGINE - ${invoice.invoice_no}</title>
@@ -192,15 +252,14 @@ const printReceipt = (invoice) => {
             window.print();
             window.close();
           };
-        </` + `script>
+        </` +
+      `script>
       </body>
     </html>
-  `)
+  `,
+  )
   printWindow.document.close()
 }
-
-
-
 
 // Fetch data saat komponen di-mount
 onMounted(() => {

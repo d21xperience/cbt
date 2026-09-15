@@ -1,4 +1,4 @@
-// src/composables/usePortalDirectory.js
+// src/composables/super/usePortalDirectory.js
 import { ref, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { TenantService as PortalService } from '@/services/super/TenantService'
@@ -9,25 +9,40 @@ export function usePortalDirectory() {
   const schools = ref([])
   const searchQuery = ref('')
 
-  // Filter berdasarkan nama atau kota (case-insensitive)
+  // 🔒 Normalizer: paksa jadi array apapun bentuk response-nya
+  function normalizeSchools(raw) {
+    if (Array.isArray(raw)) return raw
+    if (raw && Array.isArray(raw.data)) return raw.data
+    if (raw && typeof raw === 'object') {
+      console.warn('[PortalDirectory] Response bukan array:', raw)
+      return []
+    }
+    return []
+  }
+
   const filteredSchools = computed(() => {
-    if (!searchQuery.value.trim()) return schools.value
+    const list = Array.isArray(schools.value) ? schools.value : []
+    if (!searchQuery.value.trim()) return list
+
     const query = searchQuery.value.toLowerCase()
-    return schools.value.filter(
+    return list.filter(
       (school) =>
-        school.name?.toLowerCase().includes(query) || school.city?.toLowerCase().includes(query),
+        (school?.name || '').toLowerCase().includes(query) ||
+        (school?.city || '').toLowerCase().includes(query),
     )
   })
 
-  // Load data dari API
   const loadSchools = async () => {
     loading.value = true
     try {
       const response = await PortalService.getSchools()
-      console.log('📢-loadSchools', response)
-      schools.value = response.data
+      // Backend return {status, data:[...]} — ambil .data.data
+      const extracted = normalizeSchools(response?.data)
+      schools.value = extracted
+      console.info(`[PortalDirectory] Loaded ${extracted.length} schools`)
     } catch (error) {
-      console.error('Gagal mengambil direktori sekolah:', error)
+      console.error('[PortalDirectory] loadSchools error:', error)
+      schools.value = [] // jangan crash → set empty
       $q.notify({
         type: 'negative',
         message: 'Gagal memuat daftar sekolah. Silakan refresh halaman.',
@@ -44,6 +59,6 @@ export function usePortalDirectory() {
     schools,
     searchQuery,
     filteredSchools,
-    loadSchools, // Expose agar bisa dipanggil ulang jika perlu
+    loadSchools,
   }
 }

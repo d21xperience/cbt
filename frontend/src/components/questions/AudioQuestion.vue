@@ -7,8 +7,14 @@
         <q-icon name="headphones" size="24px" color="primary" />
         <div class="text-subtitle2">Dengarkan audio berikut:</div>
       </div>
-      <audio ref="audioRef" :src="audioUrl" controls class="full-width q-mt-sm" preload="metadata"
-        @error="onAudioError">
+      <audio
+        ref="audioRef"
+        :src="audioUrl"
+        controls
+        class="full-width q-mt-sm"
+        preload="metadata"
+        @error="onAudioError"
+      >
         Browser Anda tidak mendukung pemutar audio.
       </audio>
       <div v-if="audioError" class="text-negative text-caption q-mt-xs">
@@ -17,9 +23,19 @@
     </div>
 
     <!-- Pilihan Jawaban -->
-    <div v-for="(text, key) in parsedOptions" :key="key" class="q-pa-sm rounded-borders cursor-pointer row items-center"
-      :class="{ 'bg-blue-1': modelValue === key }" @click="selectOption(key)">
-      <q-radio :model-value="modelValue" :val="key" @update:model-value="selectOption" color="primary" />
+    <div
+      v-for="(text, key) in parsedOptions"
+      :key="key"
+      class="q-pa-sm rounded-borders cursor-pointer row items-center"
+      :class="{ 'bg-blue-1': modelValue === key }"
+      @click="selectOption(key)"
+    >
+      <q-radio
+        :model-value="modelValue"
+        :val="key"
+        @update:model-value="selectOption"
+        color="primary"
+      />
       <MathText :content="`<b>${key}.</b> ${text}`" class="q-ml-sm" />
     </div>
   </div>
@@ -31,7 +47,7 @@ import MathText from '@/components/ui/MathText.vue'
 
 const props = defineProps({
   question: { type: Object, required: true },
-  modelValue: { type: String, default: null }
+  modelValue: { type: String, default: null },
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -68,5 +84,7 @@ const audioUrl = computed(() => {
 })
 
 const selectOption = (key) => emit('update:modelValue', key)
-const onAudioError = () => { audioError.value = true }
+const onAudioError = () => {
+  audioError.value = true
+}
 </script>

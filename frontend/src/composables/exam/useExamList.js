@@ -1,84 +1,120 @@
-// src/composables/useExamList.js
+// src/composables/exam/useExamList.js
+// Adapter: mapping response backend → struktur yang dipakai komponen
 import { ref, computed } from 'vue'
 import { ExamService } from '@/services/exam/ActiveExamService'
 import { useQuasar } from 'quasar'
-import { useAuthStore } from '@/stores/auth'
+
+// Backend status → UI status
+function deriveStatus(raw) {
+  if (raw.participant_status === 'COMPLETED') return 'completed'
+  switch (raw.session_status) {
+    case 'ACTIVE':
+      return 'ready'
+    case 'NOT_STARTED':
+      return 'upcoming'
+    case 'EXPIRED':
+      return 'expired'
+    case 'COMPLETED':
+      return 'completed'
+    default:
+      return 'unknown'
+  }
+}
+
+// Backend DTO → UI model (untuk kompat dengan template lama)
+function adaptExam(raw) {
+  return {
+    id: raw.exam_id,
+    sessionId: raw.session_id,
+    subject: raw.title,
+    teacher: raw.session_type === 'SUSULAN' ? 'Ujian Susulan' : 'Reguler',
+    status: deriveStatus(raw),
+    duration: raw.duration_minutes,
+    startTime: formatTime(raw.start_time),
+    endTime: formatTime(raw.end_time),
+    sessionType: raw.session_type,
+    participantStatus: raw.participant_status,
+  }
+}
+
+function formatTime(iso) {
+  if (!iso) return '-'
+  try {
+    const d = new Date(iso)
+    return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+  } catch {
+    return iso
+  }
+}
+
+function formatDate(iso) {
+  if (!iso) return '-'
+  try {
+    const d = new Date(iso)
+    return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+  } catch {
+    return iso
+  }
+}
 
 export function useExamList() {
   const $q = useQuasar()
   const loading = ref(false)
   const exams = ref([])
-  const authStore = useAuthStore()
-  // const history = ref([])
-  // 🚀 AMBIL ID USER YANG SEDANG LOGIN
-  const currentUserId = computed(() => authStore.user?.id || authStore.getUser?.id)
-  // const participantName = computed(() => authStore.user?.name || 'Siswa')
-  // Fetch data dari API/mock
+  const history = ref([])
+
+  const activeExams = computed(() =>
+    exams.value.filter((e) => e.status === 'ready' || e.status === 'upcoming'),
+  )
+  const completedExams = computed(() => exams.value.filter((e) => e.status === 'completed'))
+
   const fetchExams = async () => {
-    // Validasi: Harus ada user yang login
-    if (!currentUserId.value) {
-      $q.notify({
-        type: 'warning',
-        message: 'Sesi peserta tidak ditemukan. Silakan login ulang.',
-        position: 'top',
-      })
-      return
-    }
     loading.value = true
     try {
-      const response = await ExamService.getActiveExams(currentUserId.value)
-      // console.log('📢 fetchExam', response)
-      exams.value = response.data || []
+      const { data } = await ExamService.getActiveExams()
+      const rows = data.data || []
+      exams.value = rows.map(adaptExam)
     } catch (error) {
-      $q.notify({
-        type: 'negative',
-        message: 'Gagal memuat daftar ujian',
-        position: 'top',
-      })
       console.error('Fetch exams error:', error)
+      const status = error.response?.status
+      if (status === 401) {
+        $q.notify({ type: 'negative', message: 'Sesi habis. Login ulang.', position: 'top' })
+      } else {
+        $q.notify({ type: 'negative', message: 'Gagal memuat daftar ujian', position: 'top' })
+      }
     } finally {
       loading.value = false
     }
   }
 
-  // Computed: ujian yang siap (status 'ready')
-  const activeExams = computed(() => {
-    return exams.value.filter((exam) => exam.status === 'ready' || exam.status === 'upcoming')
-  })
-
-  // Computed: riwayat ujian selesai
-  const completedExams = computed(() => {
-    return exams.value.filter((exam) => exam.status === 'completed')
-  })
-
-  // Fungsi untuk verifikasi token
-  const verifyToken = async (examId, token) => {
+  const fetchHistory = async () => {
     try {
-      const response = await ExamService.verifyToken(currentUserId.value, examId, token)
-      return response.data.valid // true/false
-    } catch (err) {
-      console.error(err)
-      throw err
-      // $q.notify({
-      //   type: 'negative',
-      //   message: 'Token tidak valid atau sudah kadaluarsa',
-      //   position: 'top',
-      // })
-      // return false
+      const { data } = await ExamService.getExamHistory()
+      history.value = (data.data || []).map((h) => ({
+        id: h.exam_id,
+        subject: h.title || h.exam_id,
+        completedAt: formatDate(h.submitted_at),
+        score: h.final_score,
+        status: h.status,
+      }))
+    } catch (error) {
+      console.error('Fetch history error:', error)
     }
   }
 
-  // // Panggil fetch otomatis saat composable digunakan
-  // onMounted(() => {
-  //   fetchExams()
-  // })
+  const verifyToken = async (examId, token) => {
+    const { data } = await ExamService.verifyToken(examId, token)
+    return data // {valid, token (JWT-B), session_id, ...}
+  }
 
   return {
     loading,
     exams,
+    history,
     activeExams,
     completedExams,
     fetchExams,
+    fetchHistory,
     verifyToken,
   }
 }

@@ -18,7 +18,7 @@ export const generateExcelTemplate = () => {
       correct_option: 'B',
       score: 10,
       media_url: '',
-      rubric: ''
+      rubric: '',
     },
     {
       question_type: 'PG',
@@ -30,7 +30,7 @@ export const generateExcelTemplate = () => {
       correct_option: 'A',
       score: 10,
       media_url: '',
-      rubric: ''
+      rubric: '',
     },
     {
       question_type: 'ESSAY',
@@ -42,8 +42,8 @@ export const generateExcelTemplate = () => {
       correct_option: '',
       score: 20,
       media_url: '',
-      rubric: 'Jawaban harus menyebutkan: cahaya matahari, klorofil, CO2, H2O, glukosa, O2'
-    }
+      rubric: 'Jawaban harus menyebutkan: cahaya matahari, klorofil, CO2, H2O, glukosa, O2',
+    },
   ]
 
   // Create worksheet
@@ -58,9 +58,9 @@ export const generateExcelTemplate = () => {
     { wch: 20 }, // opt_c
     { wch: 20 }, // opt_d
     { wch: 15 }, // correct_option
-    { wch: 8 },  // score
+    { wch: 8 }, // score
     { wch: 30 }, // media_url
-    { wch: 50 }  // rubric
+    { wch: 50 }, // rubric
   ]
 
   // Create workbook
@@ -91,7 +91,7 @@ export const generateExcelTemplate = () => {
     ['- Display: $$x^2 - 5x + 6 = 0$$'],
     [''],
     ['CONTOH SOAL:'],
-    ['Lihat sheet "Soal Ujian" untuk contoh']
+    ['Lihat sheet "Soal Ujian" untuk contoh'],
   ]
 
   const wsInstruction = XLSX.utils.aoa_to_sheet(instructionData)
@@ -103,7 +103,7 @@ export const generateExcelTemplate = () => {
 
   // Create Blob
   return new Blob([wbout], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   })
 }
 
@@ -138,7 +138,7 @@ export const parseQuestionFile = async (file) => {
             correct_option: row.correct_option || null,
             score: parseInt(row.score) || 10,
             media_url: row.media_url || null,
-            rubric: row.rubric || null
+            rubric: row.rubric || null,
           }
 
           // Parse options untuk PG
@@ -147,7 +147,7 @@ export const parseQuestionFile = async (file) => {
               A: row.opt_a || '',
               B: row.opt_b || '',
               C: row.opt_c || '',
-              D: row.opt_d || ''
+              D: row.opt_d || '',
             }
           }
 
@@ -157,10 +157,18 @@ export const parseQuestionFile = async (file) => {
           }
 
           if (question.question_type === 'PG') {
-            if (!question.options.A || !question.options.B || !question.options.C || !question.options.D) {
+            if (
+              !question.options.A ||
+              !question.options.B ||
+              !question.options.C ||
+              !question.options.D
+            ) {
               question._error = 'Semua opsi PG wajib diisi'
             }
-            if (!question.correct_option || !['A', 'B', 'C', 'D'].includes(question.correct_option)) {
+            if (
+              !question.correct_option ||
+              !['A', 'B', 'C', 'D'].includes(question.correct_option)
+            ) {
               question._error = 'Jawaban benar tidak valid'
             }
           }

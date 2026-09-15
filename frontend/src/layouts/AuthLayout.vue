@@ -10,8 +10,12 @@
           </div>
         </q-toolbar-title>
         <div class="q-gutter-sm">
-          <q-btn flat v-if="isParticipantPage" :to="{ name: 'admin-login', query: route.query }"
-            icon="admin_panel_settings"></q-btn>
+          <q-btn
+            flat
+            v-if="isParticipantPage"
+            :to="{ name: 'admin-login', query: route.query }"
+            icon="admin_panel_settings"
+          ></q-btn>
         </div>
       </q-toolbar>
     </q-header>
@@ -21,23 +25,21 @@
     </q-page-container>
 
     <q-footer class="bg-grey-3 text-grey-7 text-center q-py-sm">
-      <div class="text-caption">
-        &copy; {{ new Date().getFullYear() }} - CBT System v2.0
-      </div>
+      <div class="text-caption">&copy; {{ new Date().getFullYear() }} - CBT System v2.0</div>
     </q-footer>
   </q-layout>
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 
-const route = useRoute();
+const route = useRoute()
 
 // Deteksi apakah user sedang berada di halaman login peserta/siswa
 const isParticipantPage = computed(() => {
-  return route.path === '/auth/participant' || route.name === 'participant-login';
-});
+  return route.path === '/auth/participant' || route.name === 'participant-login'
+})
 
 // const loginConfig = computed(() => {
 //   // if (route.path.includes('/auth/admin')) {

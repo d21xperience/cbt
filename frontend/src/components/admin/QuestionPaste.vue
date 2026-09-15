@@ -15,35 +15,81 @@
 
         <q-form @submit.prevent="addQuestion" class="q-gutter-md">
           <div class="row q-gutter-md">
-            <q-select v-model="form.question_type" :options="questionTypes" label="Tipe Soal" outlined emit-value
-              map-options class="col-4" dense />
+            <q-select
+              v-model="form.question_type"
+              :options="questionTypes"
+              label="Tipe Soal"
+              outlined
+              emit-value
+              map-options
+              class="col-4"
+              dense
+            />
 
-            <q-input v-model.number="form.score" label="Bobot Nilai" type="number" outlined class="col-2" dense
-              :rules="[val => val > 0 || 'Bobot harus > 0']" />
+            <q-input
+              v-model.number="form.score"
+              label="Bobot Nilai"
+              type="number"
+              outlined
+              class="col-2"
+              dense
+              :rules="[(val) => val > 0 || 'Bobot harus > 0']"
+            />
           </div>
 
-          <q-input v-model="form.question_text" label="Teks Soal (support LaTeX: $...$ atau $$...$$)" type="textarea"
-            outlined autogrow :rules="[val => !!val || 'Teks soal wajib diisi']" />
+          <q-input
+            v-model="form.question_text"
+            label="Teks Soal (support LaTeX: $...$ atau $$...$$)"
+            type="textarea"
+            outlined
+            autogrow
+            :rules="[(val) => !!val || 'Teks soal wajib diisi']"
+          />
 
           <!-- Opsi untuk PG -->
           <div v-if="form.question_type === 'PG'" class="q-gutter-sm">
             <div class="text-subtitle2">Pilihan Jawaban:</div>
             <div class="row q-gutter-sm">
-              <q-input v-for="opt in ['A', 'B', 'C', 'D']" :key="opt" v-model="form.options[opt]" :label="`Opsi ${opt}`"
-                outlined dense class="col"
-                :rules="[val => form.question_type === 'PG' && !!val || 'Opsi wajib diisi']" />
+              <q-input
+                v-for="opt in ['A', 'B', 'C', 'D']"
+                :key="opt"
+                v-model="form.options[opt]"
+                :label="`Opsi ${opt}`"
+                outlined
+                dense
+                class="col"
+                :rules="[(val) => (form.question_type === 'PG' && !!val) || 'Opsi wajib diisi']"
+              />
             </div>
 
-            <q-select v-model="form.correct_option" :options="['A', 'B', 'C', 'D']" label="Jawaban Benar" outlined dense
-              class="col-3" :rules="[val => !!val || 'Jawaban benar wajib dipilih']" />
+            <q-select
+              v-model="form.correct_option"
+              :options="['A', 'B', 'C', 'D']"
+              label="Jawaban Benar"
+              outlined
+              dense
+              class="col-3"
+              :rules="[(val) => !!val || 'Jawaban benar wajib dipilih']"
+            />
           </div>
 
           <!-- Rubric untuk ESSAY -->
-          <q-input v-if="form.question_type === 'ESSAY'" v-model="form.rubric" label="Rubrik Penilaian (opsional)"
-            type="textarea" outlined autogrow />
+          <q-input
+            v-if="form.question_type === 'ESSAY'"
+            v-model="form.rubric"
+            label="Rubrik Penilaian (opsional)"
+            type="textarea"
+            outlined
+            autogrow
+          />
 
           <!-- Media URL -->
-          <q-input v-model="form.media_url" label="URL Media (gambar/audio, opsional)" outlined dense />
+          <q-input
+            v-model="form.media_url"
+            label="URL Media (gambar/audio, opsional)"
+            outlined
+            dense
+          />
 
           <div class="row q-gutter-sm">
             <q-btn type="submit" color="primary" icon="add" label="Tambah ke Daftar" />
@@ -69,9 +115,14 @@
 
           <q-item-section>
             <q-item-label>
-              <q-badge :color="q.question_type === 'PG' ? 'blue' : 'orange'" :label="q.question_type" />
-              <span class="q-ml-sm">{{ q.question_text.substring(0, 80) }}{{ q.question_text.length > 80 ? '...' : ''
-              }}</span>
+              <q-badge
+                :color="q.question_type === 'PG' ? 'blue' : 'orange'"
+                :label="q.question_type"
+              />
+              <span class="q-ml-sm"
+                >{{ q.question_text.substring(0, 80)
+                }}{{ q.question_text.length > 80 ? '...' : '' }}</span
+              >
             </q-item-label>
             <q-item-label caption>
               Bobot: {{ q.score }} poin
@@ -100,7 +151,7 @@ import { useQuestionsStore } from '@/stores/exam/questions'
 
 // eslint-disable-next-line no-unused-vars
 const props = defineProps({
-  examId: { type: String, required: true }
+  examId: { type: String, required: true },
 })
 
 const emit = defineEmits(['parsed'])
@@ -112,7 +163,7 @@ const localQuestions = ref([])
 
 const questionTypes = [
   { label: 'Pilihan Ganda (PG)', value: 'PG' },
-  { label: 'Essay', value: 'ESSAY' }
+  { label: 'Essay', value: 'ESSAY' },
 ]
 
 const form = reactive({
@@ -122,7 +173,7 @@ const form = reactive({
   correct_option: '',
   score: 10,
   media_url: '',
-  rubric: ''
+  rubric: '',
 })
 
 const addQuestion = () => {
@@ -151,7 +202,7 @@ const addQuestion = () => {
     correct_option: form.question_type === 'PG' ? form.correct_option : null,
     score: form.score,
     media_url: form.media_url || null,
-    rubric: form.rubric || null
+    rubric: form.rubric || null,
   })
 
   resetForm()
@@ -159,7 +210,7 @@ const addQuestion = () => {
   $q.notify({
     type: 'positive',
     message: 'Soal berhasil ditambahkan',
-    timeout: 1500
+    timeout: 1500,
   })
 }
 
@@ -172,7 +223,7 @@ const clearAll = () => {
     title: 'Konfirmasi',
     message: 'Hapus semua soal yang sudah ditambahkan?',
     cancel: true,
-    persistent: true
+    persistent: true,
   }).onOk(() => {
     localQuestions.value = []
   })

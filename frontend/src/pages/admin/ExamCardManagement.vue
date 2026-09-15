@@ -14,37 +14,87 @@
       <q-tab-panel name="list" class="q-pa-none">
         <div class="row q-col-gutter-md q-mb-md">
           <div class="col-12 col-md-3">
-            <q-input dense outlined label="Cari (Nama, No. Kartu)" v-model="searchQuery" debounce="300" />
+            <q-input
+              dense
+              outlined
+              label="Cari (Nama, No. Kartu)"
+              v-model="searchQuery"
+              debounce="300"
+            />
           </div>
           <div class="col-12 col-md-2">
-            <q-select dense outlined label="Tipe Kartu" v-model="filterType"
-              :options="['SEMUA', 'PERMANENT', 'TEMPORARY']" clearable />
+            <q-select
+              dense
+              outlined
+              label="Tipe Kartu"
+              v-model="filterType"
+              :options="['SEMUA', 'PERMANENT', 'TEMPORARY']"
+              clearable
+            />
           </div>
           <div class="col-12 col-md-2">
-            <q-select dense outlined label="Status" v-model="filterStatus"
-              :options="['SEMUA', 'ACTIVE', 'EXPIRED', 'REVOKED']" clearable />
+            <q-select
+              dense
+              outlined
+              label="Status"
+              v-model="filterStatus"
+              :options="['SEMUA', 'ACTIVE', 'EXPIRED', 'REVOKED']"
+              clearable
+            />
           </div>
         </div>
-        <q-table :rows="filteredCards" :columns="columns" row-key="id" flat bordered dense :loading="loading">
+        <q-table
+          :rows="filteredCards"
+          :columns="columns"
+          row-key="id"
+          flat
+          bordered
+          dense
+          :loading="loading"
+        >
           <template v-slot:body-cell-card_type="props">
             <q-td :props="props">
-              <q-badge :color="props.row.card_type === 'PERMANENT' ? 'positive' : 'warning'"
-                :label="props.row.card_type" />
+              <q-badge
+                :color="props.row.card_type === 'PERMANENT' ? 'positive' : 'warning'"
+                :label="props.row.card_type"
+              />
             </q-td>
           </template>
           <template v-slot:body-cell-status="props">
             <q-td :props="props">
               <q-badge
-                :color="props.row.status === 'ACTIVE' ? 'primary' : (props.row.status === 'EXPIRED' ? 'negative' : 'grey')"
-                :label="props.row.status" />
+                :color="
+                  props.row.status === 'ACTIVE'
+                    ? 'primary'
+                    : props.row.status === 'EXPIRED'
+                      ? 'negative'
+                      : 'grey'
+                "
+                :label="props.row.status"
+              />
             </q-td>
           </template>
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
-              <q-btn flat round dense icon="print" color="primary" @click="printSingleCard(props.row)" class="q-mr-sm">
+              <q-btn
+                flat
+                round
+                dense
+                icon="print"
+                color="primary"
+                @click="printSingleCard(props.row)"
+                class="q-mr-sm"
+              >
                 <q-tooltip>Cetak Kartu</q-tooltip>
               </q-btn>
-              <q-btn flat round dense icon="block" color="negative" @click="revokeCard(props.row.id)">
+              <q-btn
+                flat
+                round
+                dense
+                icon="block"
+                color="negative"
+                @click="revokeCard(props.row.id)"
+              >
                 <q-tooltip>Cabut Kartu</q-tooltip>
               </q-btn>
             </q-td>
@@ -62,18 +112,45 @@
             <q-form class="q-gutter-md">
               <div class="row q-col-gutter-md">
                 <div class="col-12 col-md-6">
-                  <q-select v-model="selectedStudent" :options="siswaOptions" label="Pilih Siswa" option-value="id"
-                    option-label="nama_dan_kelas" outlined dense />
+                  <q-select
+                    v-model="selectedStudent"
+                    :options="siswaOptions"
+                    label="Pilih Siswa"
+                    option-value="id"
+                    option-label="nama_dan_kelas"
+                    outlined
+                    dense
+                  />
                 </div>
                 <div class="col-12 col-md-6">
-                  <q-select v-model="selectedExam" :options="examOptions" label="Pilih Ujian (Opsional)"
-                    option-value="id" option-label="nama" outlined dense clearable />
+                  <q-select
+                    v-model="selectedExam"
+                    :options="examOptions"
+                    label="Pilih Ujian (Opsional)"
+                    option-value="id"
+                    option-label="nama"
+                    outlined
+                    dense
+                    clearable
+                  />
                 </div>
                 <div class="col-12 col-md-6">
-                  <q-select v-model="cardType" :options="cardTypeOptions" label="Tipe Kartu" outlined dense />
+                  <q-select
+                    v-model="cardType"
+                    :options="cardTypeOptions"
+                    label="Tipe Kartu"
+                    outlined
+                    dense
+                  />
                 </div>
                 <div class="col-12 col-md-6" v-if="cardType === 'TEMPORARY'">
-                  <q-input v-model="expiryDate" label="Tanggal Kedaluwarsa" type="date" outlined dense />
+                  <q-input
+                    v-model="expiryDate"
+                    label="Tanggal Kedaluwarsa"
+                    type="date"
+                    outlined
+                    dense
+                  />
                   <q-input v-model="reason" label="Alasan (Tunggakan)" outlined dense />
                 </div>
               </div>
@@ -92,19 +169,44 @@
           <q-card-section>
             <div class="row q-col-gutter-md">
               <div class="col-12 col-md-4">
-                <q-select v-model="massFilterKelas" :options="kelasOptions" label="Filter Kelas (Opsional)"
-                  option-value="id" option-label="nama" outlined dense clearable />
+                <q-select
+                  v-model="massFilterKelas"
+                  :options="kelasOptions"
+                  label="Filter Kelas (Opsional)"
+                  option-value="id"
+                  option-label="nama"
+                  outlined
+                  dense
+                  clearable
+                />
               </div>
               <div class="col-12 col-md-4">
-                <q-select v-model="massSelectedStudents" :options="massSiswaOptions" label="Pilih Siswa Tertentu"
-                  multiple outlined dense use-chips option-value="id" option-label="nama_dan_kelas" />
+                <q-select
+                  v-model="massSelectedStudents"
+                  :options="massSiswaOptions"
+                  label="Pilih Siswa Tertentu"
+                  multiple
+                  outlined
+                  dense
+                  use-chips
+                  option-value="id"
+                  option-label="nama_dan_kelas"
+                />
               </div>
               <div class="col-12 col-md-4">
-                <q-btn color="primary" label="Cetak Kartu untuk Siswa Terpilih" @click="printMassCards" />
+                <q-btn
+                  color="primary"
+                  label="Cetak Kartu untuk Siswa Terpilih"
+                  @click="printMassCards"
+                />
               </div>
             </div>
             <div class="q-mt-md">
-              <q-btn color="secondary" label="Cetak Semua Kartu Aktif" @click="printAllActiveCards" />
+              <q-btn
+                color="secondary"
+                label="Cetak Semua Kartu Aktif"
+                @click="printAllActiveCards"
+              />
             </div>
           </q-card-section>
         </q-card>
@@ -125,22 +227,25 @@
               <div class="col-12 col-md-3">
                 <q-card class="bg-positive text-white">
                   <q-card-section>Aktif</q-card-section>
-                  <q-card-section class="text-h4">{{allCards.filter(c => c.status === 'ACTIVE').length
-                    }}</q-card-section>
+                  <q-card-section class="text-h4">{{
+                    allCards.filter((c) => c.status === 'ACTIVE').length
+                  }}</q-card-section>
                 </q-card>
               </div>
               <div class="col-12 col-md-3">
                 <q-card class="bg-warning text-black">
                   <q-card-section>Sementara</q-card-section>
-                  <q-card-section class="text-h4">{{allCards.filter(c => c.card_type === 'TEMPORARY').length
-                    }}</q-card-section>
+                  <q-card-section class="text-h4">{{
+                    allCards.filter((c) => c.card_type === 'TEMPORARY').length
+                  }}</q-card-section>
                 </q-card>
               </div>
               <div class="col-12 col-md-3">
                 <q-card class="bg-negative text-white">
                   <q-card-section>Kedaluwarsa/Dicabut</q-card-section>
-                  <q-card-section class="text-h4">{{allCards.filter(c => c.status !== 'ACTIVE').length
-                    }}</q-card-section>
+                  <q-card-section class="text-h4">{{
+                    allCards.filter((c) => c.status !== 'ACTIVE').length
+                  }}</q-card-section>
                 </q-card>
               </div>
             </div>
@@ -151,22 +256,35 @@
 
     <!-- Dialog Preview Cetak (untuk satu kartu) -->
     <q-dialog v-model="printDialog" persistent>
-      <q-card style="min-width: 400px;">
+      <q-card style="min-width: 400px">
         <q-card-section class="text-center">
           <div class="text-h6">Preview Kartu Ujian</div>
         </q-card-section>
         <q-card-section class="text-center" id="print-area-single">
-          <div class="card-preview"
-            style="border: 2px solid #ccc; padding: 20px; border-radius: 10px; width: 350px; margin: auto;">
+          <div
+            class="card-preview"
+            style="
+              border: 2px solid #ccc;
+              padding: 20px;
+              border-radius: 10px;
+              width: 350px;
+              margin: auto;
+            "
+          >
             <div><strong>No. Kartu:</strong> {{ singleCardData?.card_number }}</div>
             <div><strong>Siswa:</strong> {{ singleCardData?.student_name }}</div>
             <div><strong>Username:</strong> {{ singleCardData?.username }}</div>
             <div><strong>Password:</strong> {{ singleCardData?.password }}</div>
             <div><strong>Serial Key:</strong> {{ singleCardData?.serial_key }}</div>
-            <div v-if="singleCardData?.exam_id"><strong>Ujian:</strong> {{ getExamName(singleCardData.exam_id) }}</div>
-            <div v-if="singleCardData?.card_type === 'TEMPORARY'"><strong>Berlaku s/d:</strong> {{
-              formatDate(singleCardData.expiry_date) }}</div>
-            <div v-if="singleCardData?.reason"><strong>Alasan:</strong> {{ singleCardData.reason }}</div>
+            <div v-if="singleCardData?.exam_id">
+              <strong>Ujian:</strong> {{ getExamName(singleCardData.exam_id) }}
+            </div>
+            <div v-if="singleCardData?.card_type === 'TEMPORARY'">
+              <strong>Berlaku s/d:</strong> {{ formatDate(singleCardData.expiry_date) }}
+            </div>
+            <div v-if="singleCardData?.reason">
+              <strong>Alasan:</strong> {{ singleCardData.reason }}
+            </div>
             <div class="q-mt-md">
               <qrcode-vue :value="singleCardData?.qr_data" :size="120" level="H" />
             </div>
@@ -186,16 +304,23 @@
         <q-card-section>
           <div class="text-h6">Cetak Kartu Massal</div>
           <div class="q-mt-md" id="print-area-mass">
-            <div v-for="(card) in massCardsToPrint" :key="card.id" class="card-print-item" :style="massPrintStyle">
-              <div style="border: 1px solid #aaa; padding: 10px; margin: 5px; border-radius: 8px;">
+            <div
+              v-for="card in massCardsToPrint"
+              :key="card.id"
+              class="card-print-item"
+              :style="massPrintStyle"
+            >
+              <div style="border: 1px solid #aaa; padding: 10px; margin: 5px; border-radius: 8px">
                 <div><strong>No. Kartu:</strong> {{ card.card_number }}</div>
                 <div><strong>Siswa:</strong> {{ card.student_name }}</div>
                 <div><strong>Username:</strong> {{ card.username }}</div>
                 <div><strong>Password:</strong> {{ card.password }}</div>
                 <div><strong>Serial Key:</strong> {{ card.serial_key }}</div>
-                <div v-if="card.exam_id"><strong>Ujian:</strong> {{ getExamName(card.exam_id) }}</div>
-                <div v-if="card.card_type === 'TEMPORARY'"><strong>Berlaku s/d:</strong> {{ formatDate(card.expiry_date)
-                  }}
+                <div v-if="card.exam_id">
+                  <strong>Ujian:</strong> {{ getExamName(card.exam_id) }}
+                </div>
+                <div v-if="card.card_type === 'TEMPORARY'">
+                  <strong>Berlaku s/d:</strong> {{ formatDate(card.expiry_date) }}
                 </div>
                 <div class="q-mt-sm">
                   <qrcode-vue :value="card.qr_data" :size="80" level="H" />
@@ -241,7 +366,7 @@ const expiryDate = ref('')
 const reason = ref('')
 const cardTypeOptions = [
   { label: 'Kartu Tetap', value: 'PERMANENT' },
-  { label: 'Kartu Sementara (Tunggakan)', value: 'TEMPORARY' }
+  { label: 'Kartu Sementara (Tunggakan)', value: 'TEMPORARY' },
 ]
 
 // Mass printing
@@ -258,7 +383,7 @@ const columns = [
   { name: 'student_name', label: 'Siswa', field: 'student_name', align: 'left' },
   { name: 'card_type', label: 'Tipe', field: 'card_type', align: 'center' },
   { name: 'status', label: 'Status', field: 'status', align: 'center' },
-  { name: 'actions', label: 'Aksi', field: 'actions', align: 'center' }
+  { name: 'actions', label: 'Aksi', field: 'actions', align: 'center' },
 ]
 
 // Computed
@@ -266,23 +391,29 @@ const filteredCards = computed(() => {
   let result = allCards.value
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase()
-    result = result.filter(c => c.student_name.toLowerCase().includes(q) || c.card_number.toLowerCase().includes(q))
+    result = result.filter(
+      (c) => c.student_name.toLowerCase().includes(q) || c.card_number.toLowerCase().includes(q),
+    )
   }
-  if (filterType.value && filterType.value !== 'SEMUA') result = result.filter(c => c.card_type === filterType.value)
-  if (filterStatus.value && filterStatus.value !== 'SEMUA') result = result.filter(c => c.status === filterStatus.value)
+  if (filterType.value && filterType.value !== 'SEMUA')
+    result = result.filter((c) => c.card_type === filterType.value)
+  if (filterStatus.value && filterStatus.value !== 'SEMUA')
+    result = result.filter((c) => c.status === filterStatus.value)
   return result
 })
 
-const siswaOptions = computed(() => siswaList.value.map(s => ({ id: s.id, nama_dan_kelas: `${s.nama} (${s.kelas_nama})`, ...s })))
+const siswaOptions = computed(() =>
+  siswaList.value.map((s) => ({ id: s.id, nama_dan_kelas: `${s.nama} (${s.kelas_nama})`, ...s })),
+)
 const examOptions = computed(() => examList.value)
 const kelasOptions = computed(() => kelasList.value)
 
 const massSiswaOptions = computed(() => {
   let filtered = siswaList.value
   if (massFilterKelas.value) {
-    filtered = filtered.filter(s => s.kelas_id === massFilterKelas.value.id)
+    filtered = filtered.filter((s) => s.kelas_id === massFilterKelas.value.id)
   }
-  return filtered.map(s => ({ id: s.id, nama_dan_kelas: `${s.nama} (${s.kelas_nama})`, ...s }))
+  return filtered.map((s) => ({ id: s.id, nama_dan_kelas: `${s.nama} (${s.kelas_nama})`, ...s }))
 })
 
 const massPrintStyle = computed(() => {
@@ -307,7 +438,9 @@ function generateUsername(student) {
 function generatePassword() {
   return Math.random().toString(36).substring(2, 10)
 }
-function saveCards() { localStorage.setItem('exam_cards', JSON.stringify(allCards.value)) }
+function saveCards() {
+  localStorage.setItem('exam_cards', JSON.stringify(allCards.value))
+}
 function loadCards() {
   const cards = localStorage.getItem('exam_cards')
   if (cards) allCards.value = JSON.parse(cards)
@@ -320,8 +453,20 @@ function loadStudents() {
     kelasList.value = parsed.classes || []
   } else {
     siswaList.value = [
-      { id: 1, nama: 'Ahmad Faizal', kelas_id: 1, kelas_nama: '10 IPA 1', username: 'ahmad.faizal' },
-      { id: 2, nama: 'Siti Nurhaliza', kelas_id: 1, kelas_nama: '10 IPA 1', username: 'siti.nurhaliza' }
+      {
+        id: 1,
+        nama: 'Ahmad Faizal',
+        kelas_id: 1,
+        kelas_nama: '10 IPA 1',
+        username: 'ahmad.faizal',
+      },
+      {
+        id: 2,
+        nama: 'Siti Nurhaliza',
+        kelas_id: 1,
+        kelas_nama: '10 IPA 1',
+        username: 'siti.nurhaliza',
+      },
     ]
     kelasList.value = [{ id: 1, nama: '10 IPA 1' }]
   }
@@ -332,7 +477,7 @@ function loadExams() {
   else examList.value = []
 }
 function getExamName(examId) {
-  const exam = examList.value.find(e => e.id === examId)
+  const exam = examList.value.find((e) => e.id === examId)
   return exam ? exam.nama : '-'
 }
 function formatDate(dateStr) {
@@ -366,7 +511,7 @@ function createSingleCard() {
     printed_at: new Date().toISOString(),
     printed_by: 'Admin',
     status: 'ACTIVE',
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
   }
   allCards.value.push(newCard)
   saveCards()
@@ -394,11 +539,11 @@ function printSingle() {
 
 // Mass printing
 async function printMassCards() {
-  let selectedIds = massSelectedStudents.value.map(s => s.id)
+  let selectedIds = massSelectedStudents.value.map((s) => s.id)
   if (massFilterKelas.value && selectedIds.length === 0) {
     // jika tidak ada siswa dipilih secara individual, ambil semua siswa di kelas tersebut
-    const siswaDiKelas = siswaList.value.filter(s => s.kelas_id === massFilterKelas.value.id)
-    selectedIds = siswaDiKelas.map(s => s.id)
+    const siswaDiKelas = siswaList.value.filter((s) => s.kelas_id === massFilterKelas.value.id)
+    selectedIds = siswaDiKelas.map((s) => s.id)
   }
   if (selectedIds.length === 0) {
     $q.notify({ type: 'warning', message: 'Tidak ada siswa terpilih' })
@@ -407,10 +552,10 @@ async function printMassCards() {
   // Cari kartu yang sudah ada untuk siswa-siswa tersebut, jika belum ada, buatkan
   const cardsToPrint = []
   for (const sid of selectedIds) {
-    let card = allCards.value.find(c => c.student_id === sid && c.status === 'ACTIVE')
+    let card = allCards.value.find((c) => c.student_id === sid && c.status === 'ACTIVE')
     if (!card) {
       // Buat kartu baru otomatis (dengan tipe PERMANENT default, bisa disesuaikan)
-      const student = siswaList.value.find(s => s.id === sid)
+      const student = siswaList.value.find((s) => s.id === sid)
       if (student) {
         const newCard = {
           id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
@@ -428,7 +573,7 @@ async function printMassCards() {
           printed_at: new Date().toISOString(),
           printed_by: 'Admin (Massal)',
           status: 'ACTIVE',
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         }
         allCards.value.push(newCard)
         saveCards()
@@ -445,7 +590,7 @@ async function printMassCards() {
   printMassDialog.value = true
 }
 function printAllActiveCards() {
-  const activeCards = allCards.value.filter(c => c.status === 'ACTIVE')
+  const activeCards = allCards.value.filter((c) => c.status === 'ACTIVE')
   if (activeCards.length === 0) {
     $q.notify({ type: 'warning', message: 'Tidak ada kartu aktif' })
     return
@@ -456,7 +601,9 @@ function printAllActiveCards() {
 function printMass() {
   const content = document.getElementById('print-area-mass').innerHTML
   const win = window.open('', '_blank')
-  win.document.write(`<html><head><title>Cetak Kartu Massal</title><style>.card-print-item { display: inline-block; width: 48%; vertical-align: top; }</style></head><body>${content}</body></html>`)
+  win.document.write(
+    `<html><head><title>Cetak Kartu Massal</title><style>.card-print-item { display: inline-block; width: 48%; vertical-align: top; }</style></head><body>${content}</body></html>`,
+  )
   win.document.close()
   win.print()
 }
@@ -466,9 +613,9 @@ function revokeCard(cardId) {
   $q.dialog({
     title: 'Konfirmasi',
     message: 'Cabut kartu ini?',
-    cancel: true
+    cancel: true,
   }).onOk(() => {
-    const idx = allCards.value.findIndex(c => c.id === cardId)
+    const idx = allCards.value.findIndex((c) => c.id === cardId)
     if (idx !== -1) {
       allCards.value[idx].status = 'REVOKED'
       saveCards()

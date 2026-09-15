@@ -1,4 +1,3 @@
-// pkg/auth/jwt.go
 package auth
 
 import (
@@ -9,9 +8,10 @@ import (
 )
 
 type Claims struct {
-	UserID string `json:"uid"`
-	Role   string `json:"role"`              // "ADMIN" atau "PARTICIPANT"
-	ExamID string `json:"exam_id,omitempty"` // Hanya diisi jika Role = PARTICIPANT
+	UserID   string `json:"uid"`
+	Role     string `json:"role"`
+	ExamID   string `json:"exam_id,omitempty"`
+	TenantID string `json:"tenant_id,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -21,40 +21,42 @@ func Init(secret string) {
 	jwtSecret = []byte(secret)
 }
 
-// GenerateToken membuat JWT baru
+// Backward compatible
 func GenerateToken(userID, role, examID string, duration time.Duration) (string, error) {
+	return GenerateTokenFull(userID, role, examID, "", duration)
+}
+
+func GenerateTokenFull(userID, role, examID, tenantID string, duration time.Duration) (string, error) {
+	if len(jwtSecret) == 0 {
+		return "", errors.New("jwt secret not initialized")
+	}
 	claims := &Claims{
-		UserID: userID,
-		Role:   role,
-		ExamID: examID,
+		UserID:   userID,
+		Role:     role,
+		ExamID:   examID,
+		TenantID: tenantID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Issuer:    "cbt-engine",
 		},
 	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtSecret)
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(jwtSecret)
 }
 
-// ParseToken memvalidasi dan mengekstrak claims dari JWT
 func ParseToken(tokenString string) (*Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		// Validasi algoritma signing untuk mencegah serangan "none"
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("algoritma signing tidak valid")
 		}
 		return jwtSecret, nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
-
-	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-		return claims, nil
+	claims, ok := token.Claims.(*Claims)
+	if !ok || !token.Valid {
+		return nil, errors.New("token tidak valid")
 	}
-
-	return nil, errors.New("token tidak valid")
+	return claims, nil
 }

@@ -37,7 +37,7 @@ export const getInitialSessions = () => [
     start_time: '2026-07-05T08:00:00Z',
     end_time: '2026-07-05T10:00:00Z',
     status: 'SCHEDULED',
-    participant_count: 32
+    participant_count: 32,
   },
   {
     id: 'sess-002',
@@ -47,7 +47,7 @@ export const getInitialSessions = () => [
     start_time: '2026-07-04T13:00:00Z',
     end_time: '2026-07-04T15:00:00Z',
     status: 'ACTIVE',
-    participant_count: 28
+    participant_count: 28,
   },
   {
     id: 'sess-003',
@@ -57,8 +57,8 @@ export const getInitialSessions = () => [
     start_time: '2026-07-06T08:00:00Z',
     end_time: '2026-07-06T10:00:00Z',
     status: 'SCHEDULED',
-    participant_count: 5
-  }
+    participant_count: 5,
+  },
 ]
 export const mockExams = [
   { id: 'exam-mtk-1', name: 'Matematika Kelas X', total_questions: 40 },

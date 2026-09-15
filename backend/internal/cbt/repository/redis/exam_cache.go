@@ -1,87 +1,3 @@
-// package redis
-
-// import (
-// 	"cbt-engine-service/internal/cbt/domain"
-// 	"context"
-// 	"fmt"
-// 	"time"
-
-// 	"github.com/redis/go-redis/v9"
-// )
-
-// type cbtRedisRepository struct {
-// 	rdb *redis.Client
-// }
-
-// // NewCbtRedisRepository membuat instance baru untuk caching jawaban di Redis
-// func NewCbtRedisRepository(rdb *redis.Client) domain.CbtRedisRepository {
-// 	return &cbtRedisRepository{rdb: rdb}
-// }
-
-// // Fungsi bantu untuk membuat format key Redis yang konsisten
-// func makeAnswerKey(examID, studentID string) string {
-// 	return fmt.Sprintf("exam:ans:%s:%s", examID, studentID)
-// }
-
-// func (r *cbtRedisRepository) SaveAnswerCache(ctx context.Context, studentID, examID, questionID, answer string) error {
-// 	key := makeAnswerKey(examID, studentID)
-
-// 	// HSet menyimpan jawaban siswa secara real-time ke dalam struktur Hash di RAM Redis
-// 	err := r.rdb.HSet(ctx, key, questionID, answer).Err()
-// 	return err
-// }
-
-// func (r *cbtRedisRepository) GetAnswersCache(ctx context.Context, studentID, examID string) (map[string]string, error) {
-// 	key := makeAnswerKey(examID, studentID)
-
-// 	// HGetAll mengambil seluruh daftar jawaban berbentuk field-value map
-// 	answers, err := r.rdb.HGetAll(ctx, key).Result()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return answers, nil
-// }
-
-// func (r *cbtRedisRepository) DeleteAnswersCache(ctx context.Context, studentID, examID string) error {
-// 	key := makeAnswerKey(examID, studentID)
-// 	err := r.rdb.Del(ctx, key).Err()
-// 	return err
-// }
-
-// // Tambahkan di internal/repository/redis/exam_cache.go
-
-// func (r *cbtRedisRepository) SetExamToken(ctx context.Context, examID string, token string, duration time.Duration) error {
-// 	key := fmt.Sprintf("exam:token:%s", examID)
-// 	// Menggunakan rdb.Set dengan parameter duration (TTL) otomatis
-// 	return r.rdb.Set(ctx, key, token, duration).Err()
-// }
-
-// func (r *cbtRedisRepository) GetExamToken(ctx context.Context, examID string) (string, error) {
-// 	key := fmt.Sprintf("exam:token:%s", examID)
-// 	val, err := r.rdb.Get(ctx, key).Result()
-// 	if err == redis.Nil {
-// 		return "", nil // Token kedaluwarsa atau tidak ada
-// 	}
-// 	return val, err
-// }
-
-// // Tambahkan di internal/repository/redis/exam_cache.go
-
-// func (r *cbtRedisRepository) SetStudentStatus(ctx context.Context, examID, studentID, status string) error {
-// 	key := fmt.Sprintf("exam:status:%s", examID)
-// 	// Menyimpan status dengan timestamp, misal: "CONNECTED|2026-06-14 01:00:00"
-// 	timeStr := time.Now().Format("15:04:05")
-// 	value := fmt.Sprintf("%s|%s", status, timeStr)
-
-// 	return r.rdb.HSet(ctx, key, studentID, value).Err()
-// }
-
-// func (r *cbtRedisRepository) GetAllStudentsStatus(ctx context.Context, examID string) (map[string]string, error) {
-// 	key := fmt.Sprintf("exam:status:%s", examID)
-// 	return r.rdb.HGetAll(ctx, key).Result()
-// }
-
-// internal/repository/redis/exam_cache.go
 package redis
 
 import (
@@ -179,4 +95,32 @@ func (r *ExamCache) EnqueueEssayGrading(payload domain.EssayGradingPayload) erro
 
 	// LPUSH untuk menambahkan ke antrian (worker akan BRPOP)
 	return r.Client.LPush(r.Ctx, "queue:essay_grading", payloadJSON).Err()
+}
+
+// SaveAnswersBatch — pipe multi-HSet dalam 1 round-trip Redis.
+// Format WAJIB sama dengan SaveAnswer (JSON ParticipantAnswer) agar GetAnswers bisa unmarshal.
+func (r *ExamCache) SaveAnswersBatch(participantID, examID string, answers []domain.ParticipantAnswer) error {
+	if len(answers) == 0 {
+		return nil
+	}
+
+	// ✅ Key format SAMA dengan SaveAnswer
+	key := fmt.Sprintf("exam:answers:%s:%s", examID, participantID)
+
+	ctx, cancel := context.WithTimeout(r.Ctx, 3*time.Second)
+	defer cancel()
+
+	pipe := r.Client.Pipeline()
+	for _, a := range answers {
+		// ✅ Marshal JSON — WAJIB agar GetAnswers bisa unmarshal
+		answerJSON, err := json.Marshal(a)
+		if err != nil {
+			continue // skip baris rusak, jangan gagalkan batch
+		}
+		pipe.HSet(ctx, key, a.QuestionID, answerJSON)
+	}
+	pipe.Expire(ctx, key, 12*time.Hour)
+
+	_, err := pipe.Exec(ctx)
+	return err
 }

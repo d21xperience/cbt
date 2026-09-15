@@ -98,7 +98,6 @@ export const mockArchiveResponse = (isEndOfYear) => ({
   archived_sessions: Math.floor(Math.random() * 10) + 5,
 })
 
-
 // Data dummy untuk simulasi
 export const mockUserData = {
   siswa: [

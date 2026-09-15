@@ -18,7 +18,12 @@
               <q-item-label caption>Selesai kemarin</q-item-label>
             </q-item-section>
             <q-item-section side>
-              <q-badge color="grey-4" text-color="grey-8" label="Selesai" class="text-weight-bold" />
+              <q-badge
+                color="grey-4"
+                text-color="grey-8"
+                label="Selesai"
+                class="text-weight-bold"
+              />
             </q-item-section>
           </q-item>
 
@@ -29,22 +34,18 @@
           </q-item>
         </q-list>
       </q-card>
-
     </div>
   </q-page>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref } from 'vue'
 
 // import { useQuasar } from 'quasar'
 // const $q = useQuasar()
-const completedExams = ref(
-  {
-    id: '',
-    subject: '',
-    length: ''
-  }
-)
-
+const completedExams = ref({
+  id: '',
+  subject: '',
+  length: '',
+})
 </script>

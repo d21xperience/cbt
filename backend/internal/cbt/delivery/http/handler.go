@@ -4,27 +4,33 @@ package http
 import (
 	archiveUsecase "cbt-engine-service/internal/archive/usecase"
 	"cbt-engine-service/internal/cbt/domain"
-	cbtUc "cbt-engine-service/internal/cbt/usecase"
+	"cbt-engine-service/internal/cbt/repository"
+	cbtUC "cbt-engine-service/internal/cbt/usecase"
 	proctoringUsecase "cbt-engine-service/internal/proctoring/usecase"
 	schedulingDomain "cbt-engine-service/internal/scheduling/domain"
 	schedulingUsecase "cbt-engine-service/internal/scheduling/usecase"
 	"cbt-engine-service/pkg/auth"
 	"encoding/json"
-	"fmt"
 	"log"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/xuri/excelize/v2"
 )
 
 type CBTHandler struct {
-	schedulingUC *schedulingUsecase.SchedulingUseCase
-	examUC       *cbtUc.ExamUseCase
-	archiveUC    *archiveUsecase.ArchiveUseCase
-	proctoringUC *proctoringUsecase.ProctoringUseCase
+	schedulingUC      *schedulingUsecase.SchedulingUseCase
+	adminLoginUC      *schedulingUsecase.AdminLoginUseCase
+	participantAuthUC *schedulingUsecase.ParticipantAuthUseCase // ← NEW
+	credentialsUC     *schedulingUsecase.CredentialsUseCase     // ← NEW
+	examUC            *cbtUC.ExamUseCase
+	archiveUC         *archiveUsecase.ArchiveUseCase
+	proctoringUC      *proctoringUsecase.ProctoringUseCase
+	sessionUC         repository.SessionRepository
+	tokenUC           *cbtUC.TokenUseCase
 }
 type ExternalImportRequest struct {
 	ExamID   string                                 `json:"exam_id"`
@@ -34,31 +40,39 @@ type ExternalImportRequest struct {
 type AdminLoginRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+	TenantID string `json:"tenant_id,omitempty"`
 }
 
-func NewCBTHandler(sched *schedulingUsecase.SchedulingUseCase, exam *cbtUc.ExamUseCase, arch *archiveUsecase.ArchiveUseCase, proc *proctoringUsecase.ProctoringUseCase) *CBTHandler {
+func NewCBTHandler(
+	sched *schedulingUsecase.SchedulingUseCase,
+	adminLogin *schedulingUsecase.AdminLoginUseCase,
+	participantAuth *schedulingUsecase.ParticipantAuthUseCase, // ← NEW
+	credentials *schedulingUsecase.CredentialsUseCase, // ← NEW
+	exam *cbtUC.ExamUseCase,
+	arch *archiveUsecase.ArchiveUseCase,
+	proc *proctoringUsecase.ProctoringUseCase,
+	sessRepo repository.SessionRepository,
+	tokenUC *cbtUC.TokenUseCase,
+) *CBTHandler {
 	return &CBTHandler{
-		schedulingUC: sched,
-		examUC:       exam,
-		archiveUC:    arch,
-		proctoringUC: proc,
+		schedulingUC:      sched,
+		adminLoginUC:      adminLogin,
+		participantAuthUC: participantAuth,
+		credentialsUC:     credentials,
+		examUC:            exam,
+		archiveUC:         arch,
+		proctoringUC:      proc,
+		sessionUC:         sessRepo,
+		tokenUC:           tokenUC,
 	}
 }
 
-func (h *CBTHandler) RegisterRoutes(app *fiber.App) {
-	// ADMIN / MANAGEMENT ENDPOINTS
-	api := app.Group("/api")
-	admin := api.Group("/admin")
-	admin.Post("/sync", h.HandleSync)
-	admin.Post("/session", h.HandleCreateSession)
-	admin.Post("/archive", h.HandleArchive)
-
-	// PARTICIPANT / EXAM ENDPOINTS
-	exam := api.Group("/exam")
-	exam.Post("/login", h.HandleLogin)
-	exam.Post("/start", h.HandleStartExam)
-	exam.Post("/answer", h.HandleSubmitAnswer)
-	exam.Post("/submit", h.HandleFinishExam)
+type CreateSessionRequest struct {
+	ExamID      string `json:"exam_id"`
+	SemesterID  string `json:"semester_id"`
+	SessionType string `json:"session_type"` // REGULER | SUSULAN
+	StartTime   string `json:"start_time"`   // RFC3339
+	EndTime     string `json:"end_time"`     // RFC3339
 }
 
 // ==========================================
@@ -95,11 +109,51 @@ type SessionRequest struct {
 	EndTime     string `json:"end_time"`
 }
 
+// HandleCreateSession — persistence ke SQLite (bukan mock lagi)
 func (h *CBTHandler) HandleCreateSession(c *fiber.Ctx) error {
-	// TODO: Implementasikan logika pembuatan sesi di repository SQLite.
-	// Untuk testing Insomnia, kita return mock success.
-	return c.JSON(fiber.Map{
-		"message": "Sesi ujian berhasil dibuat (Mock)",
+	var req CreateSessionRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid body"})
+	}
+	if req.ExamID == "" || req.SessionType == "" || req.StartTime == "" || req.EndTime == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "exam_id, session_type, start_time, end_time wajib diisi",
+		})
+	}
+
+	start, err := time.Parse(time.RFC3339, req.StartTime)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "start_time format harus RFC3339"})
+	}
+	end, err := time.Parse(time.RFC3339, req.EndTime)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "end_time format harus RFC3339"})
+	}
+	if !end.After(start) {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "end_time harus setelah start_time"})
+	}
+
+	sess := &domain.ExamSession{
+		ID:          uuid.NewString(),
+		ExamID:      req.ExamID,
+		SemesterID:  req.SemesterID,
+		SessionType: domain.SessionType(req.SessionType),
+		StartTime:   start,
+		EndTime:     end,
+		Status:      "SCHEDULED",
+	}
+
+	if h.sessionUC == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": "Session repo belum siap"})
+	}
+	if err := h.sessionUC.CreateSession(c.Context(), sess); err != nil {
+		log.Printf("[HANDLER] CreateSession: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"message": "Sesi ujian berhasil dibuat",
+		"session": sess,
 	})
 }
 
@@ -130,48 +184,90 @@ func (h *CBTHandler) HandleArchive(c *fiber.Ctx) error {
 // PARTICIPANT HANDLERS
 // ==========================================
 
-type LoginRequest struct {
-	NISN           string `json:"nisn"`
-	PembelajaranID string `json:"pembelajaran_id"` // Acts as ExamID for CBT
+// type LoginRequest struct {
+// 	NISN           string `json:"nisn"`
+// 	PembelajaranID string `json:"pembelajaran_id"` // Acts as ExamID for CBT
+// }
+
+// ============================================
+// PHASE D1: Peserta Login (username + password)
+// ============================================
+
+type ParticipantLoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 func (h *CBTHandler) HandleLogin(c *fiber.Ctx) error {
-	var req LoginRequest
+	var req ParticipantLoginRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
+	if req.Username == "" || req.Password == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "username & password wajib"})
+	}
 
-	resp, err := h.schedulingUC.ValidateForExam(c.Context(), req.NISN, req.PembelajaranID)
+	result, err := h.participantAuthUC.Login(c.Context(), req.Username, req.Password)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	// Generate dummy token for session tracking
-	token := fmt.Sprintf("CBT-TOKEN-%d-%s", time.Now().Unix(), resp.ParticipantID)
+	// ✅ FIX: JWT uid = participant_id (UUID), konsisten dengan DB & Redis
+	token, err := auth.GenerateTokenFull(result.ParticipantID, "PARTICIPANT", "", "", 6*time.Hour)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal generate token"})
+	}
 
 	return c.JSON(fiber.Map{
-		"status":         "authorized",
-		"participant_id": resp.ParticipantID,
-		"name":           resp.Name,
-		"exam_id":        req.PembelajaranID,
-		"token":          token,
+		"status": "authorized",
+		"role":   "PARTICIPANT",
+		"token":  token,
+		"user": fiber.Map{
+			"participant_id": result.ParticipantID, // ← NEW
+			"nisn":           result.NISN,
+			"name":           result.FullName,
+			"rombel":         result.RombelName,
+		},
+		"eligible_exams": result.ExamIDs,
 	})
 }
 
-type StartExamRequest struct {
-	ParticipantID string `json:"participant_id"`
-	ExamID        string `json:"exam_id"`
-}
+// ============================================
+// PHASE 3/5: SECURE HANDLERS — identity dari JWT
+// ============================================
 
+// HandleStartExam — participant_id & exam_id dari JWT (bukan body)
 func (h *CBTHandler) HandleStartExam(c *fiber.Ctx) error {
-	var req StartExamRequest
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	participantID, _ := c.Locals("userID").(string)
+	examID, _ := c.Locals("examID").(string)
+	if participantID == "" || examID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Identity tidak valid di token",
+		})
 	}
 
-	questions, err := h.examUC.StartExam(c.Context(), req.ParticipantID, req.ExamID)
+	// Timer guard — server authority
+	if _, err := h.examUC.CheckTimer(c.Context(), participantID, examID, h.sessionUC); err != nil {
+		if err == cbtUC.ErrExamExpired {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "Waktu ujian sudah habis"})
+		}
+		if err == cbtUC.ErrExamNotStarted {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "Ujian belum dimulai"})
+		}
+		// ErrExamNoSession → tetap izinkan, mungkin session belum di-assign
+	}
+
+	questions, err := h.examUC.StartExam(c.Context(), participantID, examID)
 	if err != nil {
+		log.Printf("[HANDLER] StartExam: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	// Tandai peserta IN_PROGRESS (untuk monitoring guru)
+	if h.sessionUC != nil {
+		if sess, _ := h.sessionUC.GetParticipantSession(c.Context(), participantID, examID); sess != nil {
+			_ = h.sessionUC.MarkParticipantStarted(c.Context(), participantID, sess.ID)
+		}
 	}
 
 	return c.JSON(fiber.Map{
@@ -180,41 +276,60 @@ func (h *CBTHandler) HandleStartExam(c *fiber.Ctx) error {
 	})
 }
 
-type SubmitAnswerRequest struct {
-	ParticipantID string `json:"participant_id"`
-	ExamID        string `json:"exam_id"`
-	QuestionID    string `json:"question_id"`
-	Answer        string `json:"answer"`
+// HandleSubmitAnswer — participant_id & exam_id dari JWT
+// Body hanya butuh: { "question_id": "...", "answer": "..." }
+type SubmitAnswerBody struct {
+	QuestionID string `json:"question_id"`
+	Answer     string `json:"answer"`
 }
 
 func (h *CBTHandler) HandleSubmitAnswer(c *fiber.Ctx) error {
-	var req SubmitAnswerRequest
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	participantID, _ := c.Locals("userID").(string)
+	examID, _ := c.Locals("examID").(string)
+	if participantID == "" || examID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Identity tidak valid"})
 	}
 
-	err := h.examUC.SubmitAnswer(c.Context(), req.ParticipantID, req.ExamID, req.QuestionID, req.Answer)
+	var body SubmitAnswerBody
+	if err := c.BodyParser(&body); err != nil || body.QuestionID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "question_id wajib"})
+	}
+
+	// Timer guard
+	if _, err := h.examUC.CheckTimer(c.Context(), participantID, examID, h.sessionUC); err != nil {
+		if err == cbtUC.ErrExamExpired {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "Waktu ujian habis. Jawaban tidak diterima.",
+			})
+		}
+	}
+
+	err := h.examUC.SubmitAnswer(c.Context(), participantID, examID, body.QuestionID, body.Answer)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal menyimpan jawaban"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal simpan jawaban"})
 	}
-
 	return c.JSON(fiber.Map{"status": "answer_saved"})
 }
 
-type FinishExamRequest struct {
-	ParticipantID string `json:"participant_id"`
-	ExamID        string `json:"exam_id"`
-}
-
+// HandleFinishExam — participant_id & exam_id dari JWT, no body
 func (h *CBTHandler) HandleFinishExam(c *fiber.Ctx) error {
-	var req FinishExamRequest
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	participantID, _ := c.Locals("userID").(string)
+	examID, _ := c.Locals("examID").(string)
+	if participantID == "" || examID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Identity tidak valid"})
 	}
 
-	result, err := h.examUC.FinishExam(c.Context(), req.ParticipantID, req.ExamID)
+	result, err := h.examUC.FinishExam(c.Context(), participantID, examID)
 	if err != nil {
+		log.Printf("[HANDLER] FinishExam: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal menyelesaikan ujian"})
+	}
+
+	// Tandai peserta COMPLETED
+	if h.sessionUC != nil {
+		if sess, _ := h.sessionUC.GetParticipantSession(c.Context(), participantID, examID); sess != nil {
+			_ = h.sessionUC.MarkParticipantSubmitted(c.Context(), participantID, sess.ID)
+		}
 	}
 
 	return c.JSON(fiber.Map{
@@ -273,21 +388,61 @@ func (h *CBTHandler) HandleImportExternalCSV(c *fiber.Ctx) error {
 func (h *CBTHandler) HandleAdminLogin(c *fiber.Ctx) error {
 	var req AdminLoginRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+	if req.TenantID == "" {
+		req.TenantID = c.Get("X-Tenant-Slug", "default")
+	}
+	if req.Username == "" || req.Password == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "username & password wajib diisi"})
 	}
 
-	// Mock validasi (Ganti dengan query DB di produksi)
-	if req.Username != "admin" || req.Password != "admin123" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Username/Password salah"})
+	res, err := h.adminLoginUC.Login(c.Context(), req.TenantID, req.Username, req.Password)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Username atau password salah"})
 	}
 
-	// Generate JWT Admin (Berlaku 12 Jam)
-	token, err := auth.GenerateToken("admin-001", "ADMIN", "", 12*time.Hour)
+	token, err := auth.GenerateTokenFull(res.AdminID, res.Role, "", res.TenantID, schedulingUsecase.AdminTokenDuration)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal generate token"})
 	}
 
-	return c.JSON(fiber.Map{"token": token, "role": "ADMIN"})
+	return c.JSON(fiber.Map{
+		"token": token,
+		"role":  res.Role,
+		"user": fiber.Map{
+			"id":        res.AdminID,
+			"username":  res.Username,
+			"role":      res.Role,
+			"tenant_id": res.TenantID,
+		},
+	})
+}
+
+// HandleSuperAdminLogin — endpoint terpisah untuk halaman /super
+func (h *CBTHandler) HandleSuperAdminLogin(c *fiber.Ctx) error {
+	var req AdminLoginRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+	res, err := h.adminLoginUC.LoginSuperAdmin(c.Context(), req.Username, req.Password)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Username atau password salah"})
+	}
+	token, err := auth.GenerateTokenFull(res.AdminID, res.Role, "", res.TenantID, schedulingUsecase.SuperTokenDuration)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal generate token"})
+	}
+	return c.JSON(fiber.Map{
+		"token": token,
+		"role":  res.Role,
+		"user": fiber.Map{
+			"id":        res.AdminID,
+			"username":  res.Username,
+			"role":      res.Role,
+			"tenant_id": res.TenantID,
+		},
+	})
 }
 
 func (h *CBTHandler) HandleDownloadTemplate(c *fiber.Ctx) error {
@@ -529,57 +684,375 @@ func (h *CBTHandler) HandleImportPaste(c *fiber.Ctx) error {
 	})
 }
 
-// Update HandleLogin (Peserta)
-// func (h *CBTHandler) HandleLogin(c *fiber.Ctx) error {
-// 	var req LoginRequest
-// 	if err := c.BodyParser(&req); err != nil {
-// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
-// 	}
+// HandleGetTimer — server-side authoritative timer
+func (h *CBTHandler) HandleGetTimer(c *fiber.Ctx) error {
+	// Ambil dari JWT (middleware sudah set ini)
+	participantID, _ := c.Locals("userID").(string)
+	examID, _ := c.Locals("examID").(string)
+	if participantID == "" || examID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Identity tidak valid"})
+	}
 
-// 	resp, err := h.schedulingUC.ValidateForExam(c.Context(), req.ID, req.ExamIdentifier)
-// 	if err != nil {
-// 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
-// 	}
+	resp, err := h.examUC.CheckTimer(c.Context(), participantID, examID, h.sessionUC)
+	if err != nil {
+		// Tetap kirim timer info, hanya saja status = NOT_STARTED / EXPIRED
+		if err == cbtUC.ErrExamNotStarted || err == cbtUC.ErrExamExpired || err == cbtUC.ErrExamNoSession {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error":             err.Error(),
+				"status":            resp.Status,
+				"remaining_seconds": resp.RemainingSeconds,
+				"server_time":       resp.ServerTime,
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(resp)
+}
 
-// 	// Generate JWT Peserta (Berlaku 6 Jam - Aman untuk durasi ujian + buffer)
-// 	token, err := auth.GenerateToken(resp.ParticipantID, "PARTICIPANT", req.ExamIdentifier, 6*time.Hour)
-// 	if err != nil {
-// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal generate token"})
-// 	}
+// HandleBatchAnswer — autosave batching
+func (h *CBTHandler) HandleBatchAnswer(c *fiber.Ctx) error {
+	participantID, _ := c.Locals("userID").(string)
+	examID, _ := c.Locals("examID").(string)
+	if participantID == "" || examID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Identity tidak valid"})
+	}
 
-// 	return c.JSON(fiber.Map{
-// 		"status":         "authorized",
-// 		"participant_id": resp.ParticipantID,
-// 		"name":           resp.Name,
-// 		"token":          token, // Token JWT asli
-// 	})
-// }
+	var req domain.AnswerBatchRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid body"})
+	}
+	if len(req.Answers) == 0 {
+		return c.JSON(fiber.Map{"status": "noop", "accepted": 0})
+	}
 
-// Route: POST /api/admin/participants/import-external
-// func (h *CBTHandler) HandleImportExternal(c *fiber.Ctx) error {
-// 	// 1. Parse JSON atau CSV (Disarankan CSV untuk data massal)
-// 	var req ExternalImportRequest
-// 	if err := c.BodyParser(&req); err != nil {
-// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format tidak valid"})
-// 	}
+	// Timer guard — server authority
+	if _, err := h.examUC.CheckTimer(c.Context(), participantID, examID, h.sessionUC); err != nil {
+		if err == cbtUC.ErrExamExpired {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "Waktu ujian habis. Jawaban tidak diterima.",
+			})
+		}
+		if err == cbtUC.ErrExamNotStarted {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "Ujian belum dimulai.",
+			})
+		}
+	}
 
-// 	// 2. Validasi ExamID harus ada
-// 	// ...
+	if err := h.examUC.BatchSubmitAnswers(c.Context(), participantID, examID, req.Answers); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
 
-// 	// 3. Inject ExamID ke setiap siswa
-// 	for i := range req.Students {
-// 		req.Students[i].ExamID = req.ExamID
-// 		req.Students[i].Source = "EXTERNAL"
-// 	}
+	return c.JSON(fiber.Map{
+		"status":   "accepted",
+		"accepted": len(req.Answers),
+	})
+}
 
-// 	// 4. Batch Insert ke SQLite
-// 	count, err := h.schedulingUC.ImportExternalParticipants(c.Context(), req.Students)
-// 	if err != nil {
-// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
-// 	}
+// ============================================
+// PHASE 5: Participant Exam List & History
+// ============================================
 
-// 	return c.JSON(fiber.Map{
-// 		"message":        "Import peserta eksternal berhasil",
-// 		"imported_count": count,
-// 	})
-// }
+// HandleGetActiveExams — daftar ujian yang eligible untuk peserta
+// Identity dari JWT (middleware sudah set userID)
+func (h *CBTHandler) HandleGetActiveExams(c *fiber.Ctx) error {
+	participantID, _ := c.Locals("userID").(string)
+	if participantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Identity tidak valid"})
+	}
+
+	// Pakai examDB melalui examUC (tambahkan method passthrough) atau langsung
+	exams, err := h.examUC.GetParticipantExams(c.Context(), participantID)
+	if err != nil {
+		log.Printf("[HANDLER] GetActiveExams: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	// Enrich dengan derived status (NOT_STARTED / ACTIVE / EXPIRED)
+	now := time.Now()
+	for i := range exams {
+		p := &exams[i]
+		start, _ := time.Parse(time.RFC3339, p.StartTime)
+		end, _ := time.Parse(time.RFC3339, p.EndTime)
+		switch {
+		case p.ParticipantStat == "COMPLETED":
+			p.SessionStatus = "COMPLETED"
+		case now.Before(start):
+			p.SessionStatus = "NOT_STARTED"
+		case now.After(end):
+			p.SessionStatus = "EXPIRED"
+		default:
+			p.SessionStatus = "ACTIVE"
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "ok",
+		"data":   exams,
+	})
+}
+
+// HandleGetExamHistory — riwayat ujian peserta
+func (h *CBTHandler) HandleGetExamHistory(c *fiber.Ctx) error {
+	participantID, _ := c.Locals("userID").(string)
+	if participantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Identity tidak valid"})
+	}
+
+	history, err := h.examUC.GetParticipantHistory(c.Context(), participantID)
+	if err != nil {
+		log.Printf("[HANDLER] GetExamHistory: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "ok", "data": history})
+}
+
+// HandleVerifyToken — verifikasi token ujian (opsional, proctor gated)
+// MVP: return valid=true selama JWT valid & exam_id di token cocok.
+// Token fisik (6 huruf dari proctor) belum diimplementasi; akan disambung di PHASE 10
+// jika UI admin untuk generate token proctor sudah ada.
+func (h *CBTHandler) HandleVerifyToken(c *fiber.Ctx) error {
+	participantID, _ := c.Locals("userID").(string)
+	if participantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Identity tidak valid"})
+	}
+
+	examID := c.Params("examId")
+	if examID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "examId wajib di path"})
+	}
+
+	var body struct {
+		Token string `json:"token"`
+	}
+	if err := c.BodyParser(&body); err != nil || body.Token == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "token wajib di body"})
+	}
+
+	// 1. Cari session peserta untuk exam ini
+	sess, err := h.sessionUC.GetParticipantSession(c.Context(), participantID, examID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	if sess == nil {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": "Anda tidak terdaftar di ujian ini",
+		})
+	}
+
+	// 2. Cek window waktu
+	now := time.Now()
+	if now.Before(sess.StartTime) {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error":  "Ujian belum dimulai",
+			"status": "NOT_STARTED",
+		})
+	}
+	if now.After(sess.EndTime) {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error":  "Waktu ujian sudah habis",
+			"status": "EXPIRED",
+		})
+	}
+
+	// 3. Cek sesi status (jangan sampai CLOSED)
+	if sess.Status == "CLOSED" {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "Sesi ujian sudah ditutup"})
+	}
+
+	// 4. Verify token proctor
+	valid, err := h.tokenUC.Verify(c.Context(), sess.ID, body.Token)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	if !valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"valid": false,
+			"error": "Token tidak valid atau sudah expired",
+		})
+	}
+
+	// 5. Terbitkan JWT-B dengan exam_id
+	jwtB, err := auth.GenerateTokenFull(participantID, "PARTICIPANT", examID, "", 6*time.Hour)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal generate JWT-B"})
+	}
+
+	return c.JSON(fiber.Map{
+		"valid":      true,
+		"token":      jwtB, // ← JWT-B
+		"session_id": sess.ID,
+		"exam_id":    examID,
+		"message":    "Token terverifikasi",
+	})
+}
+
+// HandleGetCurrentToken — proctor view token aktif
+func (h *CBTHandler) HandleGetCurrentToken(c *fiber.Ctx) error {
+	sessionID := c.Params("sessionId")
+	if sessionID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "sessionId wajib"})
+	}
+	t, err := h.tokenUC.GetCurrent(c.Context(), sessionID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	if t == nil {
+		return c.JSON(fiber.Map{"token": "", "message": "Belum ada token aktif"})
+	}
+	return c.JSON(fiber.Map{
+		"token":             t.Token,
+		"valid_from":        t.ValidFrom,
+		"valid_until":       t.ValidUntil,
+		"remaining_seconds": int64(time.Until(t.ValidUntil).Seconds()),
+	})
+}
+
+// HandleRotateTokenManual — proctor rotate manual
+func (h *CBTHandler) HandleRotateTokenManual(c *fiber.Ctx) error {
+	sessionID := c.Params("sessionId")
+	adminID, _ := c.Locals("userID").(string)
+	t, err := h.tokenUC.Rotate(c.Context(), sessionID, adminID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(t)
+}
+
+// HandleGetTenantConfig — stub single-tenant.
+// Multi-tenant SaaS akan diimplementasi di PHASE 10.
+func (h *CBTHandler) HandleGetTenantConfig(c *fiber.Ctx) error {
+	slug := c.Params("slug")
+	return c.JSON(fiber.Map{
+		"slug":         slug,
+		"school_name":  "CBT Engine",
+		"logo_url":     "",
+		"is_suspended": false,
+	})
+}
+
+// HandleListSchools — stub single-tenant.
+// Multi-tenant SaaS akan diimplementasi di PHASE 10.
+func (h *CBTHandler) HandleListSchools(c *fiber.Ctx) error {
+	return c.JSON(fiber.Map{
+		"status": "ok",
+		"data": []fiber.Map{
+			{
+				"slug":       "default",
+				"name":       "CBT Engine",
+				"logo_url":   "",
+				"is_active":  true,
+				"portal_url": "/auth/participant",
+			},
+		},
+	})
+}
+
+// ============================================
+// PHASE D1: Admin credential management
+// ============================================
+
+type GenerateCredentialsRequest struct {
+	ExamID    string `json:"exam_id"`
+	ValidDays int    `json:"valid_days"` // 0 = permanen
+	Overwrite bool   `json:"overwrite"`  // true = regenerate meski sudah ada
+}
+
+func (h *CBTHandler) HandleGenerateCredentials(c *fiber.Ctx) error {
+	var req GenerateCredentialsRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid body"})
+	}
+	if req.ExamID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "exam_id wajib"})
+	}
+
+	adminID, _ := c.Locals("userID").(string)
+
+	list, err := h.credentialsUC.GenerateForExam(c.Context(), req.ExamID, adminID, req.ValidDays)
+	if err != nil {
+		log.Printf("[HANDLER] GenerateCredentials: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "ok",
+		"count":  len(list),
+		"data":   list, // ⚠️ password plaintext — kirim sekali, tidak disimpan di response log
+	})
+}
+
+func (h *CBTHandler) HandleViewCredentials(c *fiber.Ctx) error {
+	examID := c.Query("exam_id")
+	if examID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "exam_id wajib"})
+	}
+
+	list, err := h.credentialsUC.ViewByExamID(c.Context(), examID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "ok", "data": list})
+}
+
+// HandleHeartbeat — keepalive proctoring
+func (h *CBTHandler) HandleHeartbeat(c *fiber.Ctx) error {
+	participantID, _ := c.Locals("userID").(string)
+	examID, _ := c.Locals("examID").(string)
+	if participantID == "" || examID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Identity tidak valid"})
+	}
+
+	// Cek banned di Redis (via proctoring repo)
+	if h.proctoringUC != nil {
+		// ... opsional: cek banned
+	}
+	return c.JSON(fiber.Map{"status": "alive"})
+}
+
+// HandleTelemetry — proctoring events
+func (h *CBTHandler) HandleTelemetry(c *fiber.Ctx) error {
+	participantID, _ := c.Locals("userID").(string)
+	examID, _ := c.Locals("examID").(string)
+	if participantID == "" || examID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Identity tidak valid"})
+	}
+
+	var body struct {
+		EventType string `json:"event_type"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid body"})
+	}
+
+	// Return action default (WARN). Force submit logic di D2+ / proctoring polish
+	return c.JSON(fiber.Map{
+		"status": "recorded",
+		"action": "NONE",
+		"event":  body.EventType,
+	})
+}
+
+// HandleListSessions — proctor panel: list sesi + status token
+func (h *CBTHandler) HandleListSessions(c *fiber.Ctx) error {
+	examID := c.Query("exam_id")
+	activeOnly := c.Query("active_only") == "true"
+
+	if h.sessionUC == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"error": "Session repo belum siap",
+		})
+	}
+
+	list, err := h.sessionUC.ListSessions(c.Context(), examID, activeOnly)
+	if err != nil {
+		log.Printf("[HANDLER] ListSessions: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "ok",
+		"data":   list,
+		"count":  len(list),
+	})
+}

@@ -17,8 +17,12 @@
             </q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-btn :label="exam.hasCache ? 'Mulai' : 'Unduh Paket Soal'" :color="exam.hasCache ? 'primary' : 'orange'"
-              @click="handleExamAction(exam)" :disable="exam.status === 'finished'" />
+            <q-btn
+              :label="exam.hasCache ? 'Mulai' : 'Unduh Paket Soal'"
+              :color="exam.hasCache ? 'primary' : 'orange'"
+              @click="handleExamAction(exam)"
+              :disable="exam.status === 'finished'"
+            />
           </q-item-section>
         </q-item>
       </q-list>
@@ -48,56 +52,55 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-import { useExamStore } from '@/stores/exam/examSchedule';
-import { useCacheManager } from '@/composables/exam/useCacheManager';
+import { ref, onMounted, computed } from 'vue'
+import { useExamScheduleStore as useExamStore } from '@/stores/exam/examSchedule'
+import { useCacheManager } from '@/composables/exam/useCacheManager'
 // import { useRouter } from 'vue-router';
 // const router = useRouter()
 
-const store = useExamStore();
-const { hasValidPackage } = useCacheManager();
+const store = useExamStore()
+const { hasValidPackage } = useCacheManager()
 
-const exams = ref([]);
+const exams = ref([])
 
 const upcomingExams = computed(() =>
-  exams.value.filter(e => e.status !== 'finished' && new Date(e.date) > new Date())
-);
+  exams.value.filter((e) => e.status !== 'finished' && new Date(e.date) > new Date()),
+)
 const missedExams = computed(() =>
-  exams.value.filter(e => e.status === 'finished' && new Date(e.date) < new Date())
-);
+  exams.value.filter((e) => e.status === 'finished' && new Date(e.date) < new Date()),
+)
 
 onMounted(async () => {
   // Ambil jadwal dari API
-  const res = await store.getSchedule();
-  exams.value = res.data;
+  const res = await store.getSchedule()
+  exams.value = res.data
   // Cek cache untuk setiap ujian
   for (const exam of exams.value) {
-    exam.hasCache = await hasValidPackage(exam.id);
+    exam.hasCache = await hasValidPackage(exam.id)
   }
-});
+})
 
 const handleExamAction = async (exam) => {
   if (exam.hasCache) {
     // Langsung masuk ExamSession
-    store.setCurrentExam(exam.id, exam.name);
+    store.setCurrentExam(exam.id, exam.name)
     // router.push('/exam/session');
     console.log('if')
-
   } else {
     console.log('else')
     // Redirect ke Preparation dengan examId
     // router.push({ name: 'exam-preparation', query: { examId: exam.id } });
   }
-};
+}
 
-const formatDate = (iso) => new Date(iso).toLocaleString('id-ID');
+const formatDate = (iso) => new Date(iso).toLocaleString('id-ID')
 const statusColor = (exam) => {
-  if (exam.status === 'ongoing') return 'green';
-  if (exam.status === 'upcoming') return 'blue';
-  if (exam.status === 'finished') return 'grey';
-};
+  if (exam.status === 'ongoing') return 'green'
+  if (exam.status === 'upcoming') return 'blue'
+  if (exam.status === 'finished') return 'grey'
+}
 const statusLabel = (exam) => {
-  if (exam.hasCache) return 'Siap';
-  return 'Perlu Unduh';
-};
+  if (exam.hasCache) return 'Siap'
+  return 'Perlu Unduh'
+}
 </script>

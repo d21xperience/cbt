@@ -1,32 +1,32 @@
 // src/boot/axios.js
 import { boot } from 'quasar/wrappers'
 import axios from 'axios'
+import { LocalStorage } from 'quasar' // ← TAMBAH
 import { setupMockInterceptor } from '@/mocks/mockInterceptor'
 import { getTenantSlug } from '@/utils/tenant'
 
+const mockFlag = import.meta.env.QCLI_MOCK_MODE
+const isMock = mockFlag === true || mockFlag === 'true'
+
 const api = axios.create({
-  baseURL: import.meta.env.QCLI_API_BASE_URL || '/api/v1/cbt', // Langsung hardcode base URL untuk sekarang
+  baseURL: import.meta.env.QCLI_API_BASE_URL || '/api/v1/cbt',
   timeout: 15000,
 })
 
-// console.log('🔍 Status Mock Mode:', IS_MOCK_MODE ? 'AKTIF' : 'NONAKTIF')
-
-if (import.meta.env.QCLI_MOCK_MODE === true) {
-  console.warn('🔶 MOCK MODE ACTIVE - Menggunakan data dummy')
+if (import.meta.env.DEV && isMock) {
+  console.warn('⚠️  MOCK MODE ACTIVE — data dummy digunakan')
   setupMockInterceptor(api)
-} else {
-  console.log('⚪ MOCK MODE INACTIVE - Koneksi ke backend asli')
 }
 
 // Request Interceptor: Inject Token
 api.interceptors.request.use((config) => {
-  // Inject X-Tenant-Slug ke semua request secara otomatis
   const tenantSlug = getTenantSlug()
-  if (tenantSlug) {
+  if (tenantSlug && tenantSlug !== 'null' && tenantSlug !== 'undefined') {
     config.headers['X-Tenant-Slug'] = tenantSlug
   }
 
-  const token = localStorage.getItem('cbt_token')
+  // ✅ GUNAKAN Quasar LocalStorage — konsisten dengan stores/auth.js
+  const token = LocalStorage.getItem('cbt_token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -38,9 +38,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('cbt_token')
-      localStorage.removeItem('cbt_role')
-      // window.location.href = '/'
+      // ✅ Unify: pakai Quasar LocalStorage
+      LocalStorage.remove('cbt_token')
+      LocalStorage.remove('cbt_role')
+      LocalStorage.remove('cbt_user')
+      LocalStorage.remove('cbt_eligible_exams')
     }
     return Promise.reject(error)
   },

@@ -2,10 +2,8 @@
 <template>
   <q-page padding class="bg-grey-1">
     <div class="row q-col-gutter-md">
-
       <!-- KOLOM KIRI: Informasi Utama & Ujian -->
       <div class="col-12 col-md-8">
-
         <!-- Banner Tata Tertib -->
         <q-banner inline-actions class="text-white bg-amber-9 q-mb-md rounded-borders shadow-2">
           <!-- <template v-slot:avatar>
@@ -13,7 +11,9 @@
           </template> -->
           <div class="text-weight-bold text-subtitle1">PENTING: Tata Tertib Ujian CBT</div>
           <ul class="q-pl-md q-my-xs text-body2">
-            <li>Dilarang membuka tab browser lain atau meninggalkan aplikasi selama ujian berlangsung.</li>
+            <li>
+              Dilarang membuka tab browser lain atau meninggalkan aplikasi selama ujian berlangsung.
+            </li>
             <li>Sistem akan mencatat otomatis jika Anda mencoba keluar dari halaman ujian.</li>
             <li>Pastikan koneksi internet Anda stabil sebelum menekan tombol "Mulai".</li>
           </ul>
@@ -38,7 +38,9 @@
               <q-card-section class="row items-center justify-between q-pb-none">
                 <div>
                   <div class="text-h6 text-primary text-weight-bold">{{ exam?.subject }}</div>
-                  <div class="text-caption text-grey-7">Pengajar: {{ exam?.teacher || 'Tidak tersedia' }}</div>
+                  <div class="text-caption text-grey-7">
+                    Pengajar: {{ exam?.teacher || 'Tidak tersedia' }}
+                  </div>
                 </div>
                 <!-- Badge Status -->
                 <q-badge :color="exam?.status === 'ready' ? 'green' : 'orange'"
@@ -73,12 +75,10 @@
             <div class="text-grey-6 q-mt-sm">Tidak ada agenda ujian untuk hari ini.</div>
           </div>
         </div>
-
       </div>
 
       <!-- KOLOM KANAN: Profil & Riwayat -->
       <div class="col-12 col-md-4">
-
         <!-- Kartu Profil Siswa -->
         <q-card flat bordered class="text-center q-pa-md shadow-1 q-mb-md">
           <q-card-section class="flex flex-center flex-column">
@@ -126,7 +126,6 @@
             </q-item>
           </q-list>
         </q-card>
-
       </div>
     </div>
 
@@ -141,15 +140,18 @@
 
         <q-card-section class="q-pt-md">
           <div class="text-body2 q-mb-md text-grey-8">
-            Anda akan memulai ujian <strong>{{ tokenDialog.examSubject }}</strong>.
-            Silakan masukkan token yang diberikan oleh pengawas ruangan Anda.
+            Anda akan memulai ujian <strong>{{ tokenDialog.examSubject }}</strong>. Silakan masukkan token yang
+            diberikan
+            oleh pengawas ruangan Anda.
           </div>
-          <q-input v-model="tokenDialog.inputToken" outlined label="Masukkan Token" mask="AAAAAA"
-            hint="Format: 6 huruf kapital" autofocus class="text-uppercase" @keyup.enter="submitToken">
+          <q-input v-model="tokenDialog.inputToken" outlined label="Masukkan Token" mask="NNNNNN"
+            hint="Format: 6 karakter (huruf kapital atau angka)" autofocus class="text-uppercase"
+            @keyup.enter="submitToken">
             <template v-slot:prepend>
               <q-icon name="vpn_key" />
             </template>
           </q-input>
+
         </q-card-section>
 
         <q-card-actions align="right" class="text-primary q-pa-md">
@@ -159,27 +161,26 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-
   </q-page>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useQuasar } from 'quasar';
-import { useAuthStore } from '@/stores/auth';
-import { useExamList } from '@/composables/exam/useExamList';
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useQuasar } from 'quasar'
+import { useAuthStore } from '@/stores/auth'
+import { useExamList } from '@/composables/exam/useExamList'
 
 // --- Dependencies ---
-const router = useRouter();
-const $q = useQuasar();
-const authStore = useAuthStore();
+const router = useRouter()
+const $q = useQuasar()
+const authStore = useAuthStore()
 
 // --- Composables ---
-const { loading, activeExams, completedExams, fetchExams, verifyToken } = useExamList();
+const { loading, activeExams, completedExams, fetchExams, verifyToken } = useExamList()
 
 // --- Data Siswa dari Auth Store ---
-const student = computed(() => authStore.getStudent); // gunakan getter student
+const student = computed(() => authStore.getStudent) // gunakan getter student
 
 // --- State Dialog Token ---
 const tokenDialog = ref({
@@ -187,13 +188,13 @@ const tokenDialog = ref({
   examId: '',
   examSubject: '',
   inputToken: '',
-});
-const tokenVerifying = ref(false);
+})
+const tokenVerifying = ref(false)
 
 // --- Lifecycle: fetch data saat halaman dimuat ---
 onMounted(() => {
-  fetchExams();
-});
+  fetchExams()
+})
 
 // --- Methods ---
 function openTokenDialog(exam) {
@@ -202,55 +203,51 @@ function openTokenDialog(exam) {
     examId: exam.id,
     examSubject: exam.subject,
     inputToken: '',
-  };
+  }
 }
 
 function resetTokenDialog() {
-  tokenDialog.value.show = false;
-  tokenDialog.value.inputToken = '';
-  tokenVerifying.value = false;
+  tokenDialog.value.show = false
+  tokenDialog.value.inputToken = ''
+  tokenVerifying.value = false
 }
 
 async function submitToken() {
-  const { examId, examSubject, inputToken } = tokenDialog.value;
+  const { examId, examSubject, inputToken } = tokenDialog.value
 
   if (!inputToken || inputToken.length < 6) {
-    $q.notify({
-      type: 'warning',
-      message: 'Token harus 6 karakter huruf kapital',
-      position: 'top',
-    });
-    return;
+    $q.notify({ type: 'warning', message: 'Token harus 6 karakter', position: 'top' })
+    return
   }
 
-  tokenVerifying.value = true;
-
+  tokenVerifying.value = true
   try {
-    const isValid = await verifyToken(examId, inputToken);
-    if (isValid) {
-      tokenDialog.value.show = false;
+    // ✅ FIX: terima response lengkap
+    const res = await verifyToken(examId, inputToken)
+
+    if (res?.valid && res?.token) {
+      // Simpan JWT-B
+      authStore.setExamToken(res.token, examId)
+
+      tokenDialog.value.show = false
       $q.notify({
         type: 'positive',
         message: `Token diterima. Memulai ujian ${examSubject}`,
         position: 'top',
-      });
-      router.push({ name: 'exam-room', params: { examId } });
+      })
+      router.push({ name: 'exam-room' })
     } else {
       $q.notify({
         type: 'negative',
-        message: 'Token tidak valid. Silakan cek kembali.',
+        message: res?.error || 'Token tidak valid',
         position: 'top',
-      });
+      })
     }
   } catch (err) {
-    console.error(err);
-    $q.notify({
-      type: 'negative',
-      message: 'Terjadi kesalahan saat verifikasi token.',
-      position: 'top',
-    });
+    const msg = err.response?.data?.error || 'Terjadi kesalahan saat verifikasi token'
+    $q.notify({ type: 'negative', message: msg, position: 'top' })
   } finally {
-    tokenVerifying.value = false;
+    tokenVerifying.value = false
   }
 }
 
@@ -261,9 +258,9 @@ function logout() {
     ok: 'Keluar',
     cancel: 'Batal',
   }).onOk(() => {
-    authStore.logout();
-    router.push({ name: 'participant-login' });
-  });
+    authStore.logout()
+    router.push({ name: 'participant-login' })
+  })
 }
 </script>
 

@@ -70,13 +70,29 @@
       <q-card-section>
         <div class="text-h6 q-mb-md">Aksi Cepat</div>
         <div class="row q-gutter-md">
-          <q-btn color="primary" icon="sync" label="Sync dari SIAKAD" :to="{ name: 'admin-sync' }" />
-          <q-btn color="teal" icon="event" label="Kelola Sesi Ujian" :to="{ name: 'admin-sessions' }" />
+          <q-btn
+            color="primary"
+            icon="sync"
+            label="Sync dari SIAKAD"
+            :to="{ name: 'admin-sync' }"
+          />
+          <q-btn
+            color="teal"
+            icon="event"
+            label="Kelola Sesi Ujian"
+            :to="{ name: 'admin-sessions' }"
+          />
           <q-btn color="grey" icon="upload_file" label="Upload Soal" disable />
           <q-btn color="grey" icon="group_add" label="Import Peserta" disable />
 
           <!-- 🔧 Tombol Reset Mock Data (hanya muncul di mock mode) -->
-          <q-btn v-if="isMockMode" color="warning" icon="restart_alt" label="Reset Mock Data" @click="confirmResetMock">
+          <q-btn
+            v-if="isMockMode"
+            color="warning"
+            icon="restart_alt"
+            label="Reset Mock Data"
+            @click="confirmResetMock"
+          >
             <q-tooltip>Reset semua data mock ke state awal (untuk testing)</q-tooltip>
           </q-btn>
         </div>
@@ -87,8 +103,16 @@
     <q-card>
       <q-card-section>
         <div class="text-h6 q-mb-md">Riwayat Sync Terakhir</div>
-        <q-table :rows="adminStore.syncHistory" :columns="syncColumns" row-key="id" flat bordered dense
-          :loading="loadingHistory" no-data-label="Belum ada riwayat sync">
+        <q-table
+          :rows="adminStore.syncHistory"
+          :columns="syncColumns"
+          row-key="id"
+          flat
+          bordered
+          dense
+          :loading="loadingHistory"
+          no-data-label="Belum ada riwayat sync"
+        >
           <template v-slot:body-cell-timestamp="props">
             <q-td :props="props">
               {{ formatDate(props.row.timestamp) }}
@@ -126,13 +150,13 @@ const syncColumns = [
   { name: 'pembelajaran_id', label: 'Pembelajaran', field: 'pembelajaran_id', align: 'left' },
   { name: 'semester_id', label: 'Semester', field: 'semester_id', align: 'center' },
   { name: 'synced_count', label: 'Jumlah Data', field: 'synced_count', align: 'center' },
-  { name: 'message', label: 'Status', field: 'message', align: 'left' }
+  { name: 'message', label: 'Status', field: 'message', align: 'left' },
 ]
 
 const formatDate = (iso) => {
   return new Date(iso).toLocaleString('id-ID', {
     dateStyle: 'medium',
-    timeStyle: 'short'
+    timeStyle: 'short',
   })
 }
 
@@ -159,10 +183,7 @@ const formatDate = (iso) => {
 onMounted(async () => {
   try {
     loadingHistory.value = true
-    await Promise.all([
-      adminStore.fetchDashboardStats(),
-      adminStore.fetchSyncHistory()
-    ])
+    await Promise.all([adminStore.fetchDashboardStats(), adminStore.fetchSyncHistory()])
   } catch {
     $q.notify({ type: 'negative', message: 'Gagal memuat data dashboard' })
   } finally {
