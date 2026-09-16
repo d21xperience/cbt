@@ -13,9 +13,9 @@ type Config struct {
 	AllowedOrigin string `mapstructure:"ALLOWED_ORIGIN"`
 
 	// TAMBAHAN BARU
-	JWTSecret     string `mapstructure:"JWT_SECRET"`
-	SiakadBaseURL string `mapstructure:"SIAKAD_BASE_URL"`
-
+	JWTSecret                string `mapstructure:"JWT_SECRET"`
+	SiakadBaseURL            string `mapstructure:"SIAKAD_BASE_URL"`
+	AppEnv                   string `mapstructure:"APP_ENV"` // "development" | "production"
 	CredentialsEncryptionKey string `mapstructure:"CREDENTIALS_ENCRYPTION_KEY"`
 }
 
@@ -33,4 +33,7 @@ func LoadConfig(path string) (config Config, err error) {
 
 	err = viper.Unmarshal(&config)
 	return
+}
+func (c Config) IsProduction() bool {
+	return c.AppEnv == "production"
 }

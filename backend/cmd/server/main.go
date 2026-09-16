@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"database/sql"
+	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
+	"strings"
 	"syscall"
 	"time"
 
@@ -141,26 +143,56 @@ func main() {
 	// 7. FIBER APP SETUP (HARDENED FOR VPS)
 	// ==========================================
 	app := fiber.New(fiber.Config{
-		BodyLimit:    5 * 1024 * 1024,        // 5MB limit (Cegah spam upload CSV besar)
-		Concurrency:  256 * runtime.NumCPU(), // Batasi goroutine agar RAM tidak jebol
-		ReadTimeout:  15 * time.Second,       // Putus koneksi lambat
+		BodyLimit:    5 * 1024 * 1024,
+		Concurrency:  256 * runtime.NumCPU(),
+		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
-		IdleTimeout:  60 * time.Second, // Bebaskan file descriptor
+		IdleTimeout:  60 * time.Second,
+		// ✅ Custom error handler — JANGAN bocorkan internal error ke client
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			code := fiber.StatusInternalServerError
+			if e, ok := err.(*fiber.Error); ok {
+				code = e.Code
+			}
+			reqID, _ := c.Locals("requestid").(string)
+			return c.Status(code).JSON(fiber.Map{
+				"error":      http.StatusText(code),
+				"request_id": reqID,
+			})
+		},
 	})
 
-	// CORS Dinamis
+	// ✅ Middleware order KRITIS
+	app.Use(middleware.RequestID())                         // 1. Set request ID first
+	app.Use(middleware.Recover())                           // 2. Recover panic, ada request ID
+	app.Use(middleware.SecurityHeaders(cfg.IsProduction())) // 3. Headers
+	app.Use(middleware.RequestLogger())                     // 4. Log request
+
+	// ✅ CORS diperketat
+	allowedOrigins := strings.Split(cfg.AllowedOrigin, ",")
+	for i := range allowedOrigins {
+		allowedOrigins[i] = strings.TrimSpace(allowedOrigins[i])
+	}
+
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     cfg.AllowedOrigin,
+		AllowOrigins:     strings.Join(allowedOrigins, ","),
 		AllowCredentials: true,
-		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Request-ID, X-Tenant-Slug",
 		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS",
+		ExposeHeaders:    "X-Request-ID",
+		MaxAge:           3600,
 	}))
+
 	// Session repo (baru)
 	sessionDB := cbtSqliteRepo.NewSessionDB(db)
 	tokenDB := cbtSqliteRepo.NewTokenDB(db)
 	tokenUC := cbtUc.NewTokenUseCase(tokenDB, sessionDB)
+	paymentDB := cbtSqliteRepo.NewPaymentDB(db)
+	paymentUC := cbtUc.NewPaymentUseCase(paymentDB)
 
 	credRepo := schedulingRepo.NewCredentialsDB(db)
+	proctorDB := schedulingRepo.NewProctorDB(db)
+	proctorUC := schedulingUc.NewProctorUseCase(proctorDB)
 	participantAuthUC := schedulingUc.NewParticipantAuthUseCase(credRepo, credCipher)
 	credentialsUC := schedulingUc.NewCredentialsUseCase(credRepo, credCipher)
 
@@ -173,22 +205,32 @@ func main() {
 		examUC, archiveUC, proctoringUC,
 		sessionDB,
 		tokenUC,
+		proctorUC,
+		paymentUC,
 	)
 	api := app.Group("/api/v1/cbt")
 
 	// A. PUBLIC ROUTES (Tanpa Token)
+	// Tier 1: login (paling ketat)
 	authGroup := api.Group("/auth")
-	authGroup.Post("/admin/login", handler.HandleAdminLogin)
-	authGroup.Post("/super/login", handler.HandleSuperAdminLogin) // ← NEW
-	authGroup.Post("/exam/login", handler.HandleLogin)
+	authGroup.Post("/admin/login", middleware.RateLimiter(middleware.RateLogin), handler.HandleAdminLogin)
+	authGroup.Post("/super/login", middleware.RateLimiter(middleware.RateLogin), handler.HandleSuperAdminLogin) // ← NEW
+	authGroup.Post("/exam/login", middleware.RateLimiter(middleware.RateLogin), handler.HandleLogin)
+	authGroup.Post("/proctor/login", middleware.RateLimiter(middleware.RateLogin), handler.HandleProctorLogin)
 
 	// Super admin public endpoints (stub untuk single-tenant)
 	superPub := api.Group("/super")
 	superPub.Get("/schools", handler.HandleListSchools) // ← NEW
 	superPub.Get("/schools/:slug/config", handler.HandleGetTenantConfig)
 	// B. ADMIN ROUTES (Wajib JWT Admin)
-	admin := api.Group("/admin", middleware.JWTAuth())
+	// admin := api.Group("/admin", middleware.JWTAuth())
+	admin := api.Group("/admin", middleware.RequireRole("ADMIN", "SUPER_ADMIN"), middleware.RateLimiter(middleware.RateGeneral))
+	admin.Get("/payments/blocked", handler.HandleListBlockedPayments) // ← NEW
+	admin.Post("/payments/block", handler.HandleBlockPayment)         // ← NEW
+	admin.Post("/payments/unblock", handler.HandleUnblockPayment)     // ← NEW
+	admin.Post("/makeup/approve", handler.HandleApproveMakeup)        // ← NEW
 	admin.Post("/sync", handler.HandleSync)
+	admin.Get("/dashboard/stats", handler.HandleDashboardStats)
 	// Admin/proctor token routes
 	admin.Post("/session", handler.HandleCreateSession)
 	admin.Get("/sessions", handler.HandleListSessions)
@@ -200,19 +242,28 @@ func main() {
 	// D1: credential management
 	admin.Post("/credentials/generate", handler.HandleGenerateCredentials)
 	admin.Get("/credentials/view", handler.HandleViewCredentials)
+	admin.Get("/proctors", handler.HandleListProctors)          // ← NEW
+	admin.Post("/proctors/assign", handler.HandleAssignProctor) // ← NEW
+
+	// PROCTOR (+ ADMIN fallback)
+	proctor := api.Group("/proctor", middleware.RequireRole("ADMIN", "PROCTOR", "TEACHER"))
+	proctor.Get("/sessions", handler.HandleMyProctorSessions) // ← NEW
+	proctor.Post("/unlock", handler.HandleUnlockParticipant)  // ← NEW
 
 	// C. EXAM ROUTES (Wajib JWT Peserta + Cek Banned di Redis)
-	exam := api.Group("/exam", middleware.ExamAuth(rdb))
-	exam.Get("/active", handler.HandleGetActiveExams)  // ← NEW
-	exam.Get("/history", handler.HandleGetExamHistory) // ← NEW
-	exam.Post("/start", handler.HandleStartExam)
-	exam.Post("/answer", handler.HandleSubmitAnswer)
-	exam.Post("/answers/batch", handler.HandleBatchAnswer) // ← NEW
-	exam.Get("/timer", handler.HandleGetTimer)
-	exam.Post("/submit", handler.HandleFinishExam)
-	exam.Post("/:examId/verify-token", handler.HandleVerifyToken)
-	exam.Post("/heartbeat", handler.HandleHeartbeat)
-	exam.Post("/telemetry", handler.HandleTelemetry)
+	// Tier 2: exam endpoints
+	exam := api.Group("/exam", middleware.RateLimiter(middleware.RateGeneral), middleware.ExamAuth(rdb))
+	exam.Get("/active", middleware.RateLimiter(middleware.RateGeneral), handler.HandleGetActiveExams)  // ← NEW
+	exam.Get("/history", middleware.RateLimiter(middleware.RateGeneral), handler.HandleGetExamHistory) // ← NEW
+	exam.Get("/timer", middleware.RateLimiter(middleware.RateGeneral), handler.HandleGetTimer)
+	exam.Post("/:examId/verify-token", middleware.RateLimiter(middleware.RateVerifyToken), handler.HandleVerifyToken)
+	exam.Post("/start", middleware.RateLimiter(middleware.RateGeneral), handler.HandleStartExam)
+	exam.Post("/answer", middleware.RateLimiter(middleware.RateBatchAnswer), handler.HandleSubmitAnswer)
+	exam.Post("/answers/batch", middleware.RateLimiter(middleware.RateBatchAnswer), handler.HandleBatchAnswer) // ← NEW
+	exam.Post("/submit", middleware.RateLimiter(middleware.RateSubmit), handler.HandleFinishExam)
+	exam.Post("/heartbeat", middleware.RateLimiter(middleware.RateGeneral), handler.HandleHeartbeat)
+	exam.Post("/telemetry", middleware.RateLimiter(middleware.RateGeneral), handler.HandleTelemetry)
+	exam.Get("/dashboard", handler.HandleParticipantDashboard)
 
 	// Health Check
 	app.Get("/health", func(c *fiber.Ctx) error {
@@ -221,6 +272,10 @@ func main() {
 	rotatorCtx, rotatorCancel := context.WithCancel(context.Background())
 	defer rotatorCancel()
 	go cbtUc.StartTokenRotator(rotatorCtx, sessionDB, tokenUC)
+
+	attendanceCtx, attendanceCancel := context.WithCancel(context.Background())
+	defer attendanceCancel()
+	go cbtUc.StartAttendanceWorker(attendanceCtx, db)
 
 	// ==========================================
 	// 9. GRACEFUL SHUTDOWN

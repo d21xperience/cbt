@@ -646,3 +646,25 @@ func (uc *ExamUseCase) GetParticipantHistory(ctx context.Context, participantID 
 	}
 	return db.GetParticipantHistory(ctx, participantID)
 }
+
+// GetDashboard — dashboard peserta 3 section
+func (uc *ExamUseCase) GetDashboard(ctx context.Context, participantID string) (*domain.DashboardResponse, error) {
+	db, ok := uc.questionRepo.(*sqlite.ExamDB)
+	if !ok {
+		return nil, errors.New("examDB bukan tipe yang diharapkan")
+	}
+	return db.GetParticipantDashboard(ctx, participantID)
+}
+
+// GetParticipantNISN — resolve
+func (uc *ExamUseCase) GetParticipantNISN(ctx context.Context, participantID string) (string, error) {
+	db, ok := uc.questionRepo.(*sqlite.ExamDB)
+	if !ok {
+		return "", errors.New("examDB bukan tipe yang diharapkan")
+	}
+	return db.GetParticipantNISN(ctx, participantID)
+}
+func (uc *ExamUseCase) GetExamDB() (*sqlite.ExamDB, bool) {
+	db, ok := uc.questionRepo.(*sqlite.ExamDB)
+	return db, ok
+}

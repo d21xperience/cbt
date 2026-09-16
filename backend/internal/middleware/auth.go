@@ -1,71 +1,79 @@
-// internal/middleware/auth.go
 package middleware
 
 import (
-	"cbt-engine-service/pkg/auth"
 	"context"
 	"strings"
+
+	"cbt-engine-service/pkg/auth"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/redis/go-redis/v9"
 )
 
-// JWTAuth adalah middleware untuk Admin
+// JWTAuth — backward compat, ADMIN only
 func JWTAuth() fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		return validateJWT(c, "ADMIN", nil)
-	}
+	return RequireRole("ADMIN")
 }
 
-// ExamAuth adalah middleware untuk Peserta Ujian
-// Kita oper redisClient untuk mengecek status banned/disqualified
+// ExamAuth — backward compat, PARTICIPANT + ban check
 func ExamAuth(redisClient *redis.Client) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		return validateJWT(c, "PARTICIPANT", redisClient)
-	}
+	return RequireRoleWithBan("PARTICIPANT", redisClient)
 }
 
-func validateJWT(c *fiber.Ctx, requiredRole string, redisClient *redis.Client) error {
-	// 1. Ambil Header Authorization
-	authHeader := c.Get("Authorization")
-	if authHeader == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Token otorisasi tidak ditemukan"})
-	}
+// RequireRole — flexible role check
+func RequireRole(roles ...string) fiber.Handler {
+	return validateJWT(roles, nil)
+}
 
-	// 2. Format harus "Bearer <token>"
-	parts := strings.SplitN(authHeader, " ", 2)
-	if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Format token tidak valid"})
-	}
+// RequireRoleWithBan — sama + Redis ban check untuk participant
+func RequireRoleWithBan(role string, redisClient *redis.Client) fiber.Handler {
+	return validateJWT([]string{role}, redisClient)
+}
 
-	// 3. Parse & Validasi Token
-	claims, err := auth.ParseToken(parts[1])
-	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Token kadaluarsa atau tidak valid"})
-	}
-
-	// 4. Cek Role
-	if claims.Role != requiredRole {
-		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "Akses ditolak: Role tidak sesuai"})
-	}
-
-	// 5. (KHUSUS PESERTA) Cek Status Banned/Disqualified di Redis
-	if requiredRole == "PARTICIPANT" && redisClient != nil {
-		banKey := "banned:" + claims.ExamID + ":" + claims.UserID
-		isBanned, _ := redisClient.Exists(context.Background(), banKey).Result()
-
-		if isBanned > 0 {
-			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-				"error":  "Sesi ujian Anda telah dihentikan karena pelanggaran.",
-				"action": "FORCE_SUBMIT",
-			})
+func validateJWT(allowedRoles []string, redisClient *redis.Client) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		authHeader := c.Get("Authorization")
+		if authHeader == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Token otorisasi tidak ditemukan"})
 		}
-	}
 
-	// 6. Simpan Claims di Locals agar bisa dipakai di Handler tanpa parse ulang
-	c.Locals("userID", claims.UserID)
-	c.Locals("role", claims.Role)
-	c.Locals("examID", claims.ExamID)
-	c.Locals("tenantID", claims.TenantID)
-	return c.Next()
+		parts := strings.SplitN(authHeader, " ", 2)
+		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Format token tidak valid"})
+		}
+
+		claims, err := auth.ParseToken(parts[1])
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Token kadaluarsa atau tidak valid"})
+		}
+
+		// Role check
+		allowed := false
+		for _, r := range allowedRoles {
+			if claims.Role == r {
+				allowed = true
+				break
+			}
+		}
+		if !allowed {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "Akses ditolak: Role tidak sesuai"})
+		}
+
+		// Ban check untuk participant
+		if claims.Role == "PARTICIPANT" && redisClient != nil && claims.ExamID != "" {
+			banKey := "banned:" + claims.ExamID + ":" + claims.UserID
+			if isBanned, _ := redisClient.Exists(context.Background(), banKey).Result(); isBanned > 0 {
+				return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+					"error":  "Sesi ujian Anda telah dihentikan karena pelanggaran.",
+					"action": "FORCE_SUBMIT",
+				})
+			}
+		}
+
+		c.Locals("userID", claims.UserID)
+		c.Locals("role", claims.Role)
+		c.Locals("examID", claims.ExamID)
+		c.Locals("tenantID", claims.TenantID)
+		return c.Next()
+	}
 }

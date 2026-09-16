@@ -6,6 +6,7 @@ import (
 	"cbt-engine-service/internal/cbt/domain"
 	"cbt-engine-service/internal/cbt/repository"
 	cbtUC "cbt-engine-service/internal/cbt/usecase"
+	"cbt-engine-service/internal/middleware"
 	proctoringUsecase "cbt-engine-service/internal/proctoring/usecase"
 	schedulingDomain "cbt-engine-service/internal/scheduling/domain"
 	schedulingUsecase "cbt-engine-service/internal/scheduling/usecase"
@@ -31,6 +32,8 @@ type CBTHandler struct {
 	proctoringUC      *proctoringUsecase.ProctoringUseCase
 	sessionUC         repository.SessionRepository
 	tokenUC           *cbtUC.TokenUseCase
+	proctorUC         *schedulingUsecase.ProctorUseCase
+	paymentUC         *cbtUC.PaymentUseCase
 }
 type ExternalImportRequest struct {
 	ExamID   string                                 `json:"exam_id"`
@@ -53,6 +56,8 @@ func NewCBTHandler(
 	proc *proctoringUsecase.ProctoringUseCase,
 	sessRepo repository.SessionRepository,
 	tokenUC *cbtUC.TokenUseCase,
+	proctorUC *schedulingUsecase.ProctorUseCase,
+	paymentUC *cbtUC.PaymentUseCase,
 ) *CBTHandler {
 	return &CBTHandler{
 		schedulingUC:      sched,
@@ -64,6 +69,8 @@ func NewCBTHandler(
 		proctoringUC:      proc,
 		sessionUC:         sessRepo,
 		tokenUC:           tokenUC,
+		proctorUC:         proctorUC,
+		paymentUC:         paymentUC,
 	}
 }
 
@@ -203,10 +210,22 @@ func (h *CBTHandler) HandleLogin(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
-	if req.Username == "" || req.Password == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "username & password wajib"})
+	// if req.Username == "" || req.Password == "" {
+	// 	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "username & password wajib"})
+	// }
+	// ✅ Validasi
+	if err := middleware.ValidateRequired(c, map[string]string{
+		"username": req.Username,
+		"password": req.Password,
+	}); err != nil {
+		return err
 	}
-
+	if err := middleware.MaxLen(c, "username", req.Username, 64); err != nil {
+		return err
+	}
+	if err := middleware.MaxLen(c, "password", req.Password, 128); err != nil {
+		return err
+	}
 	result, err := h.participantAuthUC.Login(c.Context(), req.Username, req.Password)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
@@ -400,6 +419,14 @@ func (h *CBTHandler) HandleAdminLogin(c *fiber.Ctx) error {
 	res, err := h.adminLoginUC.Login(c.Context(), req.TenantID, req.Username, req.Password)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Username atau password salah"})
+	}
+
+	// ✅ FIX: hanya izinkan role ADMIN atau SUPER_ADMIN di endpoint ini
+	if res.Role != "ADMIN" && res.Role != "SUPER_ADMIN" {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": "Role tidak diizinkan di endpoint ini. Gunakan halaman login yang sesuai.",
+			"role":  res.Role,
+		})
 	}
 
 	token, err := auth.GenerateTokenFull(res.AdminID, res.Role, "", res.TenantID, schedulingUsecase.AdminTokenDuration)
@@ -1054,5 +1081,266 @@ func (h *CBTHandler) HandleListSessions(c *fiber.Ctx) error {
 		"status": "ok",
 		"data":   list,
 		"count":  len(list),
+	})
+}
+
+// ============================================
+// D2.6: Proctor
+// ============================================
+
+type ProctorLoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	TenantID string `json:"tenant_id,omitempty"`
+}
+
+func (h *CBTHandler) HandleProctorLogin(c *fiber.Ctx) error {
+	var req ProctorLoginRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid body"})
+	}
+	if req.TenantID == "" {
+		req.TenantID = c.Get("X-Tenant-Slug", "default")
+	}
+	if req.Username == "" || req.Password == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "username & password wajib"})
+	}
+
+	res, err := h.proctorUC.Login(c.Context(), req.TenantID, req.Username, req.Password)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Username atau password salah"})
+	}
+
+	token, err := auth.GenerateTokenFull(res.ProctorID, res.Role, "", res.TenantID, 12*time.Hour)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal generate token"})
+	}
+
+	return c.JSON(fiber.Map{
+		"token": token,
+		"role":  res.Role,
+		"user": fiber.Map{
+			"id":        res.ProctorID,
+			"username":  res.Username,
+			"role":      res.Role,
+			"tenant_id": res.TenantID,
+		},
+	})
+}
+
+// HandleMyProctorSessions — sesi yang di-assign ke proctor yang login
+func (h *CBTHandler) HandleMyProctorSessions(c *fiber.Ctx) error {
+	proctorID, _ := c.Locals("userID").(string)
+	if proctorID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Identity invalid"})
+	}
+
+	list, err := h.proctorUC.ListMySessions(c.Context(), proctorID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "ok", "data": list, "count": len(list)})
+}
+
+// HandleAssignProctor — admin assign proctor ke sesi
+type AssignProctorRequest struct {
+	ProctorID string `json:"proctor_id"`
+	SessionID string `json:"session_id"`
+	ClassName string `json:"class_name,omitempty"`
+}
+
+func (h *CBTHandler) HandleAssignProctor(c *fiber.Ctx) error {
+	var req AssignProctorRequest
+	if err := c.BodyParser(&req); err != nil || req.ProctorID == "" || req.SessionID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "proctor_id & session_id wajib"})
+	}
+
+	adminID, _ := c.Locals("userID").(string)
+	err := h.proctorUC.Assign(c.Context(), &schedulingDomain.ProctorAssignment{
+		ProctorID:  req.ProctorID,
+		SessionID:  req.SessionID,
+		ClassName:  req.ClassName,
+		AssignedBy: adminID,
+	})
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "ok", "message": "Proctor berhasil di-assign"})
+}
+
+func (h *CBTHandler) HandleListProctors(c *fiber.Ctx) error {
+	list, err := h.proctorUC.ListAll(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "ok", "data": list})
+}
+
+// HandleUnlockParticipant — proctor/admin unlock siswa
+type UnlockRequest struct {
+	ExamID        string `json:"exam_id"`
+	ParticipantID string `json:"participant_id"`
+}
+
+func (h *CBTHandler) HandleUnlockParticipant(c *fiber.Ctx) error {
+	var req UnlockRequest
+	if err := c.BodyParser(&req); err != nil || req.ExamID == "" || req.ParticipantID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "exam_id & participant_id wajib"})
+	}
+
+	// Proctor hanya bisa unlock session yang dia awasi
+	userID, _ := c.Locals("userID").(string)
+	role, _ := c.Locals("role").(string)
+
+	if role == "PROCTOR" || role == "TEACHER" {
+		// Ambil session dari examID — simple: cek proctor di-assign ke salah satu session exam ini
+		if h.sessionUC != nil {
+			if sess, _ := h.sessionUC.GetActiveSessionByExam(c.Context(), req.ExamID); sess != nil {
+				ok, _ := h.proctorUC.IsAssigned(c.Context(), userID, sess.ID)
+				if !ok {
+					return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+						"error": "Anda tidak ditugaskan mengawasi ujian ini",
+					})
+				}
+			}
+		}
+	}
+
+	if err := h.proctoringUC.UnlockParticipant(c.Context(), req.ExamID, req.ParticipantID, role); err != nil {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"status": "ok", "message": "Peserta berhasil di-unlock"})
+}
+
+// ============================================
+// D3: Participant Dashboard
+// ============================================
+
+func (h *CBTHandler) HandleParticipantDashboard(c *fiber.Ctx) error {
+	participantID, _ := c.Locals("userID").(string)
+	if participantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Identity invalid"})
+	}
+
+	dash, err := h.examUC.GetDashboard(c.Context(), participantID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	// Enrich dengan payment gate
+	if h.paymentUC != nil {
+		nisn, _ := h.examUC.GetParticipantNISN(c.Context(), participantID)
+		if nisn != "" {
+			blocked, reason, _ := h.paymentUC.IsBlocked(c.Context(), nisn)
+			if blocked {
+				for i := range dash.Scheduled {
+					dash.Scheduled[i].Blocked = true
+					dash.Scheduled[i].BlockedReason = reason
+				}
+				for i := range dash.Makeup {
+					dash.Makeup[i].Blocked = true
+					dash.Makeup[i].BlockedReason = reason
+				}
+			}
+		}
+	}
+
+	return c.JSON(fiber.Map{"status": "ok", "data": dash})
+}
+
+// ============================================
+// D3: Payment Gate (Admin)
+// ============================================
+
+type PaymentBlockRequest struct {
+	NISN   string `json:"nisn"`
+	Reason string `json:"reason"`
+	Note   string `json:"note,omitempty"`
+}
+
+func (h *CBTHandler) HandleBlockPayment(c *fiber.Ctx) error {
+	var req PaymentBlockRequest
+	if err := c.BodyParser(&req); err != nil || req.NISN == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "nisn wajib"})
+	}
+	adminID, _ := c.Locals("userID").(string)
+	if err := h.paymentUC.Block(c.Context(), req.NISN, req.Reason, adminID, req.Note); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "ok", "message": "Siswa diblokir"})
+}
+
+func (h *CBTHandler) HandleUnblockPayment(c *fiber.Ctx) error {
+	var req PaymentBlockRequest
+	if err := c.BodyParser(&req); err != nil || req.NISN == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "nisn wajib"})
+	}
+	adminID, _ := c.Locals("userID").(string)
+	if err := h.paymentUC.Unblock(c.Context(), req.NISN, adminID, req.Note); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "ok", "message": "Siswa di-unblock"})
+}
+
+func (h *CBTHandler) HandleListBlockedPayments(c *fiber.Ctx) error {
+	list, err := h.paymentUC.ListBlocked(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "ok", "data": list, "count": len(list)})
+}
+
+// ============================================
+// D3: Makeup manual approve
+// ============================================
+
+type ApproveMakeupRequest struct {
+	ParticipantID string `json:"participant_id"`
+	SessionID     string `json:"session_id"`
+	Reason        string `json:"reason"`
+}
+
+func (h *CBTHandler) HandleApproveMakeup(c *fiber.Ctx) error {
+	var req ApproveMakeupRequest
+	if err := c.BodyParser(&req); err != nil || req.ParticipantID == "" || req.SessionID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "participant_id & session_id wajib"})
+	}
+	adminID, _ := c.Locals("userID").(string)
+
+	db, ok := h.examUC.GetExamDB()
+	if !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "DB tidak tersedia"})
+	}
+
+	if err := cbtUC.AssignMakeupManual(c.Context(), db.DB, req.ParticipantID, req.SessionID, adminID, req.Reason); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "ok", "message": "Peserta diizinkan ikut susulan"})
+}
+
+func (h *CBTHandler) HandleDashboardStats(c *fiber.Ctx) error {
+	examDB, ok := h.examUC.GetExamDB()
+	if !ok {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": "DB tidak tersedia"})
+	}
+
+	ctx := c.Context()
+	var totalExams, totalParticipants, activeSessions, completedExams int
+
+	_ = examDB.DB.QueryRowContext(ctx, `SELECT COUNT(*) FROM exams`).Scan(&totalExams)
+	_ = examDB.DB.QueryRowContext(ctx, `SELECT COUNT(*) FROM eligible_participants`).Scan(&totalParticipants)
+	_ = examDB.DB.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM exam_sessions WHERE start_time <= datetime('now') AND end_time > datetime('now') AND status != 'CLOSED'`,
+	).Scan(&activeSessions)
+	_ = examDB.DB.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM exam_results WHERE status IN ('SUBMITTED','COMPLETED','NEEDS_REVIEW')`,
+	).Scan(&completedExams)
+
+	return c.JSON(fiber.Map{
+		"total_exams":        totalExams,
+		"total_participants": totalParticipants,
+		"active_sessions":    activeSessions,
+		"completed_exams":    completedExams,
 	})
 }

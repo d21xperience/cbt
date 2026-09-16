@@ -71,3 +71,22 @@ func (uc *ProctoringUseCase) ProcessTelemetry(ctx context.Context, event domain.
 	// Event lain (misal: FOCUS, HEARTBEAT) tidak perlu tindakan khusus
 	return &domain.ProctoringAction{Action: "OK", Reason: ""}, nil
 }
+
+// UnlockParticipant — proctor/admin unlock siswa
+func (uc *ProctoringUseCase) UnlockParticipant(ctx context.Context, examID, participantID, byRole string) error {
+	return uc.redisRepo.Unlock(ctx, examID, participantID, byRole)
+}
+
+// RecordWarningAndLock — dipanggil saat warning bertambah
+// Kalau counter >= 3, set lock level PROCTOR (bisa di-unlock proctor)
+func (uc *ProctoringUseCase) RecordWarningAndLock(ctx context.Context, examID, participantID string) (int, error) {
+	n, err := uc.redisRepo.IncrWarning(ctx, examID, participantID)
+	if err != nil {
+		return 0, err
+	}
+	if n >= 3 {
+		_ = uc.redisRepo.SetLock(ctx, examID, participantID, "PROCTOR")
+	}
+	return n, nil
+}
+

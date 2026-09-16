@@ -3,6 +3,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -52,4 +53,62 @@ func (r *ProctoringRedis) GetWarnings(participantID, examID string) (int64, erro
 		return 0, nil
 	}
 	return val, err
+}
+
+// ============================================
+// D2.6: Warning counter + lock/unlock
+// ============================================
+
+func warningsKey(examID, participantID string) string {
+	return fmt.Sprintf("cbt:proctoring:%s:%s:warnings", examID, participantID)
+}
+func lockLevelKey(examID, participantID string) string {
+	return fmt.Sprintf("cbt:proctoring:%s:%s:lock_level", examID, participantID)
+}
+
+// IncrWarning — increment counter, return new count
+func (r *ProctoringRedis) IncrWarning(ctx context.Context, examID, participantID string) (int, error) {
+	key := warningsKey(examID, participantID)
+	n, err := r.Client.Incr(ctx, key).Result()
+	if err != nil {
+		return 0, err
+	}
+	// TTL 24 jam
+	r.Client.Expire(ctx, key, 24*time.Hour)
+	return int(n), nil
+}
+
+// GetWarningCount — baca counter
+func (r *ProctoringRedis) GetWarningCount(ctx context.Context, examID, participantID string) (int, error) {
+	v, err := r.Client.Get(ctx, warningsKey(examID, participantID)).Int()
+	if err == redis.Nil {
+		return 0, nil
+	}
+	return v, err
+}
+
+// SetLock — tandai terkunci. level = "PROCTOR" atau "ADMIN"
+func (r *ProctoringRedis) SetLock(ctx context.Context, examID, participantID, level string) error {
+	return r.Client.Set(ctx, lockLevelKey(examID, participantID), level, 24*time.Hour).Err()
+}
+
+// GetLockLevel — "" kalau tidak terkunci
+func (r *ProctoringRedis) GetLockLevel(ctx context.Context, examID, participantID string) (string, error) {
+	v, err := r.Client.Get(ctx, lockLevelKey(examID, participantID)).Result()
+	if err == redis.Nil {
+		return "", nil
+	}
+	return v, err
+}
+
+// Unlock — reset counter + hapus lock. Kalau byRole=PROCTOR dan lock=ADMIN → tolak.
+func (r *ProctoringRedis) Unlock(ctx context.Context, examID, participantID, byRole string) error {
+	level, _ := r.GetLockLevel(ctx, examID, participantID)
+	if level == "ADMIN" && byRole != "ADMIN" && byRole != "SUPER_ADMIN" {
+		return errors.New("lock_requires_admin")
+	}
+	// Reset counter + hapus lock
+	r.Client.Del(ctx, warningsKey(examID, participantID))
+	r.Client.Del(ctx, lockLevelKey(examID, participantID))
+	return nil
 }
