@@ -70,31 +70,11 @@
       <q-card-section>
         <div class="text-h6 q-mb-md">Aksi Cepat</div>
         <div class="row q-gutter-md">
-          <q-btn
-            color="primary"
-            icon="sync"
-            label="Sync dari SIAKAD"
-            :to="{ name: 'admin-sync' }"
-          />
-          <q-btn
-            color="teal"
-            icon="event"
-            label="Kelola Sesi Ujian"
-            :to="{ name: 'admin-sessions' }"
-          />
+          <q-btn color="primary" icon="sync" label="Sync dari SIAKAD" :to="{ name: 'admin-sync' }" />
+          <q-btn color="teal" icon="event" label="Kelola Sesi Ujian" :to="{ name: 'admin-sessions' }" />
           <q-btn color="grey" icon="upload_file" label="Upload Soal" disable />
           <q-btn color="grey" icon="group_add" label="Import Peserta" disable />
 
-          <!-- 🔧 Tombol Reset Mock Data (hanya muncul di mock mode) -->
-          <q-btn
-            v-if="isMockMode"
-            color="warning"
-            icon="restart_alt"
-            label="Reset Mock Data"
-            @click="confirmResetMock"
-          >
-            <q-tooltip>Reset semua data mock ke state awal (untuk testing)</q-tooltip>
-          </q-btn>
         </div>
       </q-card-section>
     </q-card>
@@ -103,16 +83,8 @@
     <q-card>
       <q-card-section>
         <div class="text-h6 q-mb-md">Riwayat Sync Terakhir</div>
-        <q-table
-          :rows="adminStore.syncHistory"
-          :columns="syncColumns"
-          row-key="id"
-          flat
-          bordered
-          dense
-          :loading="loadingHistory"
-          no-data-label="Belum ada riwayat sync"
-        >
+        <q-table :rows="adminStore.syncHistory" :columns="syncColumns" row-key="id" flat bordered dense
+          :loading="loadingHistory" no-data-label="Belum ada riwayat sync">
           <template v-slot:body-cell-timestamp="props">
             <q-td :props="props">
               {{ formatDate(props.row.timestamp) }}
@@ -130,7 +102,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { useAdminStore } from '@/stores/admin/dashboard'
 // import { resetMockData } from '@/mocks/mockInterceptor'
@@ -138,12 +110,6 @@ import { useAdminStore } from '@/stores/admin/dashboard'
 const $q = useQuasar()
 const adminStore = useAdminStore()
 const loadingHistory = ref(false)
-
-// 🔧 Deteksi mock mode
-const isMockMode = computed(() => {
-  // Cek apakah mock interceptor aktif (bisa dilihat dari log atau flag global)
-  return true // Sementara selalu true, nanti bisa diganti dengan env variable
-})
 
 const syncColumns = [
   { name: 'timestamp', label: 'Waktu', field: 'timestamp', align: 'left' },

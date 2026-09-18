@@ -4,10 +4,10 @@
   <q-layout view="hHh lpR fFf" class="admin-layout">
     <!-- Skip Link for Accessibility -->
     <SkipLink />
-    <AppHeader title="CBT Admin Panel" :badge="authStore.user?.role" :show-menu-toggle="true"
-      :drawer-open="leftDrawerOpen" :show-notifications="true" :notification-count="3" :show-refresh="true"
-      :is-refreshing="isRefreshing" @toggle-drawer="toggleDrawer" @notifications-click="showNotifications = true"
-      @refresh="refreshData" @logout="confirmLogout" />
+    <AppHeader :title="panelTitle" :badge="authStore.user?.role" :show-menu-toggle="true" :drawer-open="leftDrawerOpen"
+      :show-notifications="true" :notification-count="3" :show-refresh="true" :is-refreshing="isRefreshing"
+      @toggle-drawer="toggleDrawer" @notifications-click="showNotifications = true" @refresh="refreshData"
+      @logout="confirmLogout" />
 
     <!-- Enhanced Drawer -->
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-grey-1" :width="280" :breakpoint="1024"
@@ -51,7 +51,7 @@
           <q-separator class="q-my-sm" />
 
           <!-- Management Section -->
-          <q-item-label header class="text-uppercase text-grey-7">
+          <q-item-label v-if="managementNavItems.length > 0" header class="text-uppercase text-grey-7">
             <q-icon name="settings" class="q-mr-xs" size="xs" aria-hidden="true" />
             Management
           </q-item-label>
@@ -74,7 +74,7 @@
           <q-separator class="q-my-sm" />
 
           <!-- Quick Stats -->
-          <div class="q-px-md q-py-sm" role="complementary" aria-label="Quick statistics">
+          <div v-if="!isProctor" class="q-px-md q-py-sm" role="complementary" aria-label="Quick statistics">
             <q-item-label header class="text-uppercase text-grey-7">
               <q-icon name="trending_up" class="q-mr-xs" size="xs" aria-hidden="true" />
               Quick Stats
@@ -215,41 +215,89 @@ useKeyboardShortcuts({
   'ctrl+q': () => confirmLogout(),
 })
 
-// Navigation Items
-const mainNavItems = [
-  { name: 'dashboard', label: 'Dashboard', icon: 'dashboard', to: { name: 'admin-dashboard' } },
-  // { name: 'sync', label: 'Sync SIAKAD', icon: 'sync', to: { name: 'admin-sync' } },
-  // { name: 'sessions', label: 'Sesi Ujian', icon: 'event', to: { name: 'admin-sessions' } },
+// ============================================
+// ROLE-AWARE NAVIGATION
+// ============================================
+const userRole = computed(() => authStore.role || authStore.user?.role || 'ADMIN')
+const isProctor = computed(() => userRole.value === 'PROCTOR' || userRole.value === 'TEACHER')
+const panelTitle = computed(() => (isProctor.value ? 'CBT Proctor Panel' : 'CBT Admin Panel'))
+
+// Semua item menu dengan metadata roles — item tanpa `roles` = semua bisa akses
+const ALL_MAIN_NAV = [
+  {
+    name: 'dashboard',
+    label: 'Dashboard',
+    icon: 'dashboard',
+    to: { name: 'admin-dashboard' },
+    roles: ['ADMIN', 'SUPER_ADMIN'],
+  },
+  {
+    name: 'proctor-dashboard',
+    label: 'Dashboard Proktor',
+    icon: 'shield',
+    to: { name: 'proctor-dashboard' },
+    roles: ['PROCTOR', 'TEACHER'],
+  },
 ]
 
-const managementNavItems = [
+const ALL_MANAGEMENT_NAV = [
   {
     name: 'participants',
     label: 'Data Peserta',
     icon: 'group',
     to: { name: 'admin-participants' },
+    roles: ['ADMIN', 'SUPER_ADMIN'],
   },
   {
     name: 'examCard',
     label: 'Kartu Ujian',
     icon: 'card_membership',
     to: { name: 'admin-exam-card' },
+    roles: ['ADMIN', 'SUPER_ADMIN'],
   },
   {
-    name: 'questions',
+    name: 'buatJadwal',
     label: 'Buat Jadwal',
     icon: 'schedule',
     to: { name: 'admin-exam-management' },
+    roles: ['ADMIN', 'SUPER_ADMIN'],
   },
-  { name: 'questions', label: 'Kelola Soal', icon: 'quiz', to: { name: 'admin-questions' } },
-  { name: 'archive', label: 'Archive Semester', icon: 'archive', to: { name: 'admin-archive' } },
-  // Cari area q-item / navigation dan tambahkan:
   {
-    icon: 'vpn_key',
+    name: 'kelolaSoal',
+    label: 'Kelola Soal',
+    icon: 'quiz',
+    to: { name: 'admin-questions' },
+    roles: ['ADMIN', 'SUPER_ADMIN'],
+  },
+  {
+    name: 'archive',
+    label: 'Archive Semester',
+    icon: 'archive',
+    to: { name: 'admin-archive' },
+    roles: ['ADMIN', 'SUPER_ADMIN'],
+  },
+  {
+    name: 'tokenUjian',
     label: 'Token Ujian',
+    icon: 'vpn_key',
     to: { name: 'admin-token-display' },
+    roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'],
+  },
+  {
+    name: 'paymentGates',
+    label: 'Payment Gate',
+    icon: 'payments',
+    to: { name: 'admin-payment-gates' },
+    roles: ['ADMIN', 'SUPER_ADMIN'],
   },
 ]
+
+const mainNavItems = computed(() =>
+  ALL_MAIN_NAV.filter((i) => !i.roles || i.roles.includes(userRole.value)),
+)
+const managementNavItems = computed(() =>
+  ALL_MANAGEMENT_NAV.filter((i) => !i.roles || i.roles.includes(userRole.value)),
+)
 
 const stats = ref({ totalQuestions: 0, totalParticipants: 0 })
 
@@ -359,7 +407,13 @@ const updateDateTime = () => {
   })
 }
 
-const loadStats = () => {
+const loadStats = async () => {
+  if (isProctor.value) {
+    // Proctor tidak butuh stats peserta/soal global
+    stats.value = { totalQuestions: 0, totalParticipants: 0 }
+    return
+  }
+  // TODO PHASE 10: ganti dengan API call ke /admin/dashboard/stats
   stats.value = { totalQuestions: 75, totalParticipants: 150 }
 }
 

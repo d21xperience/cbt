@@ -6,17 +6,22 @@ import (
 )
 
 type Config struct {
-	AppPort       string `mapstructure:"APP_PORT"`
-	DbSource      string `mapstructure:"DB_SOURCE"`
-	RedisAddr     string `mapstructure:"REDIS_ADDR"`
-	RedisPassword string `mapstructure:"REDIS_PASSWORD"`
-	AllowedOrigin string `mapstructure:"ALLOWED_ORIGIN"`
-
-	// TAMBAHAN BARU
+	AppPort                  string `mapstructure:"APP_PORT"`
+	DbSource                 string `mapstructure:"DB_SOURCE"`
+	RedisAddr                string `mapstructure:"REDIS_ADDR"`
+	RedisPassword            string `mapstructure:"REDIS_PASSWORD"`
+	AllowedOrigin            string `mapstructure:"ALLOWED_ORIGIN"`
 	JWTSecret                string `mapstructure:"JWT_SECRET"`
 	SiakadBaseURL            string `mapstructure:"SIAKAD_BASE_URL"`
-	AppEnv                   string `mapstructure:"APP_ENV"` // "development" | "production"
 	CredentialsEncryptionKey string `mapstructure:"CREDENTIALS_ENCRYPTION_KEY"`
+	AppEnv                   string `mapstructure:"APP_ENV"` // "development" | "production"
+	LoadTestToken            string `mapstructure:"LOAD_TEST_TOKEN"`
+	// ==== Phase 1 Multi-Tenant ====
+	MultiTenantMode      bool   `mapstructure:"MULTI_TENANT_MODE"`
+	PlatformDBPath       string `mapstructure:"PLATFORM_DB_PATH"`
+	TenantBasePath       string `mapstructure:"TENANT_BASE_PATH"`
+	TenantMaxOpen        int    `mapstructure:"TENANT_MAX_OPEN"`
+	TenantIdleTTLMinutes int    `mapstructure:"TENANT_IDLE_TTL_MINUTES"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
@@ -32,6 +37,18 @@ func LoadConfig(path string) (config Config, err error) {
 	}
 
 	err = viper.Unmarshal(&config)
+	if config.PlatformDBPath == "" {
+		config.PlatformDBPath = "/var/lib/cbt/platform/platform.db"
+	}
+	if config.TenantBasePath == "" {
+		config.TenantBasePath = "/var/lib/cbt"
+	}
+	if config.TenantMaxOpen == 0 {
+		config.TenantMaxOpen = 20
+	}
+	if config.TenantIdleTTLMinutes == 0 {
+		config.TenantIdleTTLMinutes = 30
+	}
 	return
 }
 func (c Config) IsProduction() bool {

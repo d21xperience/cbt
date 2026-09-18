@@ -11,7 +11,7 @@ const routes = [
     ],
     meta: { requiresAuth: false },
   },
-
+  // AUTHENTICATION
   {
     path: '/auth',
     component: () => import('@/layouts/AuthLayout.vue'),
@@ -31,18 +31,19 @@ const routes = [
         component: () => import('@/pages/auth/AdminLogin.vue'),
       },
       {
-        path: 'super',
-        name: 'superadmin-login',
-        component: () => import('@/pages/auth/SuperAdminLogin.vue'),
-      },
-      {
         path: 'teacher',
         name: 'teacher-login',
         component: () => import('@/pages/auth/TeacherLogin.vue'), // Halaman Login Guru Baru
       },
+      {
+        path: 'super',
+        name: 'superadmin-login',
+        component: () => import('@/pages/auth/SuperAdminLogin.vue'),
+      },
     ],
     meta: { requiresAuth: false },
   },
+  // SUPERAMDIN
   {
     path: '/super',
     component: () => import('@/layouts/SuperAdminLayout.vue'), // Atau SuperLayout khusus
@@ -70,7 +71,7 @@ const routes = [
       },
     ],
   },
-
+  // ADMIN
   {
     path: '/admin',
     component: () => import('@/layouts/AdminLayout.vue'),
@@ -116,11 +117,18 @@ const routes = [
         path: 'token-ujian',
         name: 'admin-token-display',
         component: () => import('@/pages/admin/TokenDisplay.vue'),
+        meta: { allowedRoles: ['ADMIN', 'PROCTOR', 'SUPER_ADMIN'] },
+      },
+      {
+        path: 'payment-gates',
+        name: 'admin-payment-gates',
+        component: () => import('@/pages/admin/PaymentGates.vue'),
       },
     ],
     meta: { requiresAuth: true, roles: ['ADMIN'] },
   },
 
+  // STUDENT
   {
     path: '/student',
     component: () => import('@/layouts/StudentLayout.vue'),
@@ -144,6 +152,25 @@ const routes = [
     ],
     meta: { requiresAuth: true, roles: ['PARTICIPANT'], allowedRoles: ['PARTICIPANT'] },
   },
+  // PROCTOR
+  {
+    path: '/proctor',
+    component: () => import('@/layouts/AdminLayout.vue'),
+    meta: { requiresAuth: true, roles: ['PROCTOR', 'TEACHER', 'ADMIN'] },
+    children: [
+      {
+        path: '',
+        name: 'proctor-dashboard',
+        component: () => import('@/pages/proctor/ProctorDashboard.vue'),
+      },
+      {
+        path: 'monitoring/:sessionId',
+        name: 'proctor-monitoring',
+        component: () => import('@/pages/proctor/ProctorMonitoring.vue'),
+      },
+    ],
+  },
+
   {
     path: '/exam',
     component: () => import('@/layouts/ExamLayout.vue'),

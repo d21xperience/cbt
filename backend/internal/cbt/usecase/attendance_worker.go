@@ -162,4 +162,3 @@ func AssignMakeupManual(ctx context.Context, db *sql.DB, participantID, sessionI
 	_ = uuid.NewString() // suppress unused import in this stub
 	return err
 }
-

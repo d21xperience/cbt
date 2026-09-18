@@ -69,9 +69,11 @@ export function useExamList() {
   const completedExams = computed(() => exams.value.filter((e) => e.status === 'completed'))
 
   const fetchExams = async () => {
+    console.log('fetchExams')
     loading.value = true
     try {
       const { data } = await ExamService.getActiveExams()
+      console.log(data)
       const rows = data.data || []
       exams.value = rows.map(adaptExam)
     } catch (error) {
@@ -101,6 +103,19 @@ export function useExamList() {
       console.error('Fetch history error:', error)
     }
   }
+  const dashboard = ref({ scheduled: [], makeup_available: [], completed: [] })
+
+  const fetchDashboard = async () => {
+    loading.value = true
+    try {
+      const { data } = await ExamService.getDashboard()
+      dashboard.value = data.data || { scheduled: [], makeup_available: [], completed: [] }
+    } catch (error) {
+      console.error('Dashboard error:', error)
+    } finally {
+      loading.value = false
+    }
+  }
 
   const verifyToken = async (examId, token) => {
     const { data } = await ExamService.verifyToken(examId, token)
@@ -111,10 +126,12 @@ export function useExamList() {
     loading,
     exams,
     history,
+    dashboard,
     activeExams,
     completedExams,
     fetchExams,
     fetchHistory,
     verifyToken,
+    fetchDashboard,
   }
 }

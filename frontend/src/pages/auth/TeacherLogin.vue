@@ -18,64 +18,36 @@
         <br />
         <span class="text-caption">(Kode: TENANT_SUSPENDED)</span>
       </div>
-      <q-btn
-        class="q-mt-lg"
-        color="primary"
-        outline
-        label="Kembali ke Beranda"
-        icon="home"
-        @click="$router.push('/')"
-      />
+      <q-btn class="q-mt-lg" color="primary" outline label="Kembali ke Beranda" icon="home"
+        @click="$router.push('/')" />
     </div>
     <q-card v-else style="width: 380px; max-width: 90vw" class="shadow-2 rounded-borders">
       <q-card-section class="bg-teal text-white text-center q-pa-md">
         <q-icon name="supervisor_account" size="md" class="q-mb-xs" />
-        <div class="text-h6 text-weight-bold">{{ schoolName }}</div>
+        <div class="text-h6 text-weight-bold">{{ schoolTitle }}</div>
         <div class="text-caption text-teal-1">Panel Guru & Pengawas Ujian (Proktor)</div>
       </q-card-section>
 
       <q-card-section class="q-pt-lg">
-        <q-form @submit.prevent="onTeacherSubmit" class="q-gutter-md">
-          <q-input
-            v-model="username"
-            label="NIP / Username Guru"
-            outlined
-            stack-label
-            dense
-            :rules="[(val) => !!val || 'NIP atau Username wajib diisi']"
-          >
-            <template v-slot:prepend><q-icon name="badge" color="teal" /></template>
+        <q-form @submit.prevent="onSubmit" class="q-gutter-md">
+          <q-input v-model="username" label="Username" outlined stack-label dense
+            :rules="[(val) => !!val || 'Username wajib diisi']">
+            <template v-slot:prepend><q-icon name="person" color="teal" /></template>
           </q-input>
 
-          <PasswordInput
-            v-model="password"
-            label="Kata Sandi Guru"
-            dense
-            :rules="[(val) => !!val || 'Sandi wajib diisi']"
-            class="q-mb-md"
-          />
+          <PasswordInput v-model="password" label="Kata Sandi" dense :rules="[(val) => !!val || 'Sandi wajib diisi']"
+            class="q-mb-md" />
 
           <div>
-            <q-btn
-              label="Masuk Ruang Proktor"
-              type="submit"
-              color="teal"
-              class="full-width text-weight-bold"
-              :loading="loading"
-            />
+            <q-btn label="Masuk Ruang Proktor" type="submit" color="teal" class="full-width text-weight-bold"
+              :loading="loading" />
           </div>
         </q-form>
       </q-card-section>
 
       <q-card-actions align="center" class="q-pb-md">
-        <q-btn
-          flat
-          no-caps
-          label="Beralih Ke Login Siswa"
-          color="grey-7"
-          icon="arrow_back"
-          :to="{ name: 'participant-login', query: $route.query }"
-        />
+        <q-btn flat no-caps label="Beralih Ke Login Siswa" color="grey-7" icon="arrow_back"
+          :to="{ name: 'participant-login', query: $route.query }" />
       </q-card-actions>
     </q-card>
   </q-page>
@@ -101,7 +73,7 @@ const { checkingTenant, schoolTitle, displayLogo, loadTenantConfig, isSuspended 
 const username = ref('')
 const password = ref('')
 const loading = ref(false)
-const schoolName = ref('CBT School Node')
+// const schoolName = ref('CBT School Node')
 
 onMounted(async () => {
   authStore.clearSession()
@@ -109,31 +81,23 @@ onMounted(async () => {
   await loadTenantConfig()
 })
 
-const onTeacherSubmit = async () => {
+const onSubmit = async () => {
   loading.value = true
   try {
-    const tes = await authStore.login(
-      {
-        username: username.value,
-        password: password.value,
-      },
-      'ADMIN',
-    )
-    // Sesuai kode logika bawaan Anda (jika !tes berarti sukses)
-    if (!tes) {
-      $q.notify({
-        type: 'positive',
-        message: `Selamat datang di panel admin ${schoolName.value}! 😁`,
-      })
-      router.push('/admin')
+    const res = await authStore.proctorLogin({
+      username: username.value,
+      password: password.value,
+    })
+    if (res.success) {
+      $q.notify({ type: 'positive', message: 'Login berhasil!' })
+      // ✅ Redirect ke proctor dashboard
+      router.push({ name: 'proctor-dashboard' })
+    } else {
+      throw new Error(res.error || 'Login gagal')
     }
   } catch (err) {
-    console.log(err)
-    $q.notify({
-      type: 'negative',
-      message:
-        err.response?.data?.message || 'Login gagal. Periksa kembali kredensial proktor Anda.',
-    })
+    const message = err.response?.data?.error || err.message || 'Login gagal'
+    $q.notify({ type: 'negative', message })
   } finally {
     loading.value = false
   }

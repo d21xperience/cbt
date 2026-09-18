@@ -33,7 +33,7 @@
           <q-input v-model="username" label="Username" hint="Tertera di kartu ujian (contoh: 12345678)" outlined
             stack-label autocomplete="off" :rules="[(v) => !!v || 'Username wajib diisi']">
             <template v-slot:prepend>
-              <q-icon name="badge" />
+              <q-icon name="person" />
             </template>
           </q-input>
 

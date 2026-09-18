@@ -16,13 +16,14 @@ export const useAuthStore = defineStore('auth', {
     getUser: (state) => state.user,
     getRole: (state) => state.role,
     getStudent: (state) => {
+      console.log('state', state.user)
       // Jika role participant, kembalikan user sebagai student
       if (state.role === 'PARTICIPANT' && state.user) {
         return {
           id: state.user.id || '',
           name: state.user.name || '',
-          nis: state.user.nis || '',
-          class: state.user.class || '',
+          nisn: state.user.nisn || '',
+          class: state.user.rombel || '',
           avatar: state.user.avatar || '',
         }
       }
@@ -55,7 +56,18 @@ export const useAuthStore = defineStore('auth', {
         return { success: false, error: error.response?.data?.message || 'Login gagal' }
       }
     },
-
+    async proctorLogin(credentials) {
+      const response = await AuthService.login(credentials, 'PROCTOR')
+      const { token, role, user } = response.data
+      this.token = token
+      this.user = user
+      this.role = role
+      this.isAuthenticated = true
+      LocalStorage.set('cbt_token', token)
+      LocalStorage.set('cbt_role', role)
+      LocalStorage.set('cbt_user', JSON.stringify(user))
+      return { success: true, user, role }
+    },
     async participantLogin(credentials) {
       // credentials = { username, password }
       const response = await AuthService.login(credentials, 'participant')

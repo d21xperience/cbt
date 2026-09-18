@@ -45,6 +45,10 @@ export const ActiveExamService = {
   sendTelemetry(eventType) {
     return api.post('/exam/telemetry', { event_type: eventType })
   },
+  // Dashboard peserta 3 section
+  getDashboard() {
+    return api.get('/exam/dashboard')
+  },
 }
 
 // backward-compat alias

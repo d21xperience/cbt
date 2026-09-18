@@ -1,0 +1,2979 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: C:/C/projects/cbt-quasar/cbt/loadtest/k6-exam-flow.js
+        output: json (C:/C/projects/cbt-quasar/cbt/loadtest/results/20260917_001630/k6-raw.json)
+
+     scenarios: (100.00%) 3 scenarios, 1000 max VUs, 9m30s max duration (incl. graceful stop):
+              * smoke: Up to 100 looping VUs for 1m40s over 3 stages (gracefulRampDown: 30s, exec: examFlow, gracefulStop: 30s)
+              * stress: Up to 500 looping VUs for 3m0s over 3 stages (gracefulRampDown: 30s, exec: examFlow, startTime: 2m0s, gracefulStop: 30s)
+              * peak: Up to 1000 looping VUs for 3m0s over 3 stages (gracefulRampDown: 30s, exec: examFlow, startTime: 6m0s, gracefulStop: 30s)
+
+
+running (0m00.6s), 0003/1000 VUs, 0 complete and 0 interrupted iterations
+smoke    [   1% ] 003/100 VUs  0m00.6s/1m40.0s
+stress • [   0% ] waiting      1m59.4s
+peak   • [   0% ] waiting      5m59.4s
+
+running (0m01.6s), 0008/1000 VUs, 0 complete and 0 interrupted iterations
+smoke    [   2% ] 008/100 VUs  0m01.6s/1m40.0s
+stress • [   0% ] waiting      1m58.4s
+peak   • [   0% ] waiting      5m58.4s
+
+running (0m02.6s), 0013/1000 VUs, 2 complete and 0 interrupted iterations
+smoke    [   3% ] 013/100 VUs  0m02.6s/1m40.0s
+stress • [   0% ] waiting      1m57.4s
+peak   • [   0% ] waiting      5m57.4s
+
+running (0m03.6s), 0018/1000 VUs, 7 complete and 0 interrupted iterations
+smoke    [   4% ] 018/100 VUs  0m03.6s/1m40.0s
+stress • [   0% ] waiting      1m56.4s
+peak   • [   0% ] waiting      5m56.4s
+
+running (0m04.6s), 0022/1000 VUs, 14 complete and 0 interrupted iterations
+smoke    [   5% ] 022/100 VUs  0m04.6s/1m40.0s
+stress • [   0% ] waiting      1m55.4s
+peak   • [   0% ] waiting      5m55.4s
+
+running (0m05.6s), 0028/1000 VUs, 24 complete and 0 interrupted iterations
+smoke    [   6% ] 028/100 VUs  0m05.6s/1m40.0s
+stress • [   0% ] waiting      1m54.4s
+peak   • [   0% ] waiting      5m54.4s
+
+running (0m06.6s), 0033/1000 VUs, 33 complete and 0 interrupted iterations
+smoke    [   7% ] 033/100 VUs  0m06.6s/1m40.0s
+stress • [   0% ] waiting      1m53.4s
+peak   • [   0% ] waiting      5m53.4s
+
+running (0m07.6s), 0038/1000 VUs, 51 complete and 0 interrupted iterations
+smoke    [   8% ] 038/100 VUs  0m07.6s/1m40.0s
+stress • [   0% ] waiting      1m52.4s
+peak   • [   0% ] waiting      5m52.4s
+
+running (0m08.6s), 0043/1000 VUs, 65 complete and 0 interrupted iterations
+smoke    [   9% ] 043/100 VUs  0m08.6s/1m40.0s
+stress • [   0% ] waiting      1m51.4s
+peak   • [   0% ] waiting      5m51.4s
+
+running (0m09.6s), 0048/1000 VUs, 88 complete and 0 interrupted iterations
+smoke    [  10% ] 048/100 VUs  0m09.6s/1m40.0s
+stress • [   0% ] waiting      1m50.4s
+peak   • [   0% ] waiting      5m50.4s
+
+running (0m10.6s), 0053/1000 VUs, 107 complete and 0 interrupted iterations
+smoke    [  11% ] 053/100 VUs  0m10.6s/1m40.0s
+stress • [   0% ] waiting      1m49.4s
+peak   • [   0% ] waiting      5m49.4s
+
+running (0m11.6s), 0058/1000 VUs, 131 complete and 0 interrupted iterations
+smoke    [  12% ] 058/100 VUs  0m11.6s/1m40.0s
+stress • [   0% ] waiting      1m48.4s
+peak   • [   0% ] waiting      5m48.4s
+
+running (0m12.6s), 0063/1000 VUs, 159 complete and 0 interrupted iterations
+smoke    [  13% ] 063/100 VUs  0m12.6s/1m40.0s
+stress • [   0% ] waiting      1m47.4s
+peak   • [   0% ] waiting      5m47.4s
+
+running (0m13.6s), 0068/1000 VUs, 188 complete and 0 interrupted iterations
+smoke    [  14% ] 068/100 VUs  0m13.6s/1m40.0s
+stress • [   0% ] waiting      1m46.4s
+peak   • [   0% ] waiting      5m46.4s
+
+running (0m14.6s), 0073/1000 VUs, 221 complete and 0 interrupted iterations
+smoke    [  15% ] 073/100 VUs  0m14.6s/1m40.0s
+stress • [   0% ] waiting      1m45.4s
+peak   • [   0% ] waiting      5m45.4s
+
+running (0m15.6s), 0078/1000 VUs, 253 complete and 0 interrupted iterations
+smoke    [  16% ] 078/100 VUs  0m15.6s/1m40.0s
+stress • [   0% ] waiting      1m44.4s
+peak   • [   0% ] waiting      5m44.4s
+
+running (0m16.6s), 0083/1000 VUs, 292 complete and 0 interrupted iterations
+smoke    [  17% ] 083/100 VUs  0m16.6s/1m40.0s
+stress • [   0% ] waiting      1m43.4s
+peak   • [   0% ] waiting      5m43.4s
+
+running (0m17.6s), 0088/1000 VUs, 330 complete and 0 interrupted iterations
+smoke    [  18% ] 088/100 VUs  0m17.6s/1m40.0s
+stress • [   0% ] waiting      1m42.4s
+peak   • [   0% ] waiting      5m42.4s
+
+running (0m18.6s), 0093/1000 VUs, 372 complete and 0 interrupted iterations
+smoke    [  19% ] 093/100 VUs  0m18.6s/1m40.0s
+stress • [   0% ] waiting      1m41.4s
+peak   • [   0% ] waiting      5m41.4s
+
+running (0m19.6s), 0098/1000 VUs, 417 complete and 0 interrupted iterations
+smoke    [  20% ] 098/100 VUs  0m19.6s/1m40.0s
+stress • [   0% ] waiting      1m40.4s
+peak   • [   0% ] waiting      5m40.4s
+
+running (0m20.6s), 0100/1000 VUs, 462 complete and 0 interrupted iterations
+smoke    [  21% ] 100/100 VUs  0m20.6s/1m40.0s
+stress • [   0% ] waiting      1m39.4s
+peak   • [   0% ] waiting      5m39.4s
+
+running (0m21.6s), 0100/1000 VUs, 512 complete and 0 interrupted iterations
+smoke    [  22% ] 100/100 VUs  0m21.6s/1m40.0s
+stress • [   0% ] waiting      1m38.4s
+peak   • [   0% ] waiting      5m38.4s
+
+running (0m22.6s), 0100/1000 VUs, 562 complete and 0 interrupted iterations
+smoke    [  23% ] 100/100 VUs  0m22.6s/1m40.0s
+stress • [   0% ] waiting      1m37.4s
+peak   • [   0% ] waiting      5m37.4s
+
+running (0m23.6s), 0100/1000 VUs, 611 complete and 0 interrupted iterations
+smoke    [  24% ] 100/100 VUs  0m23.6s/1m40.0s
+stress • [   0% ] waiting      1m36.4s
+peak   • [   0% ] waiting      5m36.4s
+
+running (0m24.6s), 0100/1000 VUs, 660 complete and 0 interrupted iterations
+smoke    [  25% ] 100/100 VUs  0m24.6s/1m40.0s
+stress • [   0% ] waiting      1m35.4s
+peak   • [   0% ] waiting      5m35.4s
+
+running (0m25.6s), 0100/1000 VUs, 711 complete and 0 interrupted iterations
+smoke    [  26% ] 100/100 VUs  0m25.6s/1m40.0s
+stress • [   0% ] waiting      1m34.4s
+peak   • [   0% ] waiting      5m34.4s
+
+running (0m26.6s), 0100/1000 VUs, 758 complete and 0 interrupted iterations
+smoke    [  27% ] 100/100 VUs  0m26.6s/1m40.0s
+stress • [   0% ] waiting      1m33.4s
+peak   • [   0% ] waiting      5m33.4s
+
+running (0m27.6s), 0100/1000 VUs, 809 complete and 0 interrupted iterations
+smoke    [  28% ] 100/100 VUs  0m27.6s/1m40.0s
+stress • [   0% ] waiting      1m32.4s
+peak   • [   0% ] waiting      5m32.4s
+
+running (0m28.6s), 0100/1000 VUs, 856 complete and 0 interrupted iterations
+smoke    [  29% ] 100/100 VUs  0m28.6s/1m40.0s
+stress • [   0% ] waiting      1m31.4s
+peak   • [   0% ] waiting      5m31.4s
+
+running (0m29.6s), 0100/1000 VUs, 906 complete and 0 interrupted iterations
+smoke    [  30% ] 100/100 VUs  0m29.6s/1m40.0s
+stress • [   0% ] waiting      1m30.4s
+peak   • [   0% ] waiting      5m30.4s
+
+running (0m30.6s), 0100/1000 VUs, 955 complete and 0 interrupted iterations
+smoke    [  31% ] 100/100 VUs  0m30.6s/1m40.0s
+stress • [   0% ] waiting      1m29.4s
+peak   • [   0% ] waiting      5m29.4s
+
+running (0m31.6s), 0100/1000 VUs, 989 complete and 0 interrupted iterations
+smoke    [  32% ] 100/100 VUs  0m31.6s/1m40.0s
+stress • [   0% ] waiting      1m28.4s
+peak   • [   0% ] waiting      5m28.4s
+
+running (0m32.6s), 0100/1000 VUs, 1055 complete and 0 interrupted iterations
+smoke    [  33% ] 100/100 VUs  0m32.6s/1m40.0s
+stress • [   0% ] waiting      1m27.4s
+peak   • [   0% ] waiting      5m27.4s
+
+running (0m33.6s), 0100/1000 VUs, 1088 complete and 0 interrupted iterations
+smoke    [  34% ] 100/100 VUs  0m33.6s/1m40.0s
+stress • [   0% ] waiting      1m26.4s
+peak   • [   0% ] waiting      5m26.4s
+
+running (0m34.6s), 0100/1000 VUs, 1152 complete and 0 interrupted iterations
+smoke    [  35% ] 100/100 VUs  0m34.6s/1m40.0s
+stress • [   0% ] waiting      1m25.4s
+peak   • [   0% ] waiting      5m25.4s
+
+running (0m35.6s), 0100/1000 VUs, 1188 complete and 0 interrupted iterations
+smoke    [  36% ] 100/100 VUs  0m35.6s/1m40.0s
+stress • [   0% ] waiting      1m24.4s
+peak   • [   0% ] waiting      5m24.4s
+
+running (0m36.6s), 0100/1000 VUs, 1250 complete and 0 interrupted iterations
+smoke    [  37% ] 100/100 VUs  0m36.6s/1m40.0s
+stress • [   0% ] waiting      1m23.4s
+peak   • [   0% ] waiting      5m23.4s
+
+running (0m37.6s), 0100/1000 VUs, 1288 complete and 0 interrupted iterations
+smoke    [  38% ] 100/100 VUs  0m37.6s/1m40.0s
+stress • [   0% ] waiting      1m22.4s
+peak   • [   0% ] waiting      5m22.4s
+
+running (0m38.6s), 0100/1000 VUs, 1349 complete and 0 interrupted iterations
+smoke    [  39% ] 100/100 VUs  0m38.6s/1m40.0s
+stress • [   0% ] waiting      1m21.4s
+peak   • [   0% ] waiting      5m21.4s
+
+running (0m39.6s), 0100/1000 VUs, 1388 complete and 0 interrupted iterations
+smoke    [  40% ] 100/100 VUs  0m39.6s/1m40.0s
+stress • [   0% ] waiting      1m20.4s
+peak   • [   0% ] waiting      5m20.4s
+
+running (0m40.6s), 0100/1000 VUs, 1448 complete and 0 interrupted iterations
+smoke    [  41% ] 100/100 VUs  0m40.6s/1m40.0s
+stress • [   0% ] waiting      1m19.4s
+peak   • [   0% ] waiting      5m19.4s
+
+running (0m41.6s), 0100/1000 VUs, 1488 complete and 0 interrupted iterations
+smoke    [  42% ] 100/100 VUs  0m41.6s/1m40.0s
+stress • [   0% ] waiting      1m18.4s
+peak   • [   0% ] waiting      5m18.4s
+
+running (0m42.6s), 0100/1000 VUs, 1548 complete and 0 interrupted iterations
+smoke    [  43% ] 100/100 VUs  0m42.6s/1m40.0s
+stress • [   0% ] waiting      1m17.4s
+peak   • [   0% ] waiting      5m17.4s
+
+running (0m43.6s), 0100/1000 VUs, 1588 complete and 0 interrupted iterations
+smoke    [  44% ] 100/100 VUs  0m43.6s/1m40.0s
+stress • [   0% ] waiting      1m16.4s
+peak   • [   0% ] waiting      5m16.4s
+
+running (0m44.6s), 0100/1000 VUs, 1646 complete and 0 interrupted iterations
+smoke    [  45% ] 100/100 VUs  0m44.6s/1m40.0s
+stress • [   0% ] waiting      1m15.4s
+peak   • [   0% ] waiting      5m15.4s
+
+running (0m45.6s), 0100/1000 VUs, 1682 complete and 0 interrupted iterations
+smoke    [  46% ] 100/100 VUs  0m45.6s/1m40.0s
+stress • [   0% ] waiting      1m14.4s
+peak   • [   0% ] waiting      5m14.4s
+
+running (0m46.6s), 0100/1000 VUs, 1743 complete and 0 interrupted iterations
+smoke    [  47% ] 100/100 VUs  0m46.6s/1m40.0s
+stress • [   0% ] waiting      1m13.4s
+peak   • [   0% ] waiting      5m13.4s
+
+running (0m47.6s), 0100/1000 VUs, 1781 complete and 0 interrupted iterations
+smoke    [  48% ] 100/100 VUs  0m47.6s/1m40.0s
+stress • [   0% ] waiting      1m12.4s
+peak   • [   0% ] waiting      5m12.4s
+
+running (0m48.6s), 0100/1000 VUs, 1839 complete and 0 interrupted iterations
+smoke    [  49% ] 100/100 VUs  0m48.6s/1m40.0s
+stress • [   0% ] waiting      1m11.4s
+peak   • [   0% ] waiting      5m11.4s
+
+running (0m49.6s), 0100/1000 VUs, 1876 complete and 0 interrupted iterations
+smoke    [  50% ] 100/100 VUs  0m49.6s/1m40.0s
+stress • [   0% ] waiting      1m10.4s
+peak   • [   0% ] waiting      5m10.4s
+
+running (0m50.6s), 0100/1000 VUs, 1938 complete and 0 interrupted iterations
+smoke    [  51% ] 100/100 VUs  0m50.6s/1m40.0s
+stress • [   0% ] waiting      1m09.4s
+peak   • [   0% ] waiting      5m09.4s
+
+running (0m51.6s), 0100/1000 VUs, 1976 complete and 0 interrupted iterations
+smoke    [  52% ] 100/100 VUs  0m51.6s/1m40.0s
+stress • [   0% ] waiting      1m08.4s
+peak   • [   0% ] waiting      5m08.4s
+
+running (0m52.6s), 0100/1000 VUs, 2037 complete and 0 interrupted iterations
+smoke    [  53% ] 100/100 VUs  0m52.6s/1m40.0s
+stress • [   0% ] waiting      1m07.4s
+peak   • [   0% ] waiting      5m07.4s
+
+running (0m53.6s), 0100/1000 VUs, 2075 complete and 0 interrupted iterations
+smoke    [  54% ] 100/100 VUs  0m53.6s/1m40.0s
+stress • [   0% ] waiting      1m06.4s
+peak   • [   0% ] waiting      5m06.4s
+
+running (0m54.6s), 0100/1000 VUs, 2135 complete and 0 interrupted iterations
+smoke    [  55% ] 100/100 VUs  0m54.6s/1m40.0s
+stress • [   0% ] waiting      1m05.4s
+peak   • [   0% ] waiting      5m05.4s
+
+running (0m55.6s), 0100/1000 VUs, 2175 complete and 0 interrupted iterations
+smoke    [  56% ] 100/100 VUs  0m55.6s/1m40.0s
+stress • [   0% ] waiting      1m04.4s
+peak   • [   0% ] waiting      5m04.4s
+
+running (0m56.6s), 0100/1000 VUs, 2235 complete and 0 interrupted iterations
+smoke    [  57% ] 100/100 VUs  0m56.6s/1m40.0s
+stress • [   0% ] waiting      1m03.4s
+peak   • [   0% ] waiting      5m03.4s
+
+running (0m57.6s), 0100/1000 VUs, 2275 complete and 0 interrupted iterations
+smoke    [  58% ] 100/100 VUs  0m57.6s/1m40.0s
+stress • [   0% ] waiting      1m02.4s
+peak   • [   0% ] waiting      5m02.4s
+
+running (0m58.6s), 0100/1000 VUs, 2334 complete and 0 interrupted iterations
+smoke    [  59% ] 100/100 VUs  0m58.6s/1m40.0s
+stress • [   0% ] waiting      1m01.4s
+peak   • [   0% ] waiting      5m01.4s
+
+running (0m59.6s), 0100/1000 VUs, 2375 complete and 0 interrupted iterations
+smoke    [  60% ] 100/100 VUs  0m59.6s/1m40.0s
+stress • [   0% ] waiting      1m00.4s
+peak   • [   0% ] waiting      5m00.4s
+
+running (1m00.6s), 0100/1000 VUs, 2430 complete and 0 interrupted iterations
+smoke    [  61% ] 100/100 VUs  1m00.6s/1m40.0s
+stress • [   0% ] waiting      0m59.4s
+peak   • [   0% ] waiting      4m59.4s
+
+running (1m01.6s), 0100/1000 VUs, 2475 complete and 0 interrupted iterations
+smoke    [  62% ] 100/100 VUs  1m01.6s/1m40.0s
+stress • [   0% ] waiting      0m58.4s
+peak   • [   0% ] waiting      4m58.4s
+
+running (1m02.6s), 0100/1000 VUs, 2525 complete and 0 interrupted iterations
+smoke    [  63% ] 100/100 VUs  1m02.6s/1m40.0s
+stress • [   0% ] waiting      0m57.4s
+peak   • [   0% ] waiting      4m57.4s
+
+running (1m03.6s), 0100/1000 VUs, 2574 complete and 0 interrupted iterations
+smoke    [  64% ] 100/100 VUs  1m03.6s/1m40.0s
+stress • [   0% ] waiting      0m56.4s
+peak   • [   0% ] waiting      4m56.4s
+
+running (1m04.6s), 0100/1000 VUs, 2621 complete and 0 interrupted iterations
+smoke    [  65% ] 100/100 VUs  1m04.6s/1m40.0s
+stress • [   0% ] waiting      0m55.4s
+peak   • [   0% ] waiting      4m55.4s
+
+running (1m05.6s), 0100/1000 VUs, 2674 complete and 0 interrupted iterations
+smoke    [  66% ] 100/100 VUs  1m05.6s/1m40.0s
+stress • [   0% ] waiting      0m54.4s
+peak   • [   0% ] waiting      4m54.4s
+
+running (1m06.6s), 0100/1000 VUs, 2720 complete and 0 interrupted iterations
+smoke    [  67% ] 100/100 VUs  1m06.6s/1m40.0s
+stress • [   0% ] waiting      0m53.4s
+peak   • [   0% ] waiting      4m53.4s
+
+running (1m07.6s), 0100/1000 VUs, 2774 complete and 0 interrupted iterations
+smoke    [  68% ] 100/100 VUs  1m07.6s/1m40.0s
+stress • [   0% ] waiting      0m52.4s
+peak   • [   0% ] waiting      4m52.4s
+
+running (1m08.6s), 0100/1000 VUs, 2816 complete and 0 interrupted iterations
+smoke    [  69% ] 100/100 VUs  1m08.6s/1m40.0s
+stress • [   0% ] waiting      0m51.4s
+peak   • [   0% ] waiting      4m51.4s
+
+running (1m09.6s), 0100/1000 VUs, 2867 complete and 0 interrupted iterations
+smoke    [  70% ] 100/100 VUs  1m09.6s/1m40.0s
+stress • [   0% ] waiting      0m50.4s
+peak   • [   0% ] waiting      4m50.4s
+
+running (1m10.6s), 0100/1000 VUs, 2912 complete and 0 interrupted iterations
+smoke    [  71% ] 100/100 VUs  1m10.6s/1m40.0s
+stress • [   0% ] waiting      0m49.4s
+peak   • [   0% ] waiting      4m49.4s
+
+running (1m11.6s), 0100/1000 VUs, 2965 complete and 0 interrupted iterations
+smoke    [  72% ] 100/100 VUs  1m11.6s/1m40.0s
+stress • [   0% ] waiting      0m48.4s
+peak   • [   0% ] waiting      4m48.4s
+
+running (1m12.6s), 0100/1000 VUs, 3012 complete and 0 interrupted iterations
+smoke    [  73% ] 100/100 VUs  1m12.6s/1m40.0s
+stress • [   0% ] waiting      0m47.4s
+peak   • [   0% ] waiting      4m47.4s
+
+running (1m13.6s), 0100/1000 VUs, 3063 complete and 0 interrupted iterations
+smoke    [  74% ] 100/100 VUs  1m13.6s/1m40.0s
+stress • [   0% ] waiting      0m46.4s
+peak   • [   0% ] waiting      4m46.4s
+
+running (1m14.6s), 0100/1000 VUs, 3112 complete and 0 interrupted iterations
+smoke    [  75% ] 100/100 VUs  1m14.6s/1m40.0s
+stress • [   0% ] waiting      0m45.4s
+peak   • [   0% ] waiting      4m45.4s
+
+running (1m15.6s), 0100/1000 VUs, 3162 complete and 0 interrupted iterations
+smoke    [  76% ] 100/100 VUs  1m15.6s/1m40.0s
+stress • [   0% ] waiting      0m44.4s
+peak   • [   0% ] waiting      4m44.4s
+
+running (1m16.6s), 0100/1000 VUs, 3208 complete and 0 interrupted iterations
+smoke    [  77% ] 100/100 VUs  1m16.6s/1m40.0s
+stress • [   0% ] waiting      0m43.4s
+peak   • [   0% ] waiting      4m43.4s
+
+running (1m17.6s), 0100/1000 VUs, 3262 complete and 0 interrupted iterations
+smoke    [  78% ] 100/100 VUs  1m17.6s/1m40.0s
+stress • [   0% ] waiting      0m42.4s
+peak   • [   0% ] waiting      4m42.4s
+
+running (1m18.6s), 0100/1000 VUs, 3306 complete and 0 interrupted iterations
+smoke    [  79% ] 100/100 VUs  1m18.6s/1m40.0s
+stress • [   0% ] waiting      0m41.4s
+peak   • [   0% ] waiting      4m41.4s
+
+running (1m19.6s), 0100/1000 VUs, 3362 complete and 0 interrupted iterations
+smoke    [  80% ] 100/100 VUs  1m19.6s/1m40.0s
+stress • [   0% ] waiting      0m40.4s
+peak   • [   0% ] waiting      4m40.4s
+
+running (1m20.6s), 0100/1000 VUs, 3405 complete and 0 interrupted iterations
+smoke    [  81% ] 100/100 VUs  1m20.6s/1m40.0s
+stress • [   0% ] waiting      0m39.4s
+peak   • [   0% ] waiting      4m39.4s
+
+running (1m21.6s), 0097/1000 VUs, 3460 complete and 0 interrupted iterations
+smoke    [  82% ] 097/100 VUs  1m21.6s/1m40.0s
+stress • [   0% ] waiting      0m38.4s
+peak   • [   0% ] waiting      4m38.4s
+
+running (1m22.6s), 0093/1000 VUs, 3503 complete and 0 interrupted iterations
+smoke    [  83% ] 093/100 VUs  1m22.6s/1m40.0s
+stress • [   0% ] waiting      0m37.4s
+peak   • [   0% ] waiting      4m37.4s
+
+running (1m23.6s), 0088/1000 VUs, 3556 complete and 0 interrupted iterations
+smoke    [  84% ] 088/100 VUs  1m23.6s/1m40.0s
+stress • [   0% ] waiting      0m36.4s
+peak   • [   0% ] waiting      4m36.4s
+
+running (1m24.6s), 0083/1000 VUs, 3589 complete and 0 interrupted iterations
+smoke    [  85% ] 083/100 VUs  1m24.6s/1m40.0s
+stress • [   0% ] waiting      0m35.4s
+peak   • [   0% ] waiting      4m35.4s
+
+running (1m25.6s), 0079/1000 VUs, 3641 complete and 0 interrupted iterations
+smoke    [  86% ] 079/100 VUs  1m25.6s/1m40.0s
+stress • [   0% ] waiting      0m34.4s
+peak   • [   0% ] waiting      4m34.4s
+
+running (1m26.6s), 0074/1000 VUs, 3670 complete and 0 interrupted iterations
+smoke    [  87% ] 074/100 VUs  1m26.6s/1m40.0s
+stress • [   0% ] waiting      0m33.4s
+peak   • [   0% ] waiting      4m33.4s
+
+running (1m27.6s), 0066/1000 VUs, 3718 complete and 0 interrupted iterations
+smoke    [  88% ] 066/100 VUs  1m27.6s/1m40.0s
+stress • [   0% ] waiting      0m32.4s
+peak   • [   0% ] waiting      4m32.4s
+
+running (1m28.6s), 0064/1000 VUs, 3742 complete and 0 interrupted iterations
+smoke    [  89% ] 064/100 VUs  1m28.6s/1m40.0s
+stress • [   0% ] waiting      0m31.4s
+peak   • [   0% ] waiting      4m31.4s
+
+running (1m29.6s), 0057/1000 VUs, 3781 complete and 0 interrupted iterations
+smoke    [  90% ] 057/100 VUs  1m29.6s/1m40.0s
+stress • [   0% ] waiting      0m30.4s
+peak   • [   0% ] waiting      4m30.4s
+
+running (1m30.6s), 0054/1000 VUs, 3804 complete and 0 interrupted iterations
+smoke    [  91% ] 054/100 VUs  1m30.6s/1m40.0s
+stress • [   0% ] waiting      0m29.4s
+peak   • [   0% ] waiting      4m29.4s
+
+running (1m31.6s), 0048/1000 VUs, 3838 complete and 0 interrupted iterations
+smoke    [  92% ] 048/100 VUs  1m31.6s/1m40.0s
+stress • [   0% ] waiting      0m28.4s
+peak   • [   0% ] waiting      4m28.4s
+
+running (1m32.6s), 0044/1000 VUs, 3856 complete and 0 interrupted iterations
+smoke    [  93% ] 044/100 VUs  1m32.6s/1m40.0s
+stress • [   0% ] waiting      0m27.4s
+peak   • [   0% ] waiting      4m27.4s
+
+running (1m33.6s), 0037/1000 VUs, 3886 complete and 0 interrupted iterations
+smoke    [  94% ] 037/100 VUs  1m33.6s/1m40.0s
+stress • [   0% ] waiting      0m26.4s
+peak   • [   0% ] waiting      4m26.4s
+
+running (1m34.6s), 0034/1000 VUs, 3898 complete and 0 interrupted iterations
+smoke    [  95% ] 034/100 VUs  1m34.6s/1m40.0s
+stress • [   0% ] waiting      0m25.4s
+peak   • [   0% ] waiting      4m25.4s
+
+running (1m35.6s), 0027/1000 VUs, 3923 complete and 0 interrupted iterations
+smoke    [  96% ] 027/100 VUs  1m35.6s/1m40.0s
+stress • [   0% ] waiting      0m24.4s
+peak   • [   0% ] waiting      4m24.4s
+
+running (1m36.6s), 0025/1000 VUs, 3932 complete and 0 interrupted iterations
+smoke    [  97% ] 025/100 VUs  1m36.6s/1m40.0s
+stress • [   0% ] waiting      0m23.4s
+peak   • [   0% ] waiting      4m23.4s
+
+running (1m37.6s), 0018/1000 VUs, 3950 complete and 0 interrupted iterations
+smoke    [  98% ] 018/100 VUs  1m37.6s/1m40.0s
+stress • [   0% ] waiting      0m22.4s
+peak   • [   0% ] waiting      4m22.4s
+
+running (1m38.6s), 0014/1000 VUs, 3957 complete and 0 interrupted iterations
+smoke    [  99% ] 014/100 VUs  1m38.6s/1m40.0s
+stress • [   0% ] waiting      0m21.4s
+peak   • [   0% ] waiting      4m21.4s
+
+running (1m39.6s), 0006/1000 VUs, 3968 complete and 0 interrupted iterations
+smoke    [ 100% ] 006/100 VUs  1m39.6s/1m40.0s
+stress • [   0% ] waiting      0m20.4s
+peak   • [   0% ] waiting      4m20.4s
+
+running (1m40.6s), 0003/1000 VUs, 3971 complete and 0 interrupted iterations
+smoke  ↓ [ 100% ] 005/100 VUs  1m40s
+stress • [   0% ] waiting      0m19.4s
+peak   • [   0% ] waiting      4m19.4s
+
+running (1m41.6s), 0000/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress • [   0% ] waiting      0m18.4s
+peak   • [   0% ] waiting      4m18.4s
+
+running (1m42.6s), 0000/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress • [   0% ] waiting      0m17.4s
+peak   • [   0% ] waiting      4m17.4s
+
+running (1m43.6s), 0000/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress • [   0% ] waiting      0m16.4s
+peak   • [   0% ] waiting      4m16.4s
+
+running (1m44.6s), 0000/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress • [   0% ] waiting      0m15.4s
+peak   • [   0% ] waiting      4m15.4s
+
+running (1m45.6s), 0000/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress • [   0% ] waiting      0m14.4s
+peak   • [   0% ] waiting      4m14.4s
+
+running (1m46.6s), 0000/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress • [   0% ] waiting      0m13.4s
+peak   • [   0% ] waiting      4m13.4s
+
+running (1m47.6s), 0000/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress • [   0% ] waiting      0m12.4s
+peak   • [   0% ] waiting      4m12.4s
+
+running (1m48.6s), 0000/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress • [   0% ] waiting      0m11.4s
+peak   • [   0% ] waiting      4m11.4s
+
+running (1m49.6s), 0000/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress • [   0% ] waiting      0m10.4s
+peak   • [   0% ] waiting      4m10.4s
+
+running (1m50.6s), 0000/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress • [   0% ] waiting      0m09.4s
+peak   • [   0% ] waiting      4m09.4s
+
+running (1m51.6s), 0000/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress • [   0% ] waiting      0m08.4s
+peak   • [   0% ] waiting      4m08.4s
+
+running (1m52.6s), 0000/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress • [   0% ] waiting      0m07.4s
+peak   • [   0% ] waiting      4m07.4s
+
+running (1m53.6s), 0000/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress • [   0% ] waiting      0m06.4s
+peak   • [   0% ] waiting      4m06.4s
+
+running (1m54.6s), 0000/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress • [   0% ] waiting      0m05.4s
+peak   • [   0% ] waiting      4m05.4s
+
+running (1m55.6s), 0000/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress • [   0% ] waiting      0m04.4s
+peak   • [   0% ] waiting      4m04.4s
+
+running (1m56.6s), 0000/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress • [   0% ] waiting      0m03.4s
+peak   • [   0% ] waiting      4m03.4s
+
+running (1m57.6s), 0000/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress • [   0% ] waiting      0m02.4s
+peak   • [   0% ] waiting      4m02.4s
+
+running (1m58.6s), 0000/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress • [   0% ] waiting      0m01.4s
+peak   • [   0% ] waiting      4m01.4s
+
+running (1m59.6s), 0000/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress • [   0% ] waiting      0m00.4s
+peak   • [   0% ] waiting      4m00.4s
+
+running (2m00.6s), 0010/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [   0% ] 010/500 VUs  0m00.6s/3m00.0s
+peak   • [   0% ] waiting      3m59.4s
+
+running (2m01.6s), 0027/1000 VUs, 3974 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [   1% ] 027/500 VUs  0m01.6s/3m00.0s
+peak   • [   0% ] waiting      3m58.4s
+
+running (2m02.6s), 0043/1000 VUs, 3982 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [   1% ] 043/500 VUs  0m02.6s/3m00.0s
+peak   • [   0% ] waiting      3m57.4s
+
+running (2m03.6s), 0060/1000 VUs, 3999 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [   2% ] 060/500 VUs  0m03.6s/3m00.0s
+peak   • [   0% ] waiting      3m56.4s
+
+running (2m04.6s), 0077/1000 VUs, 4022 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [   3% ] 077/500 VUs  0m04.6s/3m00.0s
+peak   • [   0% ] waiting      3m55.4s
+
+running (2m05.6s), 0093/1000 VUs, 4056 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [   3% ] 093/500 VUs  0m05.6s/3m00.0s
+peak   • [   0% ] waiting      3m54.4s
+
+running (2m06.6s), 0110/1000 VUs, 4095 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [   4% ] 110/500 VUs  0m06.6s/3m00.0s
+peak   • [   0% ] waiting      3m53.4s
+
+running (2m07.6s), 0127/1000 VUs, 4144 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [   4% ] 127/500 VUs  0m07.6s/3m00.0s
+peak   • [   0% ] waiting      3m52.4s
+
+running (2m08.6s), 0143/1000 VUs, 4194 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [   5% ] 143/500 VUs  0m08.6s/3m00.0s
+peak   • [   0% ] waiting      3m51.4s
+
+running (2m09.6s), 0160/1000 VUs, 4262 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [   5% ] 160/500 VUs  0m09.6s/3m00.0s
+peak   • [   0% ] waiting      3m50.4s
+
+running (2m10.6s), 0177/1000 VUs, 4336 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [   6% ] 177/500 VUs  0m10.6s/3m00.0s
+peak   • [   0% ] waiting      3m49.4s
+
+running (2m11.6s), 0193/1000 VUs, 4420 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [   6% ] 193/500 VUs  0m11.6s/3m00.0s
+peak   • [   0% ] waiting      3m48.4s
+
+running (2m12.6s), 0210/1000 VUs, 4510 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [   7% ] 210/500 VUs  0m12.6s/3m00.0s
+peak   • [   0% ] waiting      3m47.4s
+
+running (2m13.6s), 0227/1000 VUs, 4610 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [   8% ] 227/500 VUs  0m13.6s/3m00.0s
+peak   • [   0% ] waiting      3m46.4s
+
+running (2m14.6s), 0243/1000 VUs, 4716 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [   8% ] 243/500 VUs  0m14.6s/3m00.0s
+peak   • [   0% ] waiting      3m45.4s
+
+running (2m15.6s), 0260/1000 VUs, 4832 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [   9% ] 260/500 VUs  0m15.6s/3m00.0s
+peak   • [   0% ] waiting      3m44.4s
+
+running (2m16.6s), 0277/1000 VUs, 4954 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [   9% ] 277/500 VUs  0m16.6s/3m00.0s
+peak   • [   0% ] waiting      3m43.4s
+
+running (2m17.6s), 0293/1000 VUs, 5087 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  10% ] 293/500 VUs  0m17.6s/3m00.0s
+peak   • [   0% ] waiting      3m42.4s
+
+running (2m18.6s), 0310/1000 VUs, 5209 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  10% ] 310/500 VUs  0m18.6s/3m00.0s
+peak   • [   0% ] waiting      3m41.4s
+
+running (2m19.6s), 0327/1000 VUs, 5369 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  11% ] 327/500 VUs  0m19.6s/3m00.0s
+peak   • [   0% ] waiting      3m40.4s
+
+running (2m20.6s), 0343/1000 VUs, 5517 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  11% ] 343/500 VUs  0m20.6s/3m00.0s
+peak   • [   0% ] waiting      3m39.4s
+
+running (2m21.6s), 0360/1000 VUs, 5689 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  12% ] 360/500 VUs  0m21.6s/3m00.0s
+peak   • [   0% ] waiting      3m38.4s
+
+running (2m22.6s), 0377/1000 VUs, 5856 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  13% ] 377/500 VUs  0m22.6s/3m00.0s
+peak   • [   0% ] waiting      3m37.4s
+
+running (2m23.6s), 0393/1000 VUs, 6040 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  13% ] 393/500 VUs  0m23.6s/3m00.0s
+peak   • [   0% ] waiting      3m36.4s
+
+running (2m24.6s), 0410/1000 VUs, 6219 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  14% ] 410/500 VUs  0m24.6s/3m00.0s
+peak   • [   0% ] waiting      3m35.4s
+
+running (2m25.6s), 0427/1000 VUs, 6423 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  14% ] 427/500 VUs  0m25.6s/3m00.0s
+peak   • [   0% ] waiting      3m34.4s
+
+running (2m26.6s), 0443/1000 VUs, 6620 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  15% ] 443/500 VUs  0m26.6s/3m00.0s
+peak   • [   0% ] waiting      3m33.4s
+
+running (2m27.6s), 0460/1000 VUs, 6838 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  15% ] 460/500 VUs  0m27.6s/3m00.0s
+peak   • [   0% ] waiting      3m32.4s
+
+running (2m28.6s), 0477/1000 VUs, 7061 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  16% ] 477/500 VUs  0m28.6s/3m00.0s
+peak   • [   0% ] waiting      3m31.4s
+
+running (2m29.6s), 0493/1000 VUs, 7291 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  16% ] 493/500 VUs  0m29.6s/3m00.0s
+peak   • [   0% ] waiting      3m30.4s
+
+running (2m30.6s), 0500/1000 VUs, 7519 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  17% ] 500/500 VUs  0m30.6s/3m00.0s
+peak   • [   0% ] waiting      3m29.4s
+
+running (2m31.6s), 0500/1000 VUs, 7774 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  18% ] 500/500 VUs  0m31.6s/3m00.0s
+peak   • [   0% ] waiting      3m28.4s
+
+running (2m32.6s), 0500/1000 VUs, 8009 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  18% ] 500/500 VUs  0m32.6s/3m00.0s
+peak   • [   0% ] waiting      3m27.4s
+
+running (2m33.6s), 0500/1000 VUs, 8263 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  19% ] 500/500 VUs  0m33.6s/3m00.0s
+peak   • [   0% ] waiting      3m26.4s
+
+running (2m34.6s), 0500/1000 VUs, 8505 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  19% ] 500/500 VUs  0m34.6s/3m00.0s
+peak   • [   0% ] waiting      3m25.4s
+
+running (2m35.6s), 0500/1000 VUs, 8753 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  20% ] 500/500 VUs  0m35.6s/3m00.0s
+peak   • [   0% ] waiting      3m24.4s
+
+running (2m36.6s), 0500/1000 VUs, 8993 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  20% ] 500/500 VUs  0m36.6s/3m00.0s
+peak   • [   0% ] waiting      3m23.4s
+
+running (2m37.6s), 0500/1000 VUs, 9247 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  21% ] 500/500 VUs  0m37.6s/3m00.0s
+peak   • [   0% ] waiting      3m22.4s
+
+running (2m38.6s), 0500/1000 VUs, 9489 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  21% ] 500/500 VUs  0m38.6s/3m00.0s
+peak   • [   0% ] waiting      3m21.4s
+
+running (2m39.6s), 0500/1000 VUs, 9708 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  22% ] 500/500 VUs  0m39.6s/3m00.0s
+peak   • [   0% ] waiting      3m20.4s
+
+running (2m40.6s), 0500/1000 VUs, 9977 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  23% ] 500/500 VUs  0m40.6s/3m00.0s
+peak   • [   0% ] waiting      3m19.4s
+
+running (2m41.6s), 0500/1000 VUs, 10206 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  23% ] 500/500 VUs  0m41.6s/3m00.0s
+peak   • [   0% ] waiting      3m18.4s
+
+running (2m42.6s), 0500/1000 VUs, 10467 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  24% ] 500/500 VUs  0m42.6s/3m00.0s
+peak   • [   0% ] waiting      3m17.4s
+
+running (2m43.6s), 0500/1000 VUs, 10706 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  24% ] 500/500 VUs  0m43.6s/3m00.0s
+peak   • [   0% ] waiting      3m16.4s
+
+running (2m44.6s), 0500/1000 VUs, 10965 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  25% ] 500/500 VUs  0m44.6s/3m00.0s
+peak   • [   0% ] waiting      3m15.4s
+
+running (2m45.6s), 0500/1000 VUs, 11204 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  25% ] 500/500 VUs  0m45.6s/3m00.0s
+peak   • [   0% ] waiting      3m14.4s
+
+running (2m46.6s), 0500/1000 VUs, 11404 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  26% ] 500/500 VUs  0m46.6s/3m00.0s
+peak   • [   0% ] waiting      3m13.4s
+
+running (2m47.6s), 0500/1000 VUs, 11694 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  26% ] 500/500 VUs  0m47.6s/3m00.0s
+peak   • [   0% ] waiting      3m12.4s
+
+running (2m48.6s), 0500/1000 VUs, 11897 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  27% ] 500/500 VUs  0m48.6s/3m00.0s
+peak   • [   0% ] waiting      3m11.4s
+
+running (2m49.6s), 0500/1000 VUs, 12194 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  28% ] 500/500 VUs  0m49.6s/3m00.0s
+peak   • [   0% ] waiting      3m10.4s
+
+running (2m50.6s), 0500/1000 VUs, 12379 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  28% ] 500/500 VUs  0m50.6s/3m00.0s
+peak   • [   0% ] waiting      3m09.4s
+
+running (2m51.6s), 0500/1000 VUs, 12677 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  29% ] 500/500 VUs  0m51.6s/3m00.0s
+peak   • [   0% ] waiting      3m08.4s
+
+running (2m52.6s), 0500/1000 VUs, 12878 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  29% ] 500/500 VUs  0m52.6s/3m00.0s
+peak   • [   0% ] waiting      3m07.4s
+
+running (2m53.6s), 0500/1000 VUs, 13169 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  30% ] 500/500 VUs  0m53.6s/3m00.0s
+peak   • [   0% ] waiting      3m06.4s
+
+running (2m54.6s), 0500/1000 VUs, 13378 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  30% ] 500/500 VUs  0m54.6s/3m00.0s
+peak   • [   0% ] waiting      3m05.4s
+
+running (2m55.6s), 0500/1000 VUs, 13648 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  31% ] 500/500 VUs  0m55.6s/3m00.0s
+peak   • [   0% ] waiting      3m04.4s
+
+running (2m56.6s), 0500/1000 VUs, 13878 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  31% ] 500/500 VUs  0m56.6s/3m00.0s
+peak   • [   0% ] waiting      3m03.4s
+
+running (2m57.6s), 0500/1000 VUs, 14136 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  32% ] 500/500 VUs  0m57.6s/3m00.0s
+peak   • [   0% ] waiting      3m02.4s
+
+running (2m58.6s), 0500/1000 VUs, 14376 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  33% ] 500/500 VUs  0m58.6s/3m00.0s
+peak   • [   0% ] waiting      3m01.4s
+
+running (2m59.6s), 0500/1000 VUs, 14613 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  33% ] 500/500 VUs  0m59.6s/3m00.0s
+peak   • [   0% ] waiting      3m00.4s
+
+running (3m00.6s), 0500/1000 VUs, 14873 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  34% ] 500/500 VUs  1m00.6s/3m00.0s
+peak   • [   0% ] waiting      2m59.4s
+
+running (3m01.6s), 0500/1000 VUs, 15109 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  34% ] 500/500 VUs  1m01.6s/3m00.0s
+peak   • [   0% ] waiting      2m58.4s
+
+running (3m02.6s), 0500/1000 VUs, 15366 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  35% ] 500/500 VUs  1m02.6s/3m00.0s
+peak   • [   0% ] waiting      2m57.4s
+
+running (3m03.6s), 0500/1000 VUs, 15593 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  35% ] 500/500 VUs  1m03.6s/3m00.0s
+peak   • [   0% ] waiting      2m56.4s
+
+running (3m04.6s), 0500/1000 VUs, 15865 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  36% ] 500/500 VUs  1m04.6s/3m00.0s
+peak   • [   0% ] waiting      2m55.4s
+
+running (3m05.6s), 0500/1000 VUs, 16083 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  36% ] 500/500 VUs  1m05.6s/3m00.0s
+peak   • [   0% ] waiting      2m54.4s
+
+running (3m06.6s), 0500/1000 VUs, 16352 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  37% ] 500/500 VUs  1m06.6s/3m00.0s
+peak   • [   0% ] waiting      2m53.4s
+
+running (3m07.7s), 0500/1000 VUs, 16582 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  38% ] 500/500 VUs  1m07.7s/3m00.0s
+peak   • [   0% ] waiting      2m52.3s
+
+running (3m08.6s), 0500/1000 VUs, 16834 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  38% ] 500/500 VUs  1m08.6s/3m00.0s
+peak   • [   0% ] waiting      2m51.4s
+
+running (3m09.6s), 0500/1000 VUs, 17005 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  39% ] 500/500 VUs  1m09.6s/3m00.0s
+peak   • [   0% ] waiting      2m50.4s
+
+running (3m10.6s), 0500/1000 VUs, 17330 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  39% ] 500/500 VUs  1m10.6s/3m00.0s
+peak   • [   0% ] waiting      2m49.4s
+
+running (3m11.6s), 0500/1000 VUs, 17501 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  40% ] 500/500 VUs  1m11.6s/3m00.0s
+peak   • [   0% ] waiting      2m48.4s
+
+running (3m12.6s), 0500/1000 VUs, 17825 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  40% ] 500/500 VUs  1m12.6s/3m00.0s
+peak   • [   0% ] waiting      2m47.4s
+
+running (3m13.6s), 0500/1000 VUs, 17939 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  41% ] 500/500 VUs  1m13.6s/3m00.0s
+peak   • [   0% ] waiting      2m46.4s
+
+running (3m14.6s), 0500/1000 VUs, 18314 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  41% ] 500/500 VUs  1m14.6s/3m00.0s
+peak   • [   0% ] waiting      2m45.4s
+
+running (3m15.6s), 0500/1000 VUs, 18439 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  42% ] 500/500 VUs  1m15.6s/3m00.0s
+peak   • [   0% ] waiting      2m44.4s
+
+running (3m16.6s), 0500/1000 VUs, 18795 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  43% ] 500/500 VUs  1m16.6s/3m00.0s
+peak   • [   0% ] waiting      2m43.4s
+
+running (3m17.6s), 0500/1000 VUs, 18939 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  43% ] 500/500 VUs  1m17.6s/3m00.0s
+peak   • [   0% ] waiting      2m42.4s
+
+running (3m18.6s), 0500/1000 VUs, 19279 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  44% ] 500/500 VUs  1m18.6s/3m00.0s
+peak   • [   0% ] waiting      2m41.4s
+
+running (3m19.6s), 0500/1000 VUs, 19430 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  44% ] 500/500 VUs  1m19.6s/3m00.0s
+peak   • [   0% ] waiting      2m40.4s
+
+running (3m20.6s), 0500/1000 VUs, 19767 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  45% ] 500/500 VUs  1m20.6s/3m00.0s
+peak   • [   0% ] waiting      2m39.4s
+
+running (3m21.6s), 0500/1000 VUs, 19922 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  45% ] 500/500 VUs  1m21.6s/3m00.0s
+peak   • [   0% ] waiting      2m38.4s
+
+running (3m22.6s), 0500/1000 VUs, 20253 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  46% ] 500/500 VUs  1m22.6s/3m00.0s
+peak   • [   0% ] waiting      2m37.4s
+
+running (3m23.6s), 0500/1000 VUs, 20422 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  46% ] 500/500 VUs  1m23.6s/3m00.0s
+peak   • [   0% ] waiting      2m36.4s
+
+running (3m24.6s), 0500/1000 VUs, 20744 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  47% ] 500/500 VUs  1m24.6s/3m00.0s
+peak   • [   0% ] waiting      2m35.4s
+
+running (3m25.6s), 0500/1000 VUs, 20922 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  48% ] 500/500 VUs  1m25.6s/3m00.0s
+peak   • [   0% ] waiting      2m34.4s
+
+running (3m26.6s), 0500/1000 VUs, 21243 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  48% ] 500/500 VUs  1m26.6s/3m00.0s
+peak   • [   0% ] waiting      2m33.4s
+
+running (3m27.6s), 0500/1000 VUs, 21416 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  49% ] 500/500 VUs  1m27.6s/3m00.0s
+peak   • [   0% ] waiting      2m32.4s
+
+running (3m28.6s), 0500/1000 VUs, 21726 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  49% ] 500/500 VUs  1m28.6s/3m00.0s
+peak   • [   0% ] waiting      2m31.4s
+
+running (3m29.6s), 0500/1000 VUs, 21909 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  50% ] 500/500 VUs  1m29.6s/3m00.0s
+peak   • [   0% ] waiting      2m30.4s
+
+running (3m30.6s), 0500/1000 VUs, 22218 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  50% ] 500/500 VUs  1m30.6s/3m00.0s
+peak   • [   0% ] waiting      2m29.4s
+
+running (3m31.6s), 0500/1000 VUs, 22409 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  51% ] 500/500 VUs  1m31.6s/3m00.0s
+peak   • [   0% ] waiting      2m28.4s
+
+running (3m32.6s), 0500/1000 VUs, 22701 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  51% ] 500/500 VUs  1m32.6s/3m00.0s
+peak   • [   0% ] waiting      2m27.4s
+
+running (3m33.6s), 0500/1000 VUs, 22909 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  52% ] 500/500 VUs  1m33.6s/3m00.0s
+peak   • [   0% ] waiting      2m26.4s
+
+running (3m34.6s), 0500/1000 VUs, 23148 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  53% ] 500/500 VUs  1m34.6s/3m00.0s
+peak   • [   0% ] waiting      2m25.4s
+
+running (3m35.6s), 0500/1000 VUs, 23408 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  53% ] 500/500 VUs  1m35.6s/3m00.0s
+peak   • [   0% ] waiting      2m24.4s
+
+running (3m36.6s), 0500/1000 VUs, 23648 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  54% ] 500/500 VUs  1m36.6s/3m00.0s
+peak   • [   0% ] waiting      2m23.4s
+
+running (3m37.6s), 0500/1000 VUs, 23908 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  54% ] 500/500 VUs  1m37.6s/3m00.0s
+peak   • [   0% ] waiting      2m22.4s
+
+running (3m38.7s), 0500/1000 VUs, 24109 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  55% ] 500/500 VUs  1m38.7s/3m00.0s
+peak   • [   0% ] waiting      2m21.3s
+
+running (3m39.6s), 0500/1000 VUs, 24408 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  55% ] 500/500 VUs  1m39.6s/3m00.0s
+peak   • [   0% ] waiting      2m20.4s
+
+running (3m40.6s), 0500/1000 VUs, 24574 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  56% ] 500/500 VUs  1m40.6s/3m00.0s
+peak   • [   0% ] waiting      2m19.4s
+
+running (3m41.6s), 0500/1000 VUs, 24904 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  56% ] 500/500 VUs  1m41.6s/3m00.0s
+peak   • [   0% ] waiting      2m18.4s
+
+running (3m42.6s), 0500/1000 VUs, 25007 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  57% ] 500/500 VUs  1m42.6s/3m00.0s
+peak   • [   0% ] waiting      2m17.4s
+
+running (3m43.6s), 0500/1000 VUs, 25382 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  58% ] 500/500 VUs  1m43.6s/3m00.0s
+peak   • [   0% ] waiting      2m16.4s
+
+running (3m44.6s), 0500/1000 VUs, 25492 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  58% ] 500/500 VUs  1m44.6s/3m00.0s
+peak   • [   0% ] waiting      2m15.4s
+
+running (3m45.6s), 0500/1000 VUs, 25843 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  59% ] 500/500 VUs  1m45.6s/3m00.0s
+peak   • [   0% ] waiting      2m14.4s
+
+running (3m46.6s), 0500/1000 VUs, 25979 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  59% ] 500/500 VUs  1m46.6s/3m00.0s
+peak   • [   0% ] waiting      2m13.4s
+
+running (3m47.6s), 0500/1000 VUs, 26324 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  60% ] 500/500 VUs  1m47.6s/3m00.0s
+peak   • [   0% ] waiting      2m12.4s
+
+running (3m48.6s), 0500/1000 VUs, 26472 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  60% ] 500/500 VUs  1m48.6s/3m00.0s
+peak   • [   0% ] waiting      2m11.4s
+
+running (3m49.6s), 0500/1000 VUs, 26807 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  61% ] 500/500 VUs  1m49.6s/3m00.0s
+peak   • [   0% ] waiting      2m10.4s
+
+running (3m50.6s), 0500/1000 VUs, 26961 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  61% ] 500/500 VUs  1m50.6s/3m00.0s
+peak   • [   0% ] waiting      2m09.4s
+
+running (3m51.6s), 0500/1000 VUs, 27299 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  62% ] 500/500 VUs  1m51.6s/3m00.0s
+peak   • [   0% ] waiting      2m08.4s
+
+running (3m52.6s), 0500/1000 VUs, 27457 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  63% ] 500/500 VUs  1m52.6s/3m00.0s
+peak   • [   0% ] waiting      2m07.4s
+
+running (3m53.6s), 0500/1000 VUs, 27797 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  63% ] 500/500 VUs  1m53.6s/3m00.0s
+peak   • [   0% ] waiting      2m06.4s
+
+running (3m54.6s), 0500/1000 VUs, 27954 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  64% ] 500/500 VUs  1m54.6s/3m00.0s
+peak   • [   0% ] waiting      2m05.4s
+
+running (3m55.6s), 0500/1000 VUs, 28289 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  64% ] 500/500 VUs  1m55.6s/3m00.0s
+peak   • [   0% ] waiting      2m04.4s
+
+running (3m56.6s), 0500/1000 VUs, 28449 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  65% ] 500/500 VUs  1m56.6s/3m00.0s
+peak   • [   0% ] waiting      2m03.4s
+
+running (3m57.6s), 0500/1000 VUs, 28775 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  65% ] 500/500 VUs  1m57.6s/3m00.0s
+peak   • [   0% ] waiting      2m02.4s
+
+running (3m58.6s), 0500/1000 VUs, 28944 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  66% ] 500/500 VUs  1m58.6s/3m00.0s
+peak   • [   0% ] waiting      2m01.4s
+
+running (3m59.6s), 0500/1000 VUs, 29275 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  66% ] 500/500 VUs  1m59.6s/3m00.0s
+peak   • [   0% ] waiting      2m00.4s
+
+running (4m00.6s), 0500/1000 VUs, 29441 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  67% ] 500/500 VUs  2m00.6s/3m00.0s
+peak   • [   0% ] waiting      1m59.4s
+
+running (4m01.6s), 0500/1000 VUs, 29767 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  68% ] 500/500 VUs  2m01.6s/3m00.0s
+peak   • [   0% ] waiting      1m58.4s
+
+running (4m02.6s), 0500/1000 VUs, 29936 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  68% ] 500/500 VUs  2m02.6s/3m00.0s
+peak   • [   0% ] waiting      1m57.4s
+
+running (4m03.6s), 0500/1000 VUs, 30263 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  69% ] 500/500 VUs  2m03.6s/3m00.0s
+peak   • [   0% ] waiting      1m56.4s
+
+running (4m04.6s), 0500/1000 VUs, 30436 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  69% ] 500/500 VUs  2m04.6s/3m00.0s
+peak   • [   0% ] waiting      1m55.4s
+
+running (4m05.6s), 0500/1000 VUs, 30754 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  70% ] 500/500 VUs  2m05.6s/3m00.0s
+peak   • [   0% ] waiting      1m54.4s
+
+running (4m06.6s), 0500/1000 VUs, 30933 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  70% ] 500/500 VUs  2m06.6s/3m00.0s
+peak   • [   0% ] waiting      1m53.4s
+
+running (4m07.6s), 0500/1000 VUs, 31167 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  71% ] 500/500 VUs  2m07.6s/3m00.0s
+peak   • [   0% ] waiting      1m52.4s
+
+running (4m08.6s), 0500/1000 VUs, 31433 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  71% ] 500/500 VUs  2m08.6s/3m00.0s
+peak   • [   0% ] waiting      1m51.4s
+
+running (4m09.6s), 0500/1000 VUs, 31658 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  72% ] 500/500 VUs  2m09.6s/3m00.0s
+peak   • [   0% ] waiting      1m50.4s
+
+running (4m10.6s), 0500/1000 VUs, 31932 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  73% ] 500/500 VUs  2m10.6s/3m00.0s
+peak   • [   0% ] waiting      1m49.4s
+
+running (4m11.6s), 0500/1000 VUs, 32139 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  73% ] 500/500 VUs  2m11.6s/3m00.0s
+peak   • [   0% ] waiting      1m48.4s
+
+running (4m12.6s), 0500/1000 VUs, 32432 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  74% ] 500/500 VUs  2m12.6s/3m00.0s
+peak   • [   0% ] waiting      1m47.4s
+
+running (4m13.6s), 0500/1000 VUs, 32632 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  74% ] 500/500 VUs  2m13.6s/3m00.0s
+peak   • [   0% ] waiting      1m46.4s
+
+running (4m14.6s), 0500/1000 VUs, 32930 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  75% ] 500/500 VUs  2m14.6s/3m00.0s
+peak   • [   0% ] waiting      1m45.4s
+
+running (4m15.6s), 0500/1000 VUs, 33104 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  75% ] 500/500 VUs  2m15.6s/3m00.0s
+peak   • [   0% ] waiting      1m44.4s
+
+running (4m16.6s), 0500/1000 VUs, 33430 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  76% ] 500/500 VUs  2m16.6s/3m00.0s
+peak   • [   0% ] waiting      1m43.4s
+
+running (4m17.6s), 0500/1000 VUs, 33587 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  76% ] 500/500 VUs  2m17.6s/3m00.0s
+peak   • [   0% ] waiting      1m42.4s
+
+running (4m18.6s), 0500/1000 VUs, 33907 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  77% ] 500/500 VUs  2m18.6s/3m00.0s
+peak   • [   0% ] waiting      1m41.4s
+
+running (4m19.6s), 0500/1000 VUs, 34070 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  78% ] 500/500 VUs  2m19.6s/3m00.0s
+peak   • [   0% ] waiting      1m40.4s
+
+running (4m20.6s), 0500/1000 VUs, 34403 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  78% ] 500/500 VUs  2m20.6s/3m00.0s
+peak   • [   0% ] waiting      1m39.4s
+
+running (4m21.6s), 0500/1000 VUs, 34556 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  79% ] 500/500 VUs  2m21.6s/3m00.0s
+peak   • [   0% ] waiting      1m38.4s
+
+running (4m22.6s), 0500/1000 VUs, 34889 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  79% ] 500/500 VUs  2m22.6s/3m00.0s
+peak   • [   0% ] waiting      1m37.4s
+
+running (4m23.6s), 0500/1000 VUs, 35044 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  80% ] 500/500 VUs  2m23.6s/3m00.0s
+peak   • [   0% ] waiting      1m36.4s
+
+running (4m24.6s), 0500/1000 VUs, 35344 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  80% ] 500/500 VUs  2m24.6s/3m00.0s
+peak   • [   0% ] waiting      1m35.4s
+
+running (4m25.6s), 0500/1000 VUs, 35532 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  81% ] 500/500 VUs  2m25.6s/3m00.0s
+peak   • [   0% ] waiting      1m34.4s
+
+running (4m26.6s), 0500/1000 VUs, 35839 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  81% ] 500/500 VUs  2m26.6s/3m00.0s
+peak   • [   0% ] waiting      1m33.4s
+
+running (4m27.6s), 0500/1000 VUs, 36019 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  82% ] 500/500 VUs  2m27.6s/3m00.0s
+peak   • [   0% ] waiting      1m32.4s
+
+running (4m28.6s), 0500/1000 VUs, 36339 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  83% ] 500/500 VUs  2m28.6s/3m00.0s
+peak   • [   0% ] waiting      1m31.4s
+
+running (4m29.6s), 0500/1000 VUs, 36505 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  83% ] 500/500 VUs  2m29.6s/3m00.0s
+peak   • [   0% ] waiting      1m30.4s
+
+running (4m30.6s), 0496/1000 VUs, 36839 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  84% ] 496/500 VUs  2m30.6s/3m00.0s
+peak   • [   0% ] waiting      1m29.4s
+
+running (4m31.6s), 0491/1000 VUs, 36992 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  84% ] 491/500 VUs  2m31.6s/3m00.0s
+peak   • [   0% ] waiting      1m28.4s
+
+running (4m32.6s), 0469/1000 VUs, 37331 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  85% ] 469/500 VUs  2m32.6s/3m00.0s
+peak   • [   0% ] waiting      1m27.4s
+
+running (4m33.6s), 0460/1000 VUs, 37472 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  85% ] 460/500 VUs  2m33.6s/3m00.0s
+peak   • [   0% ] waiting      1m26.4s
+
+running (4m34.6s), 0436/1000 VUs, 37798 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  86% ] 436/500 VUs  2m34.6s/3m00.0s
+peak   • [   0% ] waiting      1m25.4s
+
+running (4m35.6s), 0424/1000 VUs, 37928 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  86% ] 424/500 VUs  2m35.6s/3m00.0s
+peak   • [   0% ] waiting      1m24.4s
+
+running (4m36.6s), 0406/1000 VUs, 38233 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  87% ] 406/500 VUs  2m36.6s/3m00.0s
+peak   • [   0% ] waiting      1m23.4s
+
+running (4m37.6s), 0395/1000 VUs, 38350 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  88% ] 395/500 VUs  2m37.6s/3m00.0s
+peak   • [   0% ] waiting      1m22.4s
+
+running (4m38.6s), 0370/1000 VUs, 38639 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  88% ] 370/500 VUs  2m38.6s/3m00.0s
+peak   • [   0% ] waiting      1m21.4s
+
+running (4m39.6s), 0360/1000 VUs, 38743 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  89% ] 360/500 VUs  2m39.6s/3m00.0s
+peak   • [   0% ] waiting      1m20.4s
+
+running (4m40.6s), 0333/1000 VUs, 39000 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  89% ] 333/500 VUs  2m40.6s/3m00.0s
+peak   • [   0% ] waiting      1m19.4s
+
+running (4m41.6s), 0322/1000 VUs, 39102 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  90% ] 322/500 VUs  2m41.6s/3m00.0s
+peak   • [   0% ] waiting      1m18.4s
+
+running (4m42.6s), 0304/1000 VUs, 39296 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  90% ] 304/500 VUs  2m42.6s/3m00.0s
+peak   • [   0% ] waiting      1m17.4s
+
+running (4m43.6s), 0292/1000 VUs, 39423 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  91% ] 292/500 VUs  2m43.6s/3m00.0s
+peak   • [   0% ] waiting      1m16.4s
+
+running (4m44.6s), 0271/1000 VUs, 39595 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  91% ] 271/500 VUs  2m44.6s/3m00.0s
+peak   • [   0% ] waiting      1m15.4s
+
+running (4m45.6s), 0256/1000 VUs, 39713 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  92% ] 256/500 VUs  2m45.6s/3m00.0s
+peak   • [   0% ] waiting      1m14.4s
+
+running (4m46.6s), 0238/1000 VUs, 39857 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  93% ] 238/500 VUs  2m46.6s/3m00.0s
+peak   • [   0% ] waiting      1m13.4s
+
+running (4m47.6s), 0223/1000 VUs, 39969 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  93% ] 223/500 VUs  2m47.6s/3m00.0s
+peak   • [   0% ] waiting      1m12.4s
+
+running (4m48.6s), 0204/1000 VUs, 40087 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  94% ] 204/500 VUs  2m48.6s/3m00.0s
+peak   • [   0% ] waiting      1m11.4s
+
+running (4m49.6s), 0195/1000 VUs, 40175 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  94% ] 195/500 VUs  2m49.6s/3m00.0s
+peak   • [   0% ] waiting      1m10.4s
+
+running (4m50.6s), 0173/1000 VUs, 40271 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  95% ] 173/500 VUs  2m50.6s/3m00.0s
+peak   • [   0% ] waiting      1m09.4s
+
+running (4m51.6s), 0163/1000 VUs, 40349 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  95% ] 163/500 VUs  2m51.6s/3m00.0s
+peak   • [   0% ] waiting      1m08.4s
+
+running (4m52.6s), 0145/1000 VUs, 40444 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  96% ] 145/500 VUs  2m52.6s/3m00.0s
+peak   • [   0% ] waiting      1m07.4s
+
+running (4m53.6s), 0132/1000 VUs, 40512 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  96% ] 132/500 VUs  2m53.6s/3m00.0s
+peak   • [   0% ] waiting      1m06.4s
+
+running (4m54.6s), 0105/1000 VUs, 40585 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  97% ] 105/500 VUs  2m54.6s/3m00.0s
+peak   • [   0% ] waiting      1m05.4s
+
+running (4m55.6s), 0089/1000 VUs, 40644 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  98% ] 089/500 VUs  2m55.6s/3m00.0s
+peak   • [   0% ] waiting      1m04.4s
+
+running (4m56.6s), 0073/1000 VUs, 40688 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  98% ] 073/500 VUs  2m56.6s/3m00.0s
+peak   • [   0% ] waiting      1m03.4s
+
+running (4m57.6s), 0058/1000 VUs, 40732 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  99% ] 058/500 VUs  2m57.6s/3m00.0s
+peak   • [   0% ] waiting      1m02.4s
+
+running (4m58.6s), 0044/1000 VUs, 40760 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [  99% ] 044/500 VUs  2m58.6s/3m00.0s
+peak   • [   0% ] waiting      1m01.4s
+
+running (4m59.6s), 0027/1000 VUs, 40789 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress   [ 100% ] 027/500 VUs  2m59.6s/3m00.0s
+peak   • [   0% ] waiting      1m00.4s
+
+running (5m00.6s), 0013/1000 VUs, 40803 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ↓ [ 100% ] 020/500 VUs  3m0s
+peak   • [   0% ] waiting      0m59.4s
+
+running (5m01.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m58.4s
+
+running (5m02.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m57.4s
+
+running (5m03.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m56.4s
+
+running (5m04.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m55.4s
+
+running (5m05.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m54.4s
+
+running (5m06.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m53.4s
+
+running (5m07.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m52.4s
+
+running (5m08.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m51.4s
+
+running (5m09.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m50.4s
+
+running (5m10.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m49.4s
+
+running (5m11.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m48.4s
+
+running (5m12.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m47.4s
+
+running (5m13.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m46.4s
+
+running (5m14.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m45.4s
+
+running (5m15.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m44.4s
+
+running (5m16.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m43.4s
+
+running (5m17.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m42.4s
+
+running (5m18.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m41.4s
+
+running (5m19.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m40.4s
+
+running (5m20.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m39.4s
+
+running (5m21.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m38.4s
+
+running (5m22.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m37.4s
+
+running (5m23.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m36.4s
+
+running (5m24.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m35.4s
+
+running (5m25.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m34.4s
+
+running (5m26.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m33.4s
+
+running (5m27.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m32.4s
+
+running (5m28.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m31.4s
+
+running (5m29.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m30.4s
+
+running (5m30.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m29.4s
+
+running (5m31.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m28.4s
+
+running (5m32.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m27.4s
+
+running (5m33.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m26.4s
+
+running (5m34.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m25.4s
+
+running (5m35.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m24.4s
+
+running (5m36.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m23.4s
+
+running (5m37.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m22.4s
+
+running (5m38.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m21.4s
+
+running (5m39.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m20.4s
+
+running (5m40.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m19.4s
+
+running (5m41.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m18.4s
+
+running (5m42.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m17.4s
+
+running (5m43.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m16.4s
+
+running (5m44.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m15.4s
+
+running (5m45.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m14.4s
+
+running (5m46.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m13.4s
+
+running (5m47.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m12.4s
+
+running (5m48.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m11.4s
+
+running (5m49.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m10.4s
+
+running (5m50.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m09.4s
+
+running (5m51.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m08.4s
+
+running (5m52.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m07.4s
+
+running (5m53.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m06.4s
+
+running (5m54.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m05.4s
+
+running (5m55.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m04.4s
+
+running (5m56.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m03.4s
+
+running (5m57.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m02.4s
+
+running (5m58.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m01.4s
+
+running (5m59.6s), 0000/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs  1m40s
+stress ✓ [ 100% ] 000/500 VUs  3m0s
+peak   • [   0% ] waiting      0m00.4s
+
+running (6m00.6s), 0021/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [   0% ] 0021/1000 VUs  0m00.6s/3m00.0s
+
+running (6m01.6s), 0054/1000 VUs, 40816 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [   1% ] 0054/1000 VUs  0m01.6s/3m00.0s
+
+running (6m02.6s), 0087/1000 VUs, 40831 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [   1% ] 0087/1000 VUs  0m02.6s/3m00.0s
+
+running (6m03.6s), 0121/1000 VUs, 40866 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [   2% ] 0121/1000 VUs  0m03.6s/3m00.0s
+
+running (6m04.6s), 0154/1000 VUs, 40914 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [   3% ] 0154/1000 VUs  0m04.6s/3m00.0s
+
+running (6m05.6s), 0187/1000 VUs, 40978 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [   3% ] 0187/1000 VUs  0m05.6s/3m00.0s
+
+running (6m06.6s), 0221/1000 VUs, 41058 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [   4% ] 0221/1000 VUs  0m06.6s/3m00.0s
+
+running (6m07.6s), 0254/1000 VUs, 41158 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [   4% ] 0254/1000 VUs  0m07.6s/3m00.0s
+
+running (6m08.6s), 0287/1000 VUs, 41266 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [   5% ] 0287/1000 VUs  0m08.6s/3m00.0s
+
+running (6m09.6s), 0321/1000 VUs, 41404 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [   5% ] 0321/1000 VUs  0m09.6s/3m00.0s
+
+running (6m10.6s), 0354/1000 VUs, 41544 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [   6% ] 0354/1000 VUs  0m10.6s/3m00.0s
+
+running (6m11.6s), 0387/1000 VUs, 41717 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [   6% ] 0387/1000 VUs  0m11.6s/3m00.0s
+
+running (6m12.6s), 0421/1000 VUs, 41882 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [   7% ] 0421/1000 VUs  0m12.6s/3m00.0s
+
+running (6m13.6s), 0454/1000 VUs, 42086 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [   8% ] 0454/1000 VUs  0m13.6s/3m00.0s
+
+running (6m14.6s), 0487/1000 VUs, 42288 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [   8% ] 0487/1000 VUs  0m14.6s/3m00.0s
+
+running (6m15.6s), 0521/1000 VUs, 42526 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [   9% ] 0521/1000 VUs  0m15.6s/3m00.0s
+
+running (6m16.7s), 0555/1000 VUs, 42768 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [   9% ] 0555/1000 VUs  0m16.7s/3m00.0s
+
+running (6m17.6s), 0587/1000 VUs, 43024 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  10% ] 0587/1000 VUs  0m17.6s/3m00.0s
+
+running (6m18.6s), 0621/1000 VUs, 43269 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  10% ] 0621/1000 VUs  0m18.6s/3m00.0s
+
+running (6m19.6s), 0654/1000 VUs, 43592 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  11% ] 0654/1000 VUs  0m19.6s/3m00.0s
+
+running (6m20.6s), 0687/1000 VUs, 43877 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  11% ] 0687/1000 VUs  0m20.6s/3m00.0s
+
+running (6m21.6s), 0721/1000 VUs, 44216 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  12% ] 0721/1000 VUs  0m21.6s/3m00.0s
+
+running (6m22.6s), 0754/1000 VUs, 44544 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  13% ] 0754/1000 VUs  0m22.6s/3m00.0s
+
+running (6m23.6s), 0787/1000 VUs, 44928 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  13% ] 0787/1000 VUs  0m23.6s/3m00.0s
+
+running (6m24.6s), 0821/1000 VUs, 45293 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  14% ] 0821/1000 VUs  0m24.6s/3m00.0s
+
+running (6m25.6s), 0854/1000 VUs, 45671 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  14% ] 0854/1000 VUs  0m25.6s/3m00.0s
+
+running (6m26.6s), 0887/1000 VUs, 46095 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  15% ] 0887/1000 VUs  0m26.6s/3m00.0s
+
+running (6m27.6s), 0921/1000 VUs, 46497 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  15% ] 0921/1000 VUs  0m27.6s/3m00.0s
+
+running (6m28.6s), 0954/1000 VUs, 46972 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  16% ] 0954/1000 VUs  0m28.6s/3m00.0s
+
+running (6m29.7s), 0988/1000 VUs, 47407 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  16% ] 0988/1000 VUs  0m29.7s/3m00.0s
+
+running (6m30.6s), 1000/1000 VUs, 47889 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  17% ] 1000/1000 VUs  0m30.6s/3m00.0s
+
+running (6m31.6s), 1000/1000 VUs, 48374 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  18% ] 1000/1000 VUs  0m31.6s/3m00.0s
+
+running (6m32.6s), 1000/1000 VUs, 48793 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  18% ] 1000/1000 VUs  0m32.6s/3m00.0s
+
+running (6m33.6s), 1000/1000 VUs, 49331 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  19% ] 1000/1000 VUs  0m33.6s/3m00.0s
+
+running (6m34.6s), 1000/1000 VUs, 49764 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  19% ] 1000/1000 VUs  0m34.6s/3m00.0s
+
+running (6m35.6s), 1000/1000 VUs, 50255 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  20% ] 1000/1000 VUs  0m35.6s/3m00.0s
+
+running (6m36.6s), 1000/1000 VUs, 50726 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  20% ] 1000/1000 VUs  0m36.6s/3m00.0s
+
+running (6m37.6s), 1000/1000 VUs, 51224 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  21% ] 1000/1000 VUs  0m37.6s/3m00.0s
+
+running (6m38.6s), 1000/1000 VUs, 51660 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  21% ] 1000/1000 VUs  0m38.6s/3m00.0s
+time="2026-09-17T00:23:11+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:11+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:11+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:11+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:11+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:12+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:12+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:12+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:12+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:12+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:12+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:12+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:12+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:12+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:12+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:12+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:12+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:12+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:12+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:12+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:12+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+
+running (6m39.6s), 1000/1000 VUs, 52150 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  22% ] 1000/1000 VUs  0m39.6s/3m00.0s
+
+running (6m40.6s), 1000/1000 VUs, 52602 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  23% ] 1000/1000 VUs  0m40.6s/3m00.0s
+
+running (6m41.6s), 1000/1000 VUs, 53067 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  23% ] 1000/1000 VUs  0m41.6s/3m00.0s
+
+running (6m42.6s), 1000/1000 VUs, 53601 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  24% ] 1000/1000 VUs  0m42.6s/3m00.0s
+
+running (6m43.6s), 1000/1000 VUs, 53999 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  24% ] 1000/1000 VUs  0m43.6s/3m00.0s
+
+running (6m44.6s), 1000/1000 VUs, 54581 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  25% ] 1000/1000 VUs  0m44.6s/3m00.0s
+
+running (6m45.6s), 1000/1000 VUs, 54955 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  25% ] 1000/1000 VUs  0m45.6s/3m00.0s
+
+running (6m46.6s), 1000/1000 VUs, 55529 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  26% ] 1000/1000 VUs  0m46.6s/3m00.0s
+
+running (6m47.6s), 1000/1000 VUs, 55902 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  26% ] 1000/1000 VUs  0m47.6s/3m00.0s
+
+running (6m48.6s), 1000/1000 VUs, 56497 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  27% ] 1000/1000 VUs  0m48.6s/3m00.0s
+
+running (6m49.6s), 1000/1000 VUs, 56872 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  28% ] 1000/1000 VUs  0m49.6s/3m00.0s
+
+running (6m50.6s), 1000/1000 VUs, 57432 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  28% ] 1000/1000 VUs  0m50.6s/3m00.0s
+time="2026-09-17T00:23:23+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:23+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:23+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:23+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:23+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:23+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:23+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:23+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:23+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:23+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:23+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:23+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:23+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:24+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:24+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:24+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:24+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:24+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:24+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:24+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+
+running (6m51.6s), 1000/1000 VUs, 57844 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  29% ] 1000/1000 VUs  0m51.6s/3m00.0s
+
+running (6m52.6s), 1000/1000 VUs, 58317 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  29% ] 1000/1000 VUs  0m52.6s/3m00.0s
+
+running (6m53.6s), 1000/1000 VUs, 58831 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  30% ] 1000/1000 VUs  0m53.6s/3m00.0s
+
+running (6m54.6s), 1000/1000 VUs, 59317 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  30% ] 1000/1000 VUs  0m54.6s/3m00.0s
+
+running (6m55.6s), 1000/1000 VUs, 59792 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  31% ] 1000/1000 VUs  0m55.6s/3m00.0s
+
+running (6m56.6s), 1000/1000 VUs, 60280 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  31% ] 1000/1000 VUs  0m56.6s/3m00.0s
+
+running (6m57.6s), 1000/1000 VUs, 60748 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  32% ] 1000/1000 VUs  0m57.6s/3m00.0s
+
+running (6m58.6s), 1000/1000 VUs, 61195 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  33% ] 1000/1000 VUs  0m58.6s/3m00.0s
+
+running (6m59.6s), 1000/1000 VUs, 61727 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  33% ] 1000/1000 VUs  0m59.6s/3m00.0s
+
+running (7m00.6s), 1000/1000 VUs, 62169 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  34% ] 1000/1000 VUs  1m00.6s/3m00.0s
+time="2026-09-17T00:23:34+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond."
+
+running (7m01.6s), 1000/1000 VUs, 62707 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  34% ] 1000/1000 VUs  1m01.6s/3m00.0s
+time="2026-09-17T00:23:35+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:35+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:35+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:35+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:35+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:35+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:35+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+
+running (7m02.6s), 1000/1000 VUs, 63147 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  35% ] 1000/1000 VUs  1m02.6s/3m00.0s
+time="2026-09-17T00:23:35+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:35+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:35+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:35+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:35+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:35+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:35+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:35+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:35+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:35+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:35+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+
+running (7m03.6s), 1000/1000 VUs, 63670 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  35% ] 1000/1000 VUs  1m03.6s/3m00.0s
+
+running (7m04.6s), 1000/1000 VUs, 64135 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  36% ] 1000/1000 VUs  1m04.6s/3m00.0s
+
+running (7m05.6s), 1000/1000 VUs, 64656 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  36% ] 1000/1000 VUs  1m05.6s/3m00.0s
+
+running (7m06.6s), 1000/1000 VUs, 65120 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  37% ] 1000/1000 VUs  1m06.6s/3m00.0s
+
+running (7m07.6s), 1000/1000 VUs, 65590 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  38% ] 1000/1000 VUs  1m07.6s/3m00.0s
+
+running (7m08.6s), 1000/1000 VUs, 65928 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  38% ] 1000/1000 VUs  1m08.6s/3m00.0s
+
+running (7m09.6s), 1000/1000 VUs, 66555 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  39% ] 1000/1000 VUs  1m09.6s/3m00.0s
+
+running (7m10.6s), 1000/1000 VUs, 66878 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  39% ] 1000/1000 VUs  1m10.6s/3m00.0s
+
+running (7m11.6s), 1000/1000 VUs, 67499 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  40% ] 1000/1000 VUs  1m11.6s/3m00.0s
+
+running (7m12.6s), 1000/1000 VUs, 67859 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  40% ] 1000/1000 VUs  1m12.6s/3m00.0s
+time="2026-09-17T00:23:45+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+
+running (7m13.6s), 1000/1000 VUs, 68475 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  41% ] 1000/1000 VUs  1m13.6s/3m00.0s
+time="2026-09-17T00:23:46+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:46+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:46+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:47+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:47+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:47+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:47+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:47+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:47+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:47+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:47+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:47+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:47+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:47+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:47+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:47+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:47+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:47+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+
+running (7m14.6s), 1000/1000 VUs, 68827 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  41% ] 1000/1000 VUs  1m14.6s/3m00.0s
+
+running (7m15.6s), 1000/1000 VUs, 69345 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  42% ] 1000/1000 VUs  1m15.6s/3m00.0s
+
+running (7m16.6s), 1000/1000 VUs, 69759 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  43% ] 1000/1000 VUs  1m16.6s/3m00.0s
+
+running (7m17.6s), 1000/1000 VUs, 70307 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  43% ] 1000/1000 VUs  1m17.6s/3m00.0s
+
+running (7m18.6s), 1000/1000 VUs, 70739 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  44% ] 1000/1000 VUs  1m18.6s/3m00.0s
+
+running (7m19.6s), 1000/1000 VUs, 71277 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  44% ] 1000/1000 VUs  1m19.6s/3m00.0s
+
+running (7m20.6s), 1000/1000 VUs, 71719 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  45% ] 1000/1000 VUs  1m20.6s/3m00.0s
+
+running (7m21.6s), 1000/1000 VUs, 72249 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  45% ] 1000/1000 VUs  1m21.6s/3m00.0s
+
+running (7m22.6s), 1000/1000 VUs, 72696 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  46% ] 1000/1000 VUs  1m22.6s/3m00.0s
+
+running (7m23.6s), 1000/1000 VUs, 73126 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  46% ] 1000/1000 VUs  1m23.6s/3m00.0s
+time="2026-09-17T00:23:57+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond."
+
+running (7m24.6s), 1000/1000 VUs, 73675 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  47% ] 1000/1000 VUs  1m24.6s/3m00.0s
+
+running (7m25.6s), 1000/1000 VUs, 74107 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  48% ] 1000/1000 VUs  1m25.6s/3m00.0s
+time="2026-09-17T00:23:58+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:58+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:58+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:58+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:58+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:58+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:58+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:58+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:58+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:58+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:58+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:58+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:58+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:58+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:59+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:59+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:23:59+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+
+running (7m26.6s), 1000/1000 VUs, 74647 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  48% ] 1000/1000 VUs  1m26.6s/3m00.0s
+
+running (7m27.6s), 1000/1000 VUs, 75073 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  49% ] 1000/1000 VUs  1m27.6s/3m00.0s
+
+running (7m28.6s), 1000/1000 VUs, 75635 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  49% ] 1000/1000 VUs  1m28.6s/3m00.0s
+
+running (7m29.6s), 1000/1000 VUs, 76066 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  50% ] 1000/1000 VUs  1m29.6s/3m00.0s
+
+running (7m30.6s), 1000/1000 VUs, 76610 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  50% ] 1000/1000 VUs  1m30.6s/3m00.0s
+
+running (7m31.6s), 1000/1000 VUs, 77008 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  51% ] 1000/1000 VUs  1m31.6s/3m00.0s
+
+running (7m32.6s), 1000/1000 VUs, 77589 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  51% ] 1000/1000 VUs  1m32.6s/3m00.0s
+
+running (7m33.6s), 1000/1000 VUs, 77952 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  52% ] 1000/1000 VUs  1m33.6s/3m00.0s
+
+running (7m34.6s), 1000/1000 VUs, 78557 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  53% ] 1000/1000 VUs  1m34.6s/3m00.0s
+
+running (7m35.6s), 1000/1000 VUs, 78913 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  53% ] 1000/1000 VUs  1m35.6s/3m00.0s
+time="2026-09-17T00:24:08+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+
+running (7m36.6s), 1000/1000 VUs, 79428 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  54% ] 1000/1000 VUs  1m36.6s/3m00.0s
+time="2026-09-17T00:24:10+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:10+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:10+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:10+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:10+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:10+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:10+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+
+running (7m37.6s), 1000/1000 VUs, 79784 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  54% ] 1000/1000 VUs  1m37.6s/3m00.0s
+time="2026-09-17T00:24:10+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:10+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:10+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:10+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:10+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:10+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:10+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:10+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:10+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+
+running (7m38.6s), 1000/1000 VUs, 80384 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  55% ] 1000/1000 VUs  1m38.6s/3m00.0s
+
+running (7m39.6s), 1000/1000 VUs, 80755 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  55% ] 1000/1000 VUs  1m39.6s/3m00.0s
+
+running (7m40.6s), 1000/1000 VUs, 81382 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  56% ] 1000/1000 VUs  1m40.6s/3m00.0s
+
+running (7m41.6s), 1000/1000 VUs, 81739 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  56% ] 1000/1000 VUs  1m41.6s/3m00.0s
+
+running (7m42.6s), 1000/1000 VUs, 82316 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  57% ] 1000/1000 VUs  1m42.6s/3m00.0s
+
+running (7m43.6s), 1000/1000 VUs, 82714 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  58% ] 1000/1000 VUs  1m43.6s/3m00.0s
+
+running (7m44.6s), 1000/1000 VUs, 83206 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  58% ] 1000/1000 VUs  1m44.6s/3m00.0s
+
+running (7m45.6s), 1000/1000 VUs, 83695 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  59% ] 1000/1000 VUs  1m45.6s/3m00.0s
+
+running (7m46.6s), 1000/1000 VUs, 84188 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  59% ] 1000/1000 VUs  1m46.6s/3m00.0s
+
+running (7m47.6s), 1000/1000 VUs, 84677 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  60% ] 1000/1000 VUs  1m47.6s/3m00.0s
+time="2026-09-17T00:24:20+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+
+running (7m48.6s), 1000/1000 VUs, 85157 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  60% ] 1000/1000 VUs  1m48.6s/3m00.0s
+time="2026-09-17T00:24:21+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:21+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:21+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:22+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:22+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:22+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:22+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:22+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:22+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:22+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:22+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:22+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:22+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:22+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:22+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:22+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+
+running (7m49.6s), 1000/1000 VUs, 85645 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  61% ] 1000/1000 VUs  1m49.6s/3m00.0s
+
+running (7m50.6s), 1000/1000 VUs, 86125 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  61% ] 1000/1000 VUs  1m50.6s/3m00.0s
+
+running (7m51.6s), 1000/1000 VUs, 86569 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  62% ] 1000/1000 VUs  1m51.6s/3m00.0s
+
+running (7m52.6s), 1000/1000 VUs, 87081 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  63% ] 1000/1000 VUs  1m52.6s/3m00.0s
+
+running (7m53.6s), 1000/1000 VUs, 87531 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  63% ] 1000/1000 VUs  1m53.6s/3m00.0s
+
+running (7m54.6s), 1000/1000 VUs, 88018 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  64% ] 1000/1000 VUs  1m54.6s/3m00.0s
+
+running (7m55.6s), 1000/1000 VUs, 88503 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  64% ] 1000/1000 VUs  1m55.6s/3m00.0s
+
+running (7m56.6s), 1000/1000 VUs, 88874 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  65% ] 1000/1000 VUs  1m56.6s/3m00.0s
+
+running (7m57.6s), 1000/1000 VUs, 89478 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  65% ] 1000/1000 VUs  1m57.6s/3m00.0s
+
+running (7m58.6s), 1000/1000 VUs, 89857 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  66% ] 1000/1000 VUs  1m58.6s/3m00.0s
+time="2026-09-17T00:24:32+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+
+running (7m59.6s), 1000/1000 VUs, 90459 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  66% ] 1000/1000 VUs  1m59.6s/3m00.0s
+
+running (8m00.6s), 1000/1000 VUs, 90712 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  67% ] 1000/1000 VUs  2m00.6s/3m00.0s
+time="2026-09-17T00:24:33+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:33+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:33+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:33+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:33+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:33+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:33+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:33+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:33+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:33+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:34+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:34+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:34+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:34+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:34+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:34+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+
+running (8m01.6s), 1000/1000 VUs, 91441 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  68% ] 1000/1000 VUs  2m01.6s/3m00.0s
+
+running (8m02.6s), 1000/1000 VUs, 91693 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  68% ] 1000/1000 VUs  2m02.6s/3m00.0s
+
+running (8m03.6s), 1000/1000 VUs, 92438 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  69% ] 1000/1000 VUs  2m03.6s/3m00.0s
+
+running (8m04.6s), 1000/1000 VUs, 92681 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  69% ] 1000/1000 VUs  2m04.6s/3m00.0s
+
+running (8m05.6s), 1000/1000 VUs, 93422 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  70% ] 1000/1000 VUs  2m05.6s/3m00.0s
+
+running (8m06.6s), 1000/1000 VUs, 93663 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  70% ] 1000/1000 VUs  2m06.6s/3m00.0s
+
+running (8m07.6s), 1000/1000 VUs, 94405 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  71% ] 1000/1000 VUs  2m07.6s/3m00.0s
+
+running (8m08.6s), 1000/1000 VUs, 94644 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  71% ] 1000/1000 VUs  2m08.6s/3m00.0s
+
+running (8m09.6s), 1000/1000 VUs, 95239 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  72% ] 1000/1000 VUs  2m09.6s/3m00.0s
+
+running (8m10.6s), 1000/1000 VUs, 95627 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  73% ] 1000/1000 VUs  2m10.6s/3m00.0s
+time="2026-09-17T00:24:44+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond."
+
+running (8m11.6s), 1000/1000 VUs, 96037 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  73% ] 1000/1000 VUs  2m11.6s/3m00.0s
+time="2026-09-17T00:24:45+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:45+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:45+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:45+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:45+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:45+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:45+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+
+running (8m12.6s), 1000/1000 VUs, 96598 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  74% ] 1000/1000 VUs  2m12.6s/3m00.0s
+time="2026-09-17T00:24:45+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:45+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:45+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:45+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:45+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:45+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:45+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:45+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+
+running (8m13.6s), 1000/1000 VUs, 96988 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  74% ] 1000/1000 VUs  2m13.6s/3m00.0s
+
+running (8m14.6s), 1000/1000 VUs, 97590 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  75% ] 1000/1000 VUs  2m14.6s/3m00.0s
+
+running (8m15.6s), 1000/1000 VUs, 97987 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  75% ] 1000/1000 VUs  2m15.6s/3m00.0s
+
+running (8m16.6s), 1000/1000 VUs, 98583 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  76% ] 1000/1000 VUs  2m16.6s/3m00.0s
+
+running (8m17.6s), 1000/1000 VUs, 98972 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  76% ] 1000/1000 VUs  2m17.6s/3m00.0s
+
+running (8m18.6s), 1000/1000 VUs, 99567 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  77% ] 1000/1000 VUs  2m18.6s/3m00.0s
+
+running (8m19.6s), 1000/1000 VUs, 99944 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  78% ] 1000/1000 VUs  2m19.6s/3m00.0s
+
+running (8m20.6s), 1000/1000 VUs, 100550 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  78% ] 1000/1000 VUs  2m20.6s/3m00.0s
+
+running (8m21.6s), 1000/1000 VUs, 100928 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  79% ] 1000/1000 VUs  2m21.6s/3m00.0s
+time="2026-09-17T00:24:55+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond."
+
+running (8m22.6s), 1000/1000 VUs, 101523 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  79% ] 1000/1000 VUs  2m22.6s/3m00.0s
+
+running (8m23.6s), 1000/1000 VUs, 101913 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  80% ] 1000/1000 VUs  2m23.6s/3m00.0s
+time="2026-09-17T00:24:56+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:56+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:56+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:57+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:57+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:57+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:57+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:57+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:57+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:57+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:57+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:57+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:24:57+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+
+running (8m24.6s), 1000/1000 VUs, 102502 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  80% ] 1000/1000 VUs  2m24.6s/3m00.0s
+
+running (8m25.6s), 1000/1000 VUs, 102884 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  81% ] 1000/1000 VUs  2m25.6s/3m00.0s
+
+running (8m26.6s), 1000/1000 VUs, 103488 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  81% ] 1000/1000 VUs  2m26.6s/3m00.0s
+
+running (8m27.7s), 1000/1000 VUs, 103828 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  82% ] 1000/1000 VUs  2m27.7s/3m00.0s
+
+running (8m28.6s), 1000/1000 VUs, 104412 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  83% ] 1000/1000 VUs  2m28.6s/3m00.0s
+
+running (8m29.6s), 1000/1000 VUs, 104757 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  83% ] 1000/1000 VUs  2m29.6s/3m00.0s
+
+running (8m30.6s), 0999/1000 VUs, 105220 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  84% ] 0999/1000 VUs  2m30.6s/3m00.0s
+
+running (8m31.6s), 0986/1000 VUs, 105701 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  84% ] 0986/1000 VUs  2m31.6s/3m00.0s
+
+running (8m32.6s), 0973/1000 VUs, 106111 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  85% ] 0973/1000 VUs  2m32.6s/3m00.0s
+
+running (8m33.6s), 0930/1000 VUs, 106669 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  85% ] 0930/1000 VUs  2m33.6s/3m00.0s
+time="2026-09-17T00:25:06+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:25:07+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond."
+
+running (8m34.6s), 0900/1000 VUs, 107059 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  86% ] 0900/1000 VUs  2m34.6s/3m00.0s
+
+running (8m35.6s), 0860/1000 VUs, 107566 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  86% ] 0860/1000 VUs  2m35.6s/3m00.0s
+time="2026-09-17T00:25:08+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:25:08+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:25:08+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:25:08+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:25:08+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:25:08+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:25:08+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:25:08+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:25:09+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:25:09+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:25:09+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+time="2026-09-17T00:25:09+07:00" level=warning msg="Request Failed" error="Post \"https://ujian.pw/api/v1/cbt/auth/exam/login\": dial tcp 116.212.72.33:443: connectex: No connection could be made because the target machine actively refused it."
+
+running (8m36.6s), 0831/1000 VUs, 107944 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  87% ] 0831/1000 VUs  2m36.6s/3m00.0s
+
+running (8m37.6s), 0794/1000 VUs, 108404 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  88% ] 0794/1000 VUs  2m37.6s/3m00.0s
+
+running (8m38.6s), 0754/1000 VUs, 108732 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  88% ] 0754/1000 VUs  2m38.6s/3m00.0s
+
+running (8m39.6s), 0713/1000 VUs, 109182 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  89% ] 0713/1000 VUs  2m39.6s/3m00.0s
+
+running (8m40.6s), 0692/1000 VUs, 109460 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  89% ] 0692/1000 VUs  2m40.6s/3m00.0s
+
+running (8m41.6s), 0645/1000 VUs, 109884 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  90% ] 0645/1000 VUs  2m41.6s/3m00.0s
+
+running (8m42.6s), 0620/1000 VUs, 110114 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  90% ] 0620/1000 VUs  2m42.6s/3m00.0s
+
+running (8m43.6s), 0577/1000 VUs, 110524 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  91% ] 0577/1000 VUs  2m43.6s/3m00.0s
+
+running (8m44.6s), 0548/1000 VUs, 110729 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  91% ] 0548/1000 VUs  2m44.6s/3m00.0s
+
+running (8m45.6s), 0512/1000 VUs, 111089 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  92% ] 0512/1000 VUs  2m45.6s/3m00.0s
+
+running (8m46.6s), 0488/1000 VUs, 111261 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  93% ] 0488/1000 VUs  2m46.6s/3m00.0s
+
+running (8m47.6s), 0445/1000 VUs, 111593 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  93% ] 0445/1000 VUs  2m47.6s/3m00.0s
+
+running (8m48.6s), 0420/1000 VUs, 111742 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  94% ] 0420/1000 VUs  2m48.6s/3m00.0s
+
+running (8m49.6s), 0373/1000 VUs, 112038 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  94% ] 0373/1000 VUs  2m49.6s/3m00.0s
+
+running (8m50.6s), 0353/1000 VUs, 112153 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  95% ] 0353/1000 VUs  2m50.6s/3m00.0s
+
+running (8m51.6s), 0309/1000 VUs, 112409 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  95% ] 0309/1000 VUs  2m51.6s/3m00.0s
+
+running (8m52.6s), 0290/1000 VUs, 112501 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  96% ] 0290/1000 VUs  2m52.6s/3m00.0s
+
+running (8m53.6s), 0235/1000 VUs, 112718 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  96% ] 0235/1000 VUs  2m53.6s/3m00.0s
+
+running (8m54.6s), 0222/1000 VUs, 112787 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  97% ] 0222/1000 VUs  2m54.6s/3m00.0s
+
+running (8m55.6s), 0172/1000 VUs, 112952 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  98% ] 0172/1000 VUs  2m55.6s/3m00.0s
+
+running (8m56.6s), 0153/1000 VUs, 113008 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  98% ] 0153/1000 VUs  2m56.6s/3m00.0s
+
+running (8m57.6s), 0108/1000 VUs, 113122 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  99% ] 0108/1000 VUs  2m57.6s/3m00.0s
+
+running (8m58.6s), 0088/1000 VUs, 113161 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [  99% ] 0088/1000 VUs  2m58.6s/3m00.0s
+
+running (8m59.6s), 0038/1000 VUs, 113229 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak     [ 100% ] 0038/1000 VUs  2m59.6s/3m00.0s
+
+running (9m00.6s), 0018/1000 VUs, 113249 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak   ↓ [ 100% ] 0033/1000 VUs  3m0s
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{phase:peak}
+    ✓ 'p(95)<2000' p(95)=124.84ms
+
+    http_req_duration{phase:smoke}
+    ✓ 'p(95)<800' p(95)=61.23ms
+
+    http_req_duration{phase:stress}
+    ✓ 'p(95)<1200' p(95)=89.48ms
+
+    http_req_failed
+    ✗ 'rate<0.02' rate=99.99%
+
+    login_errors
+    ✗ 'rate<0.05' rate=99.99%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 226544 418.365178/s
+    checks_succeeded...: 0.00%  15 out of 226544
+    checks_failed......: 99.99% 226529 out of 226544
+
+    ✗ login 200
+      ↳  0% — ✓ 5 / ✗ 113262
+    ✗ login has token
+      ↳  0% — ✓ 5 / ✗ 113262
+    ✓ dashboard 200
+    ✗ verify 200
+      ↳  0% — ✓ 0 / ✗ 5
+
+    CUSTOM
+    login_errors...................: 99.99% 113262 out of 113267
+    total_logins...................: 5      0.009234/s
+
+    HTTP
+    http_req_duration..............: avg=53.05ms min=0s      med=45.96ms max=451.23ms p(90)=80.91ms p(95)=113.23ms
+      { expected_response:true }...: avg=44.39ms min=28.71ms med=44.79ms max=61.27ms  p(90)=58.29ms p(95)=59.78ms 
+      { phase:peak }...............: avg=57.23ms min=0s      med=49.28ms max=395.48ms p(90)=88.91ms p(95)=124.84ms
+      { phase:smoke }..............: avg=35.51ms min=16.92ms med=30.95ms max=451.23ms p(90)=50.77ms p(95)=61.23ms 
+      { phase:stress }.............: avg=46.72ms min=17.68ms med=41.51ms max=406.63ms p(90)=67.29ms p(95)=89.48ms 
+    http_req_failed................: 99.99% 113267 out of 113277
+    http_reqs......................: 113277 209.191823/s
+
+    EXECUTION
+    iteration_duration.............: avg=2.07s   min=2.01s   med=2.04s   max=11.88s   p(90)=2.09s   p(95)=2.12s   
+    iterations.....................: 113267 209.173355/s
+    vus............................: 18     min=0                max=1000
+    vus_max........................: 1000   min=1000             max=1000
+
+    NETWORK
+    data_received..................: 59 MB  108 kB/s
+    data_sent......................: 16 MB  30 kB/s
+
+
+
+
+running (9m01.5s), 0000/1000 VUs, 113267 complete and 0 interrupted iterations
+smoke  ✓ [ 100% ] 000/100 VUs    1m40s
+stress ✓ [ 100% ] 000/500 VUs    3m0s
+peak   ✓ [ 100% ] 0000/1000 VUs  3m0s
+time="2026-09-17T00:25:34+07:00" level=error msg="thresholds on metrics 'http_req_failed, login_errors' have been crossed"

@@ -43,6 +43,42 @@ export const useAdminDashboardStore = defineStore('adminDashboard', () => {
     }
   }
 
+  // ============================================
+  // D3a: Participants (defer full features ke D4)
+  // ============================================
+  const participants = ref([])
+  const importPreview = ref([])
+  const importErrors = ref([])
+  const isImporting = ref(false)
+
+  const fetchParticipants = async () => {
+    try {
+      const { data } = await api.get('/admin/participants')
+      // Backend response: {status, data: [...]} — extract dengan guard
+      participants.value = Array.isArray(data?.data) ? data.data : []
+    } catch (error) {
+      console.warn('[Participants] Endpoint belum tersedia atau error:', error.message)
+      participants.value = []
+    }
+  }
+
+  // Placeholder — implementasi penuh di D4
+  const parseParticipantsFile = async () => {
+    // TODO D4: parse CSV → return preview
+    importPreview.value = []
+    importErrors.value = []
+  }
+
+  const confirmImportParticipants = async () => {
+    // TODO D4: confirm import ke backend
+    return { imported_count: 0 }
+  }
+
+  const deleteParticipant = async (id) => {
+    await api.delete(`/admin/participants/${id}`)
+    await fetchParticipants()
+  }
+
   return {
     stats,
     syncHistory,
@@ -51,6 +87,15 @@ export const useAdminDashboardStore = defineStore('adminDashboard', () => {
     examsDropdown,
     fetchDashboardStats,
     syncFromSiakad,
+    // D3a — participants
+    participants,
+    importPreview,
+    importErrors,
+    isImporting,
+    fetchParticipants,
+    parseParticipantsFile,
+    confirmImportParticipants,
+    deleteParticipant,
   }
 })
 

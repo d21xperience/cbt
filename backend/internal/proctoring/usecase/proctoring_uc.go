@@ -89,4 +89,3 @@ func (uc *ProctoringUseCase) RecordWarningAndLock(ctx context.Context, examID, p
 	}
 	return n, nil
 }
-

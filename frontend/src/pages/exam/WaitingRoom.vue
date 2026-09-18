@@ -32,45 +32,81 @@
         </div>
 
         <!-- Daftar Ujian -->
+        <!-- Ganti bagian daftar ujian -->
         <div v-else class="row q-col-gutter-md">
-          <div v-for="exam in activeExams" :key="exam.id" class="col-12">
-            <q-card flat bordered class="shadow-1">
-              <q-card-section class="row items-center justify-between q-pb-none">
-                <div>
-                  <div class="text-h6 text-primary text-weight-bold">{{ exam?.subject }}</div>
-                  <div class="text-caption text-grey-7">
-                    Pengajar: {{ exam?.teacher || 'Tidak tersedia' }}
-                  </div>
-                </div>
-                <!-- Badge Status -->
-                <q-badge :color="exam?.status === 'ready' ? 'green' : 'orange'"
-                  :label="exam?.status === 'ready' ? 'Tersedia' : 'Belum Dimulai'"
-                  class="q-px-sm q-py-xs text-weight-bold" />
-              </q-card-section>
+          <!-- Section 1: Scheduled -->
+          <div v-if="dashboard.scheduled.length > 0" class="col-12">
+            <div class="text-subtitle2 text-grey-8 q-mb-sm">
+              <q-icon name="event" class="q-mr-xs" color="primary" />
+              Agenda Ujian
+            </div>
+            <div class="row q-col-gutter-md">
+              <div v-for="exam in dashboard.scheduled" :key="exam.session_id" class="col-12">
+                <q-card flat bordered class="shadow-1" :class="{ 'bg-red-1': exam.blocked }">
+                  <q-card-section class="row items-center justify-between q-pb-none">
+                    <div>
+                      <div class="text-h6 text-primary text-weight-bold">{{ exam.title }}</div>
+                      <div class="text-caption text-grey-7">{{ exam.session_type }}</div>
+                    </div>
+                    <q-badge :color="statusColor(exam.session_status)" :label="statusLabel(exam.session_status)"
+                      class="q-px-sm q-py-xs text-weight-bold" />
+                  </q-card-section>
 
-              <q-card-section class="row q-col-gutter-sm text-grey-9">
-                <div class="col-6 col-sm-3 flex items-center">
-                  <q-icon name="schedule" class="q-mr-xs text-grey-6" />
-                  <span>{{ exam.duration }} Menit</span>
-                </div>
-                <div class="col-6 col-sm-4 flex items-center">
-                  <q-icon name="login" class="q-mr-xs text-grey-6" />
-                  <span>Jam: {{ exam.startTime }} - {{ exam.endTime }}</span>
-                </div>
-              </q-card-section>
+                  <q-card-section class="row q-col-gutter-sm text-grey-9">
+                    <div class="col-6 col-sm-3 flex items-center">
+                      <q-icon name="schedule" class="q-mr-xs text-grey-6" />
+                      <span>{{ formatTime(exam.start_time) }} - {{ formatTime(exam.end_time) }}</span>
+                    </div>
+                  </q-card-section>
 
-              <q-separator />
+                  <!-- Blocked alert -->
+                  <q-banner v-if="exam.blocked" class="bg-red-2 text-red-9 q-mx-md q-mb-sm">
+                    <template v-slot:avatar><q-icon name="lock" /></template>
+                    <strong>Menunggu Persetujuan.</strong> {{ exam.blocked_reason || 'Hubungi admin sekolah.' }}
+                  </q-banner>
 
-              <q-card-actions align="right" class="q-pa-md">
-                <q-btn :color="exam.status === 'ready' ? 'primary' : 'grey-5'" :disabled="exam.status !== 'ready'"
-                  :label="exam.status === 'ready' ? 'Masuk Ujian' : 'Belum Dibuka'" icon-right="play_arrow" unelevated
-                  @click="openTokenDialog(exam)" />
-              </q-card-actions>
-            </q-card>
+                  <q-separator />
+
+                  <q-card-actions align="right" class="q-pa-md">
+                    <q-btn :color="exam.session_status === 'ACTIVE' && !exam.blocked ? 'primary' : 'grey-5'"
+                      :disabled="exam.session_status !== 'ACTIVE' || exam.blocked" :label="buttonLabel(exam)"
+                      icon-right="play_arrow" unelevated @click="openTokenDialog(exam)" />
+                  </q-card-actions>
+                </q-card>
+              </div>
+            </div>
           </div>
 
-          <!-- Kondisi jika tidak ada ujian aktif -->
-          <div v-if="activeExams.length === 0" class="col-12 text-center q-pa-xl">
+          <!-- Section 2: Makeup Available -->
+          <div v-if="dashboard.makeup_available.length > 0" class="col-12 q-mt-md">
+            <div class="text-subtitle2 text-grey-8 q-mb-sm">
+              <q-icon name="event_repeat" class="q-mr-xs" color="orange" />
+              Ujian Susulan Tersedia
+            </div>
+            <div class="row q-col-gutter-md">
+              <div v-for="exam in dashboard.makeup_available" :key="exam.session_id" class="col-12">
+                <q-card flat bordered class="shadow-1 bg-orange-1">
+                  <q-card-section class="row items-center justify-between q-pb-none">
+                    <div>
+                      <div class="text-h6 text-orange-9 text-weight-bold">{{ exam.title }}</div>
+                      <q-badge color="orange" label="SUSULAN" />
+                      <div class="text-caption text-grey-7 q-mt-xs">Alasan: {{ exam.makeup_reason || 'Tidak hadir' }}
+                      </div>
+                    </div>
+                    <q-badge :color="statusColor(exam.session_status)" :label="statusLabel(exam.session_status)" />
+                  </q-card-section>
+                  <q-card-actions align="right" class="q-pa-md">
+                    <q-btn color="orange" :disabled="exam.session_status !== 'ACTIVE' || exam.blocked"
+                      label="Masuk Susulan" icon-right="play_arrow" unelevated @click="openTokenDialog(exam)" />
+                  </q-card-actions>
+                </q-card>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Empty state -->
+          <div v-if="!dashboard.scheduled.length && !dashboard.makeup_available.length && !dashboard.completed.length"
+            class="col-12 text-center q-pa-xl">
             <q-icon name="event_available" size="xl" color="grey-4" />
             <div class="text-grey-6 q-mt-sm">Tidak ada agenda ujian untuk hari ini.</div>
           </div>
@@ -81,12 +117,12 @@
       <div class="col-12 col-md-4">
         <!-- Kartu Profil Siswa -->
         <q-card flat bordered class="text-center q-pa-md shadow-1 q-mb-md">
-          <q-card-section class="flex flex-center flex-column">
+          <q-card-section class="">
             <q-avatar size="100px" class="q-mb-md shadow-2">
-              <!-- <img :src="student.avatar || 'https://cdn.quasar.dev/img/avatar.png'" alt="Foto Siswa"> -->
+              <img :src="student.avatar || 'https://cdn.quasar.dev/img/avatar.png'" alt="Foto Siswa">
             </q-avatar>
             <div class="text-h6 text-weight-bold text-grey-9">{{ student?.name || 'Siswa' }}</div>
-            <div class="text-subtitle2 text-grey-7">NIS: {{ student?.nis || '-' }}</div>
+            <div class="text-subtitle2 text-grey-7">NIS: {{ student?.nisn || '-' }}</div>
             <q-badge color="blue-2" text-color="blue-9" class="q-mt-xs q-px-md text-weight-bold">
               {{ student?.class || 'Kelas' }}
             </q-badge>
@@ -171,39 +207,43 @@ import { useQuasar } from 'quasar'
 import { useAuthStore } from '@/stores/auth'
 import { useExamList } from '@/composables/exam/useExamList'
 
-// --- Dependencies ---
 const router = useRouter()
 const $q = useQuasar()
 const authStore = useAuthStore()
 
-// --- Composables ---
-const { loading, activeExams, completedExams, fetchExams, verifyToken } = useExamList()
+const { loading, dashboard, completedExams, fetchDashboard, verifyToken } = useExamList()
 
-// --- Data Siswa dari Auth Store ---
-const student = computed(() => authStore.getStudent) // gunakan getter student
+const student = computed(() => authStore.getStudent)
 
-// --- State Dialog Token ---
-const tokenDialog = ref({
-  show: false,
-  examId: '',
-  examSubject: '',
-  inputToken: '',
-})
+const tokenDialog = ref({ show: false, examId: '', examSubject: '', inputToken: '' })
 const tokenVerifying = ref(false)
 
-// --- Lifecycle: fetch data saat halaman dimuat ---
-onMounted(() => {
-  fetchExams()
-})
+onMounted(fetchDashboard)
 
-// --- Methods ---
+const statusColor = (s) => ({
+  ACTIVE: 'green', NOT_STARTED: 'orange', EXPIRED: 'grey', CLOSED: 'grey',
+}[s] || 'grey')
+
+const statusLabel = (s) => ({
+  ACTIVE: 'Tersedia', NOT_STARTED: 'Belum Dimulai', EXPIRED: 'Kadaluarsa', CLOSED: 'Ditutup',
+}[s] || s)
+
+const formatTime = (iso) => {
+  if (!iso) return '-'
+  try {
+    return new Date(iso).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+  } catch { return iso }
+}
+
+const buttonLabel = (exam) => {
+  if (exam.blocked) return 'Diblokir'
+  if (exam.session_status === 'ACTIVE') return 'Masuk Ujian'
+  if (exam.session_status === 'NOT_STARTED') return 'Belum Dibuka'
+  return 'Kadaluarsa'
+}
+
 function openTokenDialog(exam) {
-  tokenDialog.value = {
-    show: true,
-    examId: exam.id,
-    examSubject: exam.subject,
-    inputToken: '',
-  }
+  tokenDialog.value = { show: true, examId: exam.exam_id, examSubject: exam.title, inputToken: '' }
 }
 
 function resetTokenDialog() {
@@ -213,54 +253,32 @@ function resetTokenDialog() {
 }
 
 async function submitToken() {
-  const { examId, examSubject, inputToken } = tokenDialog.value
-
+  const { examId, inputToken } = tokenDialog.value
   if (!inputToken || inputToken.length < 6) {
     $q.notify({ type: 'warning', message: 'Token harus 6 karakter', position: 'top' })
     return
   }
-
   tokenVerifying.value = true
   try {
-    // ✅ FIX: terima response lengkap
     const res = await verifyToken(examId, inputToken)
-
     if (res?.valid && res?.token) {
-      // Simpan JWT-B
       authStore.setExamToken(res.token, examId)
-
       tokenDialog.value.show = false
-      $q.notify({
-        type: 'positive',
-        message: `Token diterima. Memulai ujian ${examSubject}`,
-        position: 'top',
-      })
+      $q.notify({ type: 'positive', message: 'Token diterima. Mulai ujian...', position: 'top' })
       router.push({ name: 'exam-room' })
     } else {
-      $q.notify({
-        type: 'negative',
-        message: res?.error || 'Token tidak valid',
-        position: 'top',
-      })
+      $q.notify({ type: 'negative', message: res?.error || 'Token tidak valid', position: 'top' })
     }
   } catch (err) {
-    const msg = err.response?.data?.error || 'Terjadi kesalahan saat verifikasi token'
-    $q.notify({ type: 'negative', message: msg, position: 'top' })
+    $q.notify({ type: 'negative', message: err.response?.data?.error || 'Verifikasi gagal', position: 'top' })
   } finally {
     tokenVerifying.value = false
   }
 }
 
 function logout() {
-  $q.dialog({
-    title: 'Konfirmasi Keluar',
-    message: 'Apakah Anda yakin ingin keluar dari aplikasi?',
-    ok: 'Keluar',
-    cancel: 'Batal',
-  }).onOk(() => {
-    authStore.logout()
-    router.push({ name: 'participant-login' })
-  })
+  $q.dialog({ title: 'Keluar', message: 'Keluar dari aplikasi?', ok: 'Keluar', cancel: 'Batal' })
+    .onOk(() => { authStore.logout(); router.push({ name: 'participant-login' }) })
 }
 </script>
 

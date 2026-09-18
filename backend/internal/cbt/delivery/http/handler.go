@@ -7,9 +7,12 @@ import (
 	"cbt-engine-service/internal/cbt/repository"
 	cbtUC "cbt-engine-service/internal/cbt/usecase"
 	"cbt-engine-service/internal/middleware"
+	platformRepo "cbt-engine-service/internal/platform/repository"
+	platformUsecase "cbt-engine-service/internal/platform/usecase"
 	proctoringUsecase "cbt-engine-service/internal/proctoring/usecase"
 	schedulingDomain "cbt-engine-service/internal/scheduling/domain"
 	schedulingUsecase "cbt-engine-service/internal/scheduling/usecase"
+	"cbt-engine-service/internal/tenant"
 	"cbt-engine-service/pkg/auth"
 	"encoding/json"
 	"log"
@@ -20,9 +23,14 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/xuri/excelize/v2"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type CBTHandler struct {
+	factory        *tenant.Factory
+	tenantUC       *platformUsecase.TenantUseCase
+	platformUserDB *platformRepo.PlatformUserDB
+
 	schedulingUC      *schedulingUsecase.SchedulingUseCase
 	adminLoginUC      *schedulingUsecase.AdminLoginUseCase
 	participantAuthUC *schedulingUsecase.ParticipantAuthUseCase // ← NEW
@@ -43,7 +51,7 @@ type ExternalImportRequest struct {
 type AdminLoginRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-	TenantID string `json:"tenant_id,omitempty"`
+	// TenantID string `json:"tenant_id,omitempty"`
 }
 
 func NewCBTHandler(
@@ -72,6 +80,18 @@ func NewCBTHandler(
 		proctorUC:         proctorUC,
 		paymentUC:         paymentUC,
 	}
+}
+
+// SetFactory — Phase 3A: attach factory untuk tenant-scoped handlers.
+// Dipanggil setelah NewCBTHandler dari main.go.
+func (h *CBTHandler) SetFactory(
+	factory *tenant.Factory,
+	tenantUC *platformUsecase.TenantUseCase,
+	platformUserDB *platformRepo.PlatformUserDB,
+) {
+	h.factory = factory
+	h.tenantUC = tenantUC
+	h.platformUserDB = platformUserDB
 }
 
 type CreateSessionRequest struct {
@@ -176,14 +196,27 @@ func (h *CBTHandler) HandleArchive(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 
-	err := h.archiveUC.ArchiveAndReset(c.Context(), req.SchoolID, req.SemesterID, req.IsEndOfAcademicYear)
-	if err != nil {
+	// Ambil tenantID dari JWT context (server-side, BUKAN dari request)
+	tenantID, _ := c.Locals("tenantID").(string)
+	if tenantID == "" {
+		// Fallback untuk legacy: pakai 'default'
+		tenantID = c.Get("X-Tenant-Slug", "default")
+	}
+
+	if err := h.archiveUC.ArchiveAndReset(
+		c.Context(),
+		tenantID, // ← NEW
+		req.SchoolID,
+		req.SemesterID,
+		req.IsEndOfAcademicYear,
+	); err != nil {
 		log.Printf("[HANDLER] Archive failed: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	return c.JSON(fiber.Map{
-		"message": "Proses archive & reset berhasil. Sistem telah dikembalikan ke kondisi fresh.",
+		"message":   "Archive & reset berhasil",
+		"tenant_id": tenantID,
 	})
 }
 
@@ -409,31 +442,75 @@ func (h *CBTHandler) HandleAdminLogin(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
-	if req.TenantID == "" {
-		req.TenantID = c.Get("X-Tenant-Slug", "default")
-	}
 	if req.Username == "" || req.Password == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "username & password wajib diisi"})
 	}
 
-	res, err := h.adminLoginUC.Login(c.Context(), req.TenantID, req.Username, req.Password)
-	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Username atau password salah"})
-	}
+	// Phase 3A: prefer factory
+	if h.factory != nil {
+		info := tenant.FromContext(c.UserContext())
+		if info == nil || info.TenantID == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error":   "tenant_not_resolved",
+				"message": "Akses melalui subdomain tenant atau X-Tenant-Slug (dev)",
+			})
+		}
 
-	// ✅ FIX: hanya izinkan role ADMIN atau SUPER_ADMIN di endpoint ini
-	if res.Role != "ADMIN" && res.Role != "SUPER_ADMIN" {
-		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-			"error": "Role tidak diizinkan di endpoint ini. Gunakan halaman login yang sesuai.",
+		uc, err := h.factory.Usecases(c.UserContext())
+		if err != nil {
+			log.Printf("[Handler] factory.Usecases failed: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "tenant_db_unavailable",
+			})
+		}
+
+		tenantKey := info.Subdomain
+		if tenantKey == "" {
+			tenantKey = "default"
+		}
+		res, err := uc.AdminLoginUC.Login(c.Context(), tenantKey, req.Username, req.Password)
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Username atau password salah"})
+		}
+		if res.Role != "ADMIN" && res.Role != "SUPER_ADMIN" {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "Role tidak diizinkan di endpoint ini",
+				"role":  res.Role,
+			})
+		}
+
+		token, err := auth.GenerateTokenFull(res.AdminID, res.Role, "", info.TenantID, schedulingUsecase.AdminTokenDuration)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal generate token"})
+		}
+		return c.JSON(fiber.Map{
+			"token": token,
 			"role":  res.Role,
+			"user": fiber.Map{
+				"id":        res.AdminID,
+				"username":  res.Username,
+				"role":      res.Role,
+				"tenant_id": info.TenantID,
+			},
 		})
 	}
 
+	// === Legacy fallback (tanpa factory) ===
+	tenantID := c.Get("X-Tenant-Slug", "default")
+	res, err := h.adminLoginUC.Login(c.Context(), tenantID, req.Username, req.Password)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Username atau password salah"})
+	}
+	if res.Role != "ADMIN" && res.Role != "SUPER_ADMIN" {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": "Role tidak diizinkan di endpoint ini",
+			"role":  res.Role,
+		})
+	}
 	token, err := auth.GenerateTokenFull(res.AdminID, res.Role, "", res.TenantID, schedulingUsecase.AdminTokenDuration)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal generate token"})
 	}
-
 	return c.JSON(fiber.Map{
 		"token": token,
 		"role":  res.Role,
@@ -447,11 +524,48 @@ func (h *CBTHandler) HandleAdminLogin(c *fiber.Ctx) error {
 }
 
 // HandleSuperAdminLogin — endpoint terpisah untuk halaman /super
+// HandleSuperAdminLogin — platform-scoped login.
+// Super admin dari PLATFORM DB, bukan tenant DB.
 func (h *CBTHandler) HandleSuperAdminLogin(c *fiber.Ctx) error {
 	var req AdminLoginRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
+	if req.Username == "" || req.Password == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "username & password wajib diisi"})
+	}
+
+	// Phase 3A: prefer platform DB
+	if h.platformUserDB != nil {
+		user, err := h.platformUserDB.FindByUsername(c.Context(), req.Username)
+		if err != nil {
+			log.Printf("[Handler] PlatformUser.FindByUsername error: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+		}
+		if user == nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Username atau password salah"})
+		}
+		if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Username atau password salah"})
+		}
+
+		// Platform user: no tenant_id
+		token, err := auth.GenerateTokenFull(user.ID, user.Role, "", "", 8*time.Hour)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal generate token"})
+		}
+		return c.JSON(fiber.Map{
+			"token": token,
+			"role":  user.Role,
+			"user": fiber.Map{
+				"id":       user.ID,
+				"username": user.Username,
+				"role":     user.Role,
+			},
+		})
+	}
+
+	// === Legacy fallback ===
 	res, err := h.adminLoginUC.LoginSuperAdmin(c.Context(), req.Username, req.Password)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Username atau password salah"})
@@ -958,21 +1072,45 @@ func (h *CBTHandler) HandleGetTenantConfig(c *fiber.Ctx) error {
 	})
 }
 
-// HandleListSchools — stub single-tenant.
-// Multi-tenant SaaS akan diimplementasi di PHASE 10.
+// HandleListSchools — platform-scoped: list semua tenant dari platform DB.
 func (h *CBTHandler) HandleListSchools(c *fiber.Ctx) error {
-	return c.JSON(fiber.Map{
-		"status": "ok",
-		"data": []fiber.Map{
-			{
-				"slug":       "default",
-				"name":       "CBT Engine",
-				"logo_url":   "",
-				"is_active":  true,
-				"portal_url": "/auth/participant",
+	if h.tenantUC == nil {
+		// Fallback legacy
+		return c.JSON(fiber.Map{
+			"status": "ok",
+			"data": []fiber.Map{
+				{
+					"slug":       "default",
+					"name":       "CBT Engine",
+					"logo_url":   "",
+					"is_active":  true,
+					"portal_url": "/auth/participant",
+				},
 			},
-		},
-	})
+		})
+	}
+
+	tenants, err := h.tenantUC.ListAll(c.Context())
+	if err != nil {
+		log.Printf("[Handler] ListAll tenants failed: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "gagal memuat daftar sekolah",
+		})
+	}
+
+	data := make([]fiber.Map, 0, len(tenants))
+	for _, t := range tenants {
+		data = append(data, fiber.Map{
+			"slug":       t.Subdomain,
+			"name":       t.SchoolName,
+			"npsn":       t.NPSN,
+			"logo_url":   "",
+			"is_active":  t.IsActive && !t.IsSuspended,
+			"portal_url": "/auth/participant",
+		})
+	}
+
+	return c.JSON(fiber.Map{"status": "ok", "data": data})
 }
 
 // ============================================

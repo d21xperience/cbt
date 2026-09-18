@@ -1,0 +1,42 @@
+time="2026-09-16T20:31:38+07:00" level=info msg="[SETUP] Base URL: http://localhost:8082/api/v1/cbt" source=console
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{phase:peak}
+    ✓ 'p(95)<1500' p(95)=0s
+
+    http_req_duration{phase:smoke}
+    ✓ 'p(95)<500' p(95)=0s
+
+    http_req_duration{phase:stress}
+    ✓ 'p(95)<800' p(95)=0s
+
+    http_req_failed
+    ✓ 'rate<0.02' rate=0.00%
+
+    login_errors
+    ✓ 'rate<0.05' rate=0.00%
+
+
+  █ TOTAL RESULTS 
+
+    CUSTOM
+    login_errors...................: 0.00%  0 out of 0
+
+    HTTP
+    http_req_duration..............: avg=46.7ms min=1ms med=46.7ms max=92.4ms p(90)=83.26ms p(95)=87.83ms
+      { expected_response:true }...: avg=46.7ms min=1ms med=46.7ms max=92.4ms p(90)=83.26ms p(95)=87.83ms
+      { phase:peak }...............: avg=0s     min=0s  med=0s     max=0s     p(90)=0s      p(95)=0s     
+      { phase:smoke }..............: avg=0s     min=0s  med=0s     max=0s     p(90)=0s      p(95)=0s     
+      { phase:stress }.............: avg=0s     min=0s  med=0s     max=0s     p(90)=0s      p(95)=0s     
+    http_req_failed................: 0.00%  0 out of 2
+    http_reqs......................: 2      14.337863/s
+
+    NETWORK
+    data_received..................: 1.5 kB 11 kB/s
+    data_sent......................: 639 B  4.6 kB/s
+
+
+
+time="2026-09-16T20:31:39+07:00" level=error msg="Error: No active session for loadtest-exam — run migration first\n\tat setup (file:///C:/C/projects/cbt-quasar/cbt/backend/loadtest/k6-exam-flow.js:106:11(91))\n" hint="script exception" source=stacktrace
