@@ -188,3 +188,35 @@ Status tags:
 
 ⏸️ Pending
 ```
+
+## 2026-09-19 — Backend Response to AI #2 Audit Session 01
+
+### [2026-09-19] [DOCS] [NONE] — Backend Clarification for Frontend Audit
+
+**Triggered by:** AI #2 audit report (Session 01)
+
+**Clarifications:**
+
+1. **Role codes:**
+   - Backend uses: `ADMIN`, `SUPER_ADMIN`, `PROCTOR`, `TEACHER`, `PARTICIPANT`
+   - Frontend: update `dashboardMap` + route meta
+   - Backend contract unchanged
+
+2. **Tenant fallback behavior:**
+   - Frontend axios inject `X-Tenant-Slug` header → resolves correctly
+   - No backend change needed
+   - Frontend: ensure `getTenantSlug()` never returns null
+
+3. **Endpoints NOT_READY confirmed:**
+   - `/admin/participants` → Phase 6
+   - `/proctor/monitor/:sessionId` → Phase 7
+   - Already documented in `BACKEND_GAPS.md`
+
+**Backend Fix:**
+
+- `HandleGetTenantConfig` — migrate from stub to platform DB query
+  - Was: hardcoded "CBT Engine"
+  - Now: real tenant data from `platform.db.tenants`
+  - **Frontend Impact:** MEDIUM — landing/login pages akan tampil nama sekolah sebenarnya
+
+**Status:** ✅ Applied

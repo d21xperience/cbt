@@ -25,7 +25,7 @@ Priority: `BLOCKER` / `HIGH` / `MEDIUM` / `LOW`
 
 ## REQ-000 — Template (Copy This)
 
-```markdown
+````markdown
 ## REQ-XXX
 
 **Date:** YYYY-MM-DD
@@ -33,35 +33,45 @@ Priority: `BLOCKER` / `HIGH` / `MEDIUM` / `LOW`
 **Status:** PENDING
 
 ### Con
+
 [Why frontend needs this]
 
 ### Current Backend Behavior
+
 [What backend does now]
 
 ### Expected Behavior
+
 [What frontend needs]
 
 ### Affected Endpoints
+
 - METHOD /path
 - METHOD /path
 
 ### Affected Frontend Modules
+
 - src/pages/...
 - src/stores/...
 - src/services/...
 
 ### Suggested Implementation (optional)
+
 [If you have idea how backend should implement]
 
 ### Impact if Not Implemented
+
 [What breaks in frontend]
 
 ### Notes
+
 [Anything else]
 
 ---
+
 REQ-001 — Example (akan dihapus setelah ada request nyata)
 markdown
+
 ## REQ-001
 
 **Date:** 2026-09-18
@@ -69,10 +79,13 @@ markdown
 **Status:** ACKNOWLEDGED
 
 ### Con
+
 Admin dashboard menampilkan Quick Stats "Total Soal" yang hardcoded ke 75.
 
 ### Current Backend Behavior
+
 `GET /admin/dashboard/stats` return:
+
 - total_exams
 - total_participants
 - active_sessions
@@ -81,15 +94,19 @@ Admin dashboard menampilkan Quick Stats "Total Soal" yang hardcoded ke 75.
 **Tidak ada `total_questions`.**
 
 ### Expected Behavior
+
 Tambahkan `total_questions` di response.
 
 ### Affected Endpoints
+
 - `GET /api/v1/cbt/admin/dashboard/stats`
 
 ### Affected Frontend Modules
+
 - `src/layouts/AdminLayout.vue`
 
 ### Suggested Implementation
+
 ```go
 _ = examDB.DB.QueryRowCon(ctx, `SELECT COUNT(*) FROM questions`).Scan(&totalQuestions)
 return c.JSON(fiber.Map{
@@ -123,3 +140,30 @@ Sudah tercatat di BACKEND_GAPS.md — Phase 3B.
 3. **Sertakan con yang cukup** — AI #1 tidak akan chat langsung dengan Anda
 4. **Ping dengan cara commit** — push ke git agar AI #1 bisa pull
 5. **Kompilasi** — kalau ada 5 request serupa, group jadi 1 request
+
+---
+
+## Backend Responses (from AI #1)
+
+### Response to Audit Session 01 (2026-09-19)
+
+AI #1 acknowledge audit report. Summary:
+
+**No new change requests detected** — audit findings mostly frontend-only.
+
+**Backend clarifications provided** (see `BACKEND_CHANGELOG.md`):
+
+1. Role codes: `ADMIN`, `SUPER_ADMIN`, `PROCTOR`, `TEACHER`, `PARTICIPANT`
+2. Tenant fallback: works via `X-Tenant-Slug` header injection
+3. Endpoints NOT_READY confirmed (Phase 6, 7)
+
+**Backend fix delivered:** `HandleGetTenantConfig` now returns real tenant data.
+
+**Action for AI #2:**
+- Continue P0/P1 fixes in `FRONTEND_AUDIT_REPORT.md`
+- Update `TenantService.getConfig` expectation (endpoint now stable)
+- After P0 fixes, do second audit pass untuk store/service modules
+
+---
+```
+````
