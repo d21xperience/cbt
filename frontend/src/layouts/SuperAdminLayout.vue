@@ -44,15 +44,8 @@
             Navigasi Utama
           </q-item-label>
 
-          <q-item
-            v-for="(menu, index) in menuList"
-            :key="index"
-            clickable
-            v-ripple
-            :to="menu.to"
-            exact
-            active-class="bg-blue-1 text-primary text-weight-bold"
-          >
+          <q-item v-for="(menu, index) in menuList" :key="index" clickable v-ripple :to="menu.to" exact
+            active-class="bg-blue-1 text-primary text-weight-bold">
             <q-item-section avatar>
               <q-icon :name="menu.icon" />
             </q-item-section>
@@ -67,12 +60,8 @@
     <!-- Konten Halaman Dinamis -->
     <q-page-container>
       <router-view v-slot="{ Component }">
-        <transition
-          enter-active-class="animated fadeIn"
-          leave-active-class="animated fadeOut"
-          mode="out-in"
-          :duration="200"
-        >
+        <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut" mode="out-in"
+          :duration="200">
           <component :is="Component" />
         </transition>
       </router-view>
@@ -113,6 +102,11 @@ const menuList = [
     label: 'Log Telemetri Server',
     icon: 'monitor_heart', // Menggunakan icon rekam medis jantung untuk kesehatan server
     to: { name: 'log-telemetri' },
+  },
+  {
+    label: 'Antrian Persetujuan',
+    icon: 'pending_actions',
+    to: { name: 'super-schools-pending' },
   },
 ]
 

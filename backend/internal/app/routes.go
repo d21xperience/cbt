@@ -18,7 +18,7 @@ import (
 //     → wajib tenant via RequireTenant()
 func RegisterRoutes(app *fiber.App, cfg config.Config, infra *Infrastructure) *cbtHttp.CBTHandler {
 	// Global: TenantResolver (OPTIONAL — tidak fail kalau tidak ada tenant)
-	app.Use(middleware.TenantResolver(infra.TenantUC, infra.TenantMgr))
+	app.Use(middleware.TenantResolver(infra.TenantUC, cfg.DefaultTenantSubdomain))
 	log.Info().Msg("✅ TenantResolver (optional) aktif")
 
 	// Build handler
@@ -71,10 +71,36 @@ func registerPlatformRoutes(api fiber.Router, handler *cbtHttp.CBTHandler) {
 	platformPub.Get("/schools", handler.HandleListSchools)
 	platformPub.Get("/schools/:slug/config", handler.HandleGetTenantConfig)
 
+	// === NEW BE-P1: Super admin approval queue ===
+	platformPub.Get("/schools/pending",
+		middleware.RequireRole("SUPER_ADMIN"),
+		handler.HandleListPendingSchools,
+	)
+	platformPub.Post("/schools/:tenant_id/approve",
+		middleware.RequireRole("SUPER_ADMIN"),
+		handler.HandleApproveSchool,
+	)
+	platformPub.Post("/schools/:tenant_id/reject",
+		middleware.RequireRole("SUPER_ADMIN"),
+		handler.HandleRejectSchool,
+	)
+
+	// === Auth platform ===
 	authPlatform := api.Group("/auth")
 	authPlatform.Post("/super/login",
 		middleware.RateLimiter(middleware.RateLogin),
 		handler.HandleSuperAdminLogin,
+	)
+
+	// === NEW BE-P1 + BE-P2: Public endpoints ===
+	public := api.Group("/public")
+	public.Post("/schools/register",
+		middleware.RateLimiter(middleware.RatePublicRegister),
+		handler.HandlePublicRegisterSchool,
+	)
+	public.Get("/schools",
+		middleware.RateLimiter(middleware.RatePublicList),
+		handler.HandleListPublicSchools,
 	)
 }
 
@@ -100,6 +126,7 @@ func registerTenantRoutes(tenantAPI fiber.Router, handler *cbtHttp.CBTHandler, i
 	// ---- Admin routes ----
 	admin := tenantAPI.Group("/admin",
 		middleware.RequireRole("ADMIN", "SUPER_ADMIN"),
+		middleware.TenantGuard(), // ← NEW
 		middleware.RateLimiter(middleware.RateGeneral),
 	)
 	registerAdminRoutes(admin, handler)
@@ -107,12 +134,14 @@ func registerTenantRoutes(tenantAPI fiber.Router, handler *cbtHttp.CBTHandler, i
 	// ---- Proctor routes ----
 	proctor := tenantAPI.Group("/proctor",
 		middleware.RequireRole("ADMIN", "PROCTOR", "TEACHER"),
+		middleware.TenantGuard(), // ← NEW
 	)
 	registerProctorRoutes(proctor, handler)
 
 	// ---- Exam routes ----
 	exam := tenantAPI.Group("/exam",
 		middleware.ExamAuth(infra.Redis),
+		middleware.TenantGuard(), // ← NEW
 		middleware.RateLimiter(middleware.RateGeneral),
 	)
 	registerExamRoutes(exam, handler)

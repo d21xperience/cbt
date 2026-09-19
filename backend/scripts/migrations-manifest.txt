@@ -1,0 +1,23 @@
+# ============================================================
+# Migration Manifest
+# Format: <filename>  <target>
+#   target: platform | tenant
+# ============================================================
+
+# ----- Tenant DB -----
+000001_init_cbt_schema.up.sql                tenant
+000002_add_sessions_and_archive.up.sql       tenant
+000003_add_external_participants.up.sql      tenant
+000004_add_question_types.up.sql             tenant
+000005_add_admins.up.sql                     tenant
+000006_add_essay_scores.up.sql               tenant
+000007_fix_missing_columns.up.sql            tenant
+000008_add_participant_credentials.up.sql    tenant
+000009_add_exam_tokens.up.sql                tenant
+000010_add_proctor_assignments.up.sql        tenant
+000011_add_attendance_makeup_payment.up.sql  tenant
+000012_add_tenant_id_columns.up.sql          tenant
+
+# ----- Platform DB -----
+000014_add_tenant_status.up.sql              platform
+000015_add_pending_admin_username.up.sql     platform

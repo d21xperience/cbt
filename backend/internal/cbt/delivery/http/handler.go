@@ -243,10 +243,6 @@ func (h *CBTHandler) HandleLogin(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
-	// if req.Username == "" || req.Password == "" {
-	// 	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "username & password wajib"})
-	// }
-	// ✅ Validasi
 	if err := middleware.ValidateRequired(c, map[string]string{
 		"username": req.Username,
 		"password": req.Password,
@@ -259,13 +255,26 @@ func (h *CBTHandler) HandleLogin(c *fiber.Ctx) error {
 	if err := middleware.MaxLen(c, "password", req.Password, 128); err != nil {
 		return err
 	}
+
+	// ✅ Resolve tenant dari server context
+	info := tenant.FromContext(c.UserContext())
+	if info == nil || info.TenantID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "tenant_not_resolved",
+			"message": "Akses melalui subdomain tenant atau X-Tenant-Slug",
+		})
+	}
+
+	// Auth peserta (legacy — akan di-refactor di Phase 3B)
 	result, err := h.participantAuthUC.Login(c.Context(), req.Username, req.Password)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	// ✅ FIX: JWT uid = participant_id (UUID), konsisten dengan DB & Redis
-	token, err := auth.GenerateTokenFull(result.ParticipantID, "PARTICIPANT", "", "", 6*time.Hour)
+	// ✅ JWT-A: uid=participant_id, tenant_id=UUID (untuk TenantGuard)
+	token, err := auth.GenerateTokenFull(
+		result.ParticipantID, "PARTICIPANT", "", info.TenantID, 6*time.Hour,
+	)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal generate token"})
 	}
@@ -275,7 +284,7 @@ func (h *CBTHandler) HandleLogin(c *fiber.Ctx) error {
 		"role":   "PARTICIPANT",
 		"token":  token,
 		"user": fiber.Map{
-			"participant_id": result.ParticipantID, // ← NEW
+			"participant_id": result.ParticipantID,
 			"nisn":           result.NISN,
 			"name":           result.FullName,
 			"rombel":         result.RombelName,
@@ -1014,7 +1023,12 @@ func (h *CBTHandler) HandleVerifyToken(c *fiber.Ctx) error {
 	}
 
 	// 5. Terbitkan JWT-B dengan exam_id
-	jwtB, err := auth.GenerateTokenFull(participantID, "PARTICIPANT", examID, "", 6*time.Hour)
+	// 5. Terbitkan JWT-B dengan exam_id + tenant_id
+	tenantUUID := ""
+	if info := tenant.FromContext(c.UserContext()); info != nil {
+		tenantUUID = info.TenantID
+	}
+	jwtB, err := auth.GenerateTokenFull(participantID, "PARTICIPANT", examID, tenantUUID, 6*time.Hour)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal generate JWT-B"})
 	}
@@ -1237,19 +1251,27 @@ func (h *CBTHandler) HandleProctorLogin(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid body"})
 	}
-	if req.TenantID == "" {
-		req.TenantID = c.Get("X-Tenant-Slug", "default")
-	}
 	if req.Username == "" || req.Password == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "username & password wajib"})
 	}
 
-	res, err := h.proctorUC.Login(c.Context(), req.TenantID, req.Username, req.Password)
+	// ✅ Resolve tenant dari server context (BUKAN dari body)
+	info := tenant.FromContext(c.UserContext())
+	if info == nil || info.TenantID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "tenant_not_resolved",
+			"message": "Akses melalui subdomain tenant atau X-Tenant-Slug",
+		})
+	}
+
+	// ✅ Proctor login pakai SUBDOMAIN (DB query) bukan UUID
+	res, err := h.proctorUC.Login(c.Context(), info.Subdomain, req.Username, req.Password)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Username atau password salah"})
 	}
 
-	token, err := auth.GenerateTokenFull(res.ProctorID, res.Role, "", res.TenantID, 12*time.Hour)
+	// ✅ JWT pakai UUID (untuk TenantGuard)
+	token, err := auth.GenerateTokenFull(res.ProctorID, res.Role, "", info.TenantID, 12*time.Hour)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal generate token"})
 	}
@@ -1261,7 +1283,7 @@ func (h *CBTHandler) HandleProctorLogin(c *fiber.Ctx) error {
 			"id":        res.ProctorID,
 			"username":  res.Username,
 			"role":      res.Role,
-			"tenant_id": res.TenantID,
+			"tenant_id": info.TenantID,
 		},
 	})
 }

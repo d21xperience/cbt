@@ -16,12 +16,11 @@ type Config struct {
 	CredentialsEncryptionKey string `mapstructure:"CREDENTIALS_ENCRYPTION_KEY"`
 	AppEnv                   string `mapstructure:"APP_ENV"` // "development" | "production"
 	LoadTestToken            string `mapstructure:"LOAD_TEST_TOKEN"`
-	// ==== Phase 1 Multi-Tenant ====
-	MultiTenantMode      bool   `mapstructure:"MULTI_TENANT_MODE"`
-	PlatformDBPath       string `mapstructure:"PLATFORM_DB_PATH"`
-	TenantBasePath       string `mapstructure:"TENANT_BASE_PATH"`
-	TenantMaxOpen        int    `mapstructure:"TENANT_MAX_OPEN"`
-	TenantIdleTTLMinutes int    `mapstructure:"TENANT_IDLE_TTL_MINUTES"`
+	PlatformDBPath           string `mapstructure:"PLATFORM_DB_PATH"`
+	TenantBasePath           string `mapstructure:"TENANT_BASE_PATH"`
+	TenantMaxOpen            int    `mapstructure:"TENANT_MAX_OPEN"`
+	TenantIdleTTLMinutes     int    `mapstructure:"TENANT_IDLE_TTL_MINUTES"`
+	DefaultTenantSubdomain   string `mapstructure:"DEFAULT_TENANT_SUBDOMAIN"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
@@ -37,17 +36,24 @@ func LoadConfig(path string) (config Config, err error) {
 	}
 
 	err = viper.Unmarshal(&config)
+	if err != nil {
+		return config, err
+	}
+
 	if config.PlatformDBPath == "" {
-		config.PlatformDBPath = "/var/lib/cbt/platform/platform.db"
+		config.PlatformDBPath = "./data/platform/platform.db"
 	}
 	if config.TenantBasePath == "" {
-		config.TenantBasePath = "/var/lib/cbt"
+		config.TenantBasePath = "./data"
 	}
 	if config.TenantMaxOpen == 0 {
 		config.TenantMaxOpen = 20
 	}
 	if config.TenantIdleTTLMinutes == 0 {
 		config.TenantIdleTTLMinutes = 30
+	}
+	if config.DefaultTenantSubdomain == "" {
+		config.DefaultTenantSubdomain = "default"
 	}
 	return
 }

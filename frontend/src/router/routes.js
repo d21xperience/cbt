@@ -3,12 +3,7 @@ const routes = [
   {
     path: '/',
     component: () => import('@/layouts/LandingLayout.vue'),
-    children: [
-      {
-        path: '',
-        component: () => import('@/pages/LandingPage.vue'),
-      },
-    ],
+    children: [{ path: '', component: () => import('@/pages/LandingPage.vue') }],
     meta: { requiresAuth: false },
   },
   // AUTHENTICATION
@@ -16,38 +11,42 @@ const routes = [
     path: '/auth',
     component: () => import('@/layouts/AuthLayout.vue'),
     children: [
-      {
-        path: '',
-        redirect: '/auth/participant',
-      },
-      {
-        path: 'participant',
-        name: 'participant-login',
-        component: () => import('@/pages/auth/ParticipantLogin.vue'),
-      },
-      {
-        path: 'admin',
-        name: 'admin-login',
-        component: () => import('@/pages/auth/AdminLogin.vue'),
-      },
-      {
-        path: 'teacher',
-        name: 'teacher-login',
-        component: () => import('@/pages/auth/TeacherLogin.vue'), // Halaman Login Guru Baru
-      },
+      { path: '', redirect: '/auth/participant' },
+
+      // ✅ Super admin = platform-level, TIDAK butuh tenant
       {
         path: 'super',
         name: 'superadmin-login',
         component: () => import('@/pages/auth/SuperAdminLogin.vue'),
       },
+
+      // ✅ Tenant-scoped — butuh tenant
+      {
+        path: 'participant',
+        name: 'participant-login',
+        component: () => import('@/pages/auth/ParticipantLogin.vue'),
+        meta: { requiresTenant: true },
+      },
+      {
+        path: 'admin',
+        name: 'admin-login',
+        component: () => import('@/pages/auth/AdminLogin.vue'),
+        meta: { requiresTenant: true },
+      },
+      {
+        path: 'teacher',
+        name: 'teacher-login',
+        component: () => import('@/pages/auth/TeacherLogin.vue'),
+        meta: { requiresTenant: true },
+      },
     ],
     meta: { requiresAuth: false },
   },
-  // SUPERAMDIN
+  // SUPER ADMIN
   {
     path: '/super',
-    component: () => import('@/layouts/SuperAdminLayout.vue'), // Atau SuperLayout khusus
-    meta: { requiresAuth: true, role: ['SUPER_ADMIN'] },
+    component: () => import('@/layouts/SuperAdminLayout.vue'),
+    meta: { requiresAuth: true, allowedRoles: ['SUPER_ADMIN'] },
     children: [
       {
         path: '',
@@ -60,14 +59,19 @@ const routes = [
         component: () => import('@/pages/super/SchoolsManagement.vue'),
       },
       {
+        path: 'schools/pending',
+        name: 'super-schools-pending',
+        component: () => import('@/pages/super/SchoolsPending.vue'),
+      },
+      {
         path: 'billing',
         name: 'manajemen-biling',
-        component: () => import('@/pages/super/BillingManagement.vue'), // Menghubungkan ke halaman keuangan sewa
+        component: () => import('@/pages/super/BillingManagement.vue'),
       },
       {
         path: 'log-telemetri',
         name: 'log-telemetri',
-        component: () => import('@/pages/super/TelemetryLogs.vue'), // Menghubungkan ke halaman keuangan sewa
+        component: () => import('@/pages/super/TelemetryLogs.vue'),
       },
     ],
   },
@@ -75,6 +79,7 @@ const routes = [
   {
     path: '/admin',
     component: () => import('@/layouts/AdminLayout.vue'),
+    meta: { requiresAuth: true, requiresTenant: true, allowedRoles: ['ADMIN'] },
     children: [
       { path: '', name: 'admin-dashboard', component: () => import('@/pages/admin/Dashboard.vue') },
       { path: 'sync', name: 'admin-sync', component: () => import('@/pages/admin/SyncSiakad.vue') },
@@ -125,13 +130,12 @@ const routes = [
         component: () => import('@/pages/admin/PaymentGates.vue'),
       },
     ],
-    meta: { requiresAuth: true, roles: ['ADMIN'] },
   },
-
   // STUDENT
   {
     path: '/student',
     component: () => import('@/layouts/StudentLayout.vue'),
+    meta: { requiresAuth: true, requiresTenant: true, allowedRoles: ['PARTICIPANT'] },
     children: [
       { path: '', name: 'waiting-room', component: () => import('@/pages/exam/WaitingRoom.vue') },
       {
@@ -150,13 +154,16 @@ const routes = [
         component: () => import('@/pages/exam/ExamUserPorfile.vue'),
       },
     ],
-    meta: { requiresAuth: true, roles: ['PARTICIPANT'], allowedRoles: ['PARTICIPANT'] },
   },
   // PROCTOR
   {
     path: '/proctor',
     component: () => import('@/layouts/AdminLayout.vue'),
-    meta: { requiresAuth: true, roles: ['PROCTOR', 'TEACHER', 'ADMIN'] },
+    meta: {
+      requiresAuth: true,
+      requiresTenant: true,
+      allowedRoles: ['PROCTOR', 'TEACHER', 'ADMIN'],
+    },
     children: [
       {
         path: '',
@@ -170,21 +177,21 @@ const routes = [
       },
     ],
   },
-
+  // EXAM
   {
     path: '/exam',
     component: () => import('@/layouts/ExamLayout.vue'),
-    meta: { requiresAuth: true, roles: ['PARTICIPANT'] },
+    meta: { requiresAuth: true, requiresTenant: true, allowedRoles: ['PARTICIPANT'] },
     children: [
-      {
-        path: '',
-        name: 'exam-room', // ← TAMBAH
-        component: () => import('@/pages/exam/ExamRoom.vue'),
-      },
+      { path: '', name: 'exam-room', component: () => import('@/pages/exam/ExamRoom.vue') },
     ],
   },
-  // Catchall
-  { path: '/:catchAll(.*)*', component: () => import('@/pages/ErrorNotFound.vue') },
+  // Catch-all
+  {
+    path: '/:catchAll(.*)*',
+    component: () => import('@/pages/ErrorNotFound.vue'),
+    meta: { requiresAuth: false },
+  },
 ]
 
 export default routes

@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	archiveRepo "cbt-engine-service/internal/archive/repository"
@@ -78,43 +79,38 @@ func InitInfra(cfg config.Config) (*Infrastructure, error) {
 		return nil, err
 	}
 
-	// 2. Tenant Manager + registry
-	if err := infra.initTenantManager(); err != nil {
-		return nil, err
-	}
-
-	// 3. Crypto cipher
+	// 2. Crypto (no dependency)
 	if err := infra.initCrypto(); err != nil {
 		return nil, err
 	}
 
-	// 4. Redis client
+	// 3. Redis (before tenant manager)
 	if err := infra.initRedis(); err != nil {
 		return nil, err
 	}
 
-	// 5. JWT init
+	// 4. Tenant Manager + Usecase (needs Redis)
+	if err := infra.initTenantManager(); err != nil {
+		return nil, err
+	}
+
+	// 5. JWT
 	if err := infra.initJWT(); err != nil {
 		return nil, err
 	}
 
-	// 6. Resolve default tenant DB
+	// 6. Default tenant
 	if err := infra.initDefaultTenant(); err != nil {
 		return nil, err
 	}
 
-	// 7. Siakad client
+	// 7. Siakad + Factory + Legacy deps
 	infra.Siakad = schedulingRepo.NewSiakadSyncClient(cfg.SiakadBaseURL)
-
-	// 8. Factory (for tenant-scoped handlers)
 	infra.Factory = tenant.NewFactory(infra.TenantMgr, infra.Redis, infra.CredCipher, infra.Siakad)
-	log.Info().Msg("✅ Factory siap")
 
-	// 9. Legacy deps (untuk 57 handler belum migrated)
 	if err := infra.initLegacyDeps(); err != nil {
 		return nil, err
 	}
-	log.Info().Msg("✅ Legacy handler deps siap")
 
 	return infra, nil
 }
@@ -141,9 +137,21 @@ func (i *Infrastructure) initTenantManager() error {
 		time.Duration(i.Cfg.TenantIdleTTLMinutes)*time.Minute,
 	)
 	tenantRepo := platformRepo.NewTenantDB(i.PlatformDB)
-	i.TenantUC = platformUC.NewTenantUseCase(tenantRepo, i.Cfg.TenantBasePath)
+	subRepo := platformRepo.NewSubscriptionDB(i.PlatformDB)
+	provisioner := tenant.NewProvisioner(i.Cfg.TenantBasePath)
+
+	i.TenantUC = platformUC.NewTenantUseCaseFull(
+		tenantRepo,
+		subRepo,
+		provisioner,
+		i.Redis,
+		i.Cfg.TenantBasePath,
+	)
 	i.PlatformUser = platformRepo.NewPlatformUserDB(i.PlatformDB)
-	log.Info().Int("max_open", i.Cfg.TenantMaxOpen).Msg("✅ Tenant DB Manager siap")
+
+	log.Info().
+		Int("max_open", i.Cfg.TenantMaxOpen).
+		Msg("✅ Tenant DB Manager + Provisioner + SubRepo siap")
 	return nil
 }
 
@@ -189,9 +197,16 @@ func (i *Infrastructure) initJWT() error {
 
 func (i *Infrastructure) initDefaultTenant() error {
 	ctx := context.Background()
-	res, err := i.TenantUC.ResolveBySubdomain(ctx, "default")
+
+	// Subdomain dari config (default: "default", dev: "dev")
+	subdomain := i.Cfg.DefaultTenantSubdomain
+	if subdomain == "" {
+		subdomain = "default"
+	}
+
+	res, err := i.TenantUC.ResolveBySubdomain(ctx, subdomain)
 	if err != nil {
-		return err
+		return fmt.Errorf("default tenant '%s' tidak ditemukan di platform DB: %w", subdomain, err)
 	}
 	db, err := i.TenantMgr.Get(ctx, res.TenantID, res.DBPath)
 	if err != nil {
@@ -199,7 +214,10 @@ func (i *Infrastructure) initDefaultTenant() error {
 	}
 	i.DefaultTenantID = res.TenantID
 	i.DefaultDB = db
-	log.Info().Str("tenant_id", res.TenantID).Msg("✅ Default tenant resolved")
+	log.Info().
+		Str("tenant_id", res.TenantID).
+		Str("subdomain", subdomain).
+		Msg("✅ Default tenant resolved")
 	return nil
 }
 

@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	platformUC "cbt-engine-service/internal/platform/usecase"
@@ -11,50 +12,29 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// TenantResolver — resolve tenant dari subdomain/host, simpan di Go context.
+// TenantResolver — resolve tenant dari subdomain/host, set di Go context.
+// TIDAK fail kalau tenant tidak bisa di-resolve (biarkan RequireTenant yang handle).
 //
-// Setelah middleware ini:
-// - c.UserContext() contains tenant info (via tenant.WithTenantInfo)
-// - c.Locals("tenant_id") untuk fiber-only access (backward compat)
-func TenantResolver(tenantUC *platformUC.TenantUseCase, mgr *tenant.Manager) fiber.Handler {
+// defaultSubdomain: fallback untuk localhost / root domain (config-driven).
+func TenantResolver(
+	tenantUC *platformUC.TenantUseCase,
+	defaultSubdomain string,
+) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		subdomain := extractSubdomain(c)
-
-		if subdomain == "" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error":   "tenant_not_identified",
-				"message": "Host header tidak valid atau X-Tenant-Slug kosong",
-			})
-		}
+		subdomain := extractSubdomain(c, defaultSubdomain)
 
 		ctx := c.Context()
 		resolution, err := tenantUC.ResolveBySubdomain(ctx, subdomain)
 		if err != nil {
-			log.Warn().
+			log.Debug().
 				Str("subdomain", subdomain).
 				Err(err).
-				Msg("Tenant resolution failed")
+				Msg("Tenant resolution soft-failed")
 
-			status := fiber.StatusNotFound
-			code := "tenant_not_found"
-			switch err {
-			case platformUC.ErrTenantSuspended:
-				status = fiber.StatusForbidden
-				code = "tenant_suspended"
-			case platformUC.ErrTenantInactive:
-				status = fiber.StatusForbidden
-				code = "tenant_inactive"
-			case platformUC.ErrSubdomainInvalid:
-				status = fiber.StatusBadRequest
-				code = "subdomain_invalid"
-			}
-			return c.Status(status).JSON(fiber.Map{
-				"error":   code,
-				"message": err.Error(),
-			})
+			c.Locals("tenant_resolve_error", err.Error())
+			return c.Next()
 		}
 
-		// === Set in Go context (PRIMARY) ===
 		userCtx := c.UserContext()
 		if userCtx == nil {
 			userCtx = context.Background()
@@ -66,7 +46,7 @@ func TenantResolver(tenantUC *platformUC.TenantUseCase, mgr *tenant.Manager) fib
 		})
 		c.SetUserContext(userCtx)
 
-		// === Also set in Locals (BACKWARD COMPAT untuk handler yang belum di-refactor) ===
+		// Backward-compat Locals
 		c.Locals("tenant_id", resolution.TenantID)
 		c.Locals("tenant_subdomain", resolution.Subdomain)
 		c.Locals("tenant_db_path", resolution.DBPath)
@@ -75,25 +55,132 @@ func TenantResolver(tenantUC *platformUC.TenantUseCase, mgr *tenant.Manager) fib
 	}
 }
 
-// extractSubdomain — sama seperti sebelumnya
-func extractSubdomain(c *fiber.Ctx) string {
-	if slug := strings.TrimSpace(strings.ToLower(c.Get("X-Tenant-Slug"))); slug != "" {
-		return slug
-	}
+// TenantGuard — enforce JWT tenant == server-resolved tenant.
+//
+// HARUS dipakai setelah JWTAuth/RequireRole.
+//
+// Behavior:
+//   - JWT tenant == resolved tenant → PASS
+//   - JWT tenant != resolved tenant → 403 tenant_mismatch
+//   - JWT tenant kosong:
+//   - role SUPER_ADMIN → PASS (platform-wide)
+//   - role lain → 403 jwt_tenant_missing
+func TenantGuard() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		jwtTenantID, _ := c.Locals("tenantID").(string)
 
+		if jwtTenantID == "" {
+			role, _ := c.Locals("role").(string)
+			if role == "SUPER_ADMIN" {
+				return c.Next()
+			}
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error":   "jwt_tenant_missing",
+				"message": "Token tidak memiliki identitas tenant",
+			})
+		}
+
+		resolvedInfo := tenant.FromContext(c.UserContext())
+		if resolvedInfo == nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error":   "tenant_unresolved",
+				"message": "Tidak dapat menentukan tenant dari request",
+			})
+		}
+
+		if jwtTenantID != resolvedInfo.TenantID {
+			log.Warn().
+				Str("jwt_tenant", jwtTenantID).
+				Str("resolved_tenant", resolvedInfo.TenantID).
+				Str("path", c.Path()).
+				Msg("Tenant mismatch — potential cross-tenant attempt")
+
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error":   "tenant_mismatch",
+				"message": "Tenant pada token tidak sesuai dengan request context",
+			})
+		}
+
+		return c.Next()
+	}
+}
+
+// ============================================
+// extractSubdomain v2
+// ============================================
+
+// extractSubdomain — priority: Host subdomain > X-Tenant-Slug > ?tenant= > config default.
+//
+// Handles:
+//   - Single-level subdomain: smkjaya.ujian.pw → "smkjaya"
+//   - Multi-level subdomain: admin.smkjaya.ujian.pw → "smkjaya"
+//   - IP address: 192.168.1.10 → fallback
+//   - Localhost: localhost / 127.0.0.1 → fallback
+//   - Root domain: ujian.pw → fallback
+func extractSubdomain(c *fiber.Ctx, defaultSubdomain string) string {
+	// 1. Host header
 	host := strings.ToLower(c.Hostname())
 	if idx := strings.Index(host, ":"); idx >= 0 {
 		host = host[:idx]
 	}
 
-	if host == "localhost" || host == "127.0.0.1" {
-		return c.Query("tenant", "default")
+	// Skip localhost + IP addresses
+	if host != "localhost" && host != "127.0.0.1" && !isIPAddress(host) {
+		parts := strings.Split(host, ".")
+
+		if len(parts) >= 3 {
+			first := parts[0]
+
+			// Multi-level: admin.smkjaya.ujian.pw → return parts[1]
+			if isReservedPrefix(first) && len(parts) >= 4 {
+				return parts[1]
+			}
+			// Single-level: smkjaya.ujian.pw → return parts[0]
+			return first
+		}
 	}
 
+	// 2. X-Tenant-Slug header
+	if slug := strings.TrimSpace(strings.ToLower(c.Get("X-Tenant-Slug"))); slug != "" {
+		return slug
+	}
+
+	// 3. Query param
+	if q := strings.TrimSpace(strings.ToLower(c.Query("tenant"))); q != "" {
+		return q
+	}
+
+	// 4. Config fallback
+	if defaultSubdomain == "" {
+		defaultSubdomain = "default"
+	}
+	return defaultSubdomain
+}
+
+// isIPAddress — detect IPv4 address.
+func isIPAddress(host string) bool {
 	parts := strings.Split(host, ".")
-	if len(parts) >= 3 {
-		return parts[0]
+	if len(parts) != 4 {
+		return false
 	}
+	for _, p := range parts {
+		var n int
+		if _, err := fmt.Sscanf(p, "%d", &n); err != nil {
+			return false
+		}
+		if n < 0 || n > 255 {
+			return false
+		}
+	}
+	return true
+}
 
-	return "default"
+// isReservedPrefix — system prefix yang dipakai untuk subdomain tambahan.
+func isReservedPrefix(prefix string) bool {
+	switch prefix {
+	case "www", "api", "admin", "super", "auth",
+		"exam", "proctor", "platform", "cbt", "app", "mail":
+		return true
+	}
+	return false
 }

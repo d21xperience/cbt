@@ -15,11 +15,13 @@ type RateLimitConfig struct {
 }
 
 var (
-	RateLogin       = RateLimitConfig{Name: "login", Max: 5, Expiration: 15 * time.Minute}
-	RateVerifyToken = RateLimitConfig{Name: "verify_token", Max: 10, Expiration: 5 * time.Minute}
-	RateBatchAnswer = RateLimitConfig{Name: "batch_answer", Max: 60, Expiration: 1 * time.Minute}
-	RateSubmit      = RateLimitConfig{Name: "submit", Max: 5, Expiration: 1 * time.Minute}
-	RateGeneral     = RateLimitConfig{Name: "general", Max: 200, Expiration: 1 * time.Minute}
+	RateLogin          = RateLimitConfig{Name: "login", Max: 5, Expiration: 15 * time.Minute}
+	RateVerifyToken    = RateLimitConfig{Name: "verify_token", Max: 10, Expiration: 5 * time.Minute}
+	RateBatchAnswer    = RateLimitConfig{Name: "batch_answer", Max: 60, Expiration: 1 * time.Minute}
+	RateSubmit         = RateLimitConfig{Name: "submit", Max: 5, Expiration: 1 * time.Minute}
+	RateGeneral        = RateLimitConfig{Name: "general", Max: 200, Expiration: 1 * time.Minute}
+	RatePublicRegister = RateLimitConfig{Name: "public_register", Max: 5, Expiration: 1 * time.Hour}
+	RatePublicList     = RateLimitConfig{Name: "public_list", Max: 60, Expiration: 1 * time.Minute}
 )
 
 // isLoadTestRequest — skip rate limit kalau header match env LOAD_TEST_TOKEN

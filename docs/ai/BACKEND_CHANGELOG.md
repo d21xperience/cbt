@@ -220,3 +220,27 @@ Status tags:
   - **Frontend Impact:** MEDIUM — landing/login pages akan tampil nama sekolah sebenarnya
 
 **Status:** ✅ Applied
+## 2026-09-19 — Hotfix: Onboarding Temp Password Return
+
+### [2026-09-19] [ONBOARDING] [BLOCKER] — Return Temp Password on Approve
+
+**Decision:** DEC-ONBOARD-PWD-001
+
+**Problem:**
+- `ApproveSchool` generate temp password tapi tidak return → Super Admin tidak tahu password
+- Registration `admin_username` tidak disimpan → hardcoded "admin" di provisioner
+
+**Changed:**
+1. `ApproveSchool` signature: `(tenantID, actorID) error` → `(tenantID, actorID) (string, error)`
+2. Handler response: tambah `data.temp_password` + `data.admin_username` + `data.login_url`
+3. Tambah kolom `pending_admin_username` di `tenants` (migration 000015)
+4. `RegisterSchool` simpan `admin_username` dari registration
+5. `ApproveSchool` pakai `pending_admin_username` (fallback "admin")
+
+**Frontend Impact:**
+- Handler response approve sekarang include `data.temp_password`
+- Super Admin UI HARUS tampilkan password ini ke user (dengan tombol copy)
+
+**Migration:** `000015_add_pending_admin_username.up.sql`
+
+**Status:** ✅ Applied

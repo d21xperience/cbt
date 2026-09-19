@@ -2,7 +2,6 @@
 <template>
   <q-page class="flex flex-center bg-blue-grey-10">
     <q-card style="width: 400px; max-width: 90vw" class="shadow-24 rounded-borders">
-      <!-- Header Khusus Superadmin -->
       <q-card-section class="bg-grey-9 text-white text-center q-pa-lg">
         <div class="text-h6 text-weight-bolder letter-spacing-1">CBT ENGINE CORE</div>
         <div class="text-caption text-grey-4 text-uppercase text-weight-light">
@@ -10,7 +9,6 @@
         </div>
       </q-card-section>
 
-      <!-- Form Pengisian Kredensial -->
       <q-card-section class="q-pt-xl q-px-lg">
         <q-form @submit.prevent="onSuperLogin" class="q-gutter-md">
           <q-input
@@ -59,11 +57,12 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
-import { api } from '@/boot/axios'
+import { useAuthStore } from '@/stores/auth'
 import PasswordInput from '@/components/ui/PasswordInput.vue'
 
 const router = useRouter()
 const $q = useQuasar()
+const auth = useAuthStore()
 
 const username = ref('')
 const password = ref('')
@@ -72,14 +71,20 @@ const loading = ref(false)
 const onSuperLogin = async () => {
   loading.value = true
   try {
-    const response = await api.post('/api/v1/cbt/auth/superadmin/login', {
-      username: username.value,
-      password: password.value,
-    })
+    // Pakai auth store → AuthService → POST /auth/super/login (tanpa /api/v1/cbt prefix)
+    const result = await auth.login(
+      { username: username.value, password: password.value },
+      'SUPER_ADMIN',
+    )
 
-    // Simpan token otorisasi tingkat tinggi ke penyimpanan lokal
-    localStorage.setItem('token', response.data.token)
-    localStorage.setItem('role', 'SUPERADMIN')
+    if (!result.success) {
+      $q.notify({
+        type: 'negative',
+        icon: 'error',
+        message: result.error || 'Akses ditolak. Kredensial root tidak cocok.',
+      })
+      return
+    }
 
     $q.notify({
       type: 'positive',
@@ -87,13 +92,13 @@ const onSuperLogin = async () => {
       message: 'Sesi kendali pusat berhasil diaktifkan!',
     })
 
-    // Teruskan langsung menuju dashboard utama superadmin
-    router.push('/superadmin/dashboard')
+    // Redirect ke dashboard super admin (route existing: /super)
+    router.push('/super')
   } catch (err) {
-    console.error(err)
+    console.error('[SuperAdminLogin] error:', err)
     $q.notify({
       type: 'negative',
-      message: err.response?.data?.message || 'Akses ditolak. Kredensial root tidak cocok.',
+      message: err.response?.data?.error || 'Terjadi kesalahan. Coba lagi.',
     })
   } finally {
     loading.value = false

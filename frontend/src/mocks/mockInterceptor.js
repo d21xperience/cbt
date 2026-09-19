@@ -6,27 +6,49 @@ import { examHandlers } from './handlers/examHandlers'
 import { questionHandlers } from './handlers/questionHandlers'
 import { participantHandlers } from './handlers/participantHandlers'
 import { resetMockData } from './data/stateStore'
-// Handler baru dari src.pdf
 import { billingHandlers } from './handlers/billingHandlers'
-import { superAdminHandlers } from './handlers/superAdminHandlers'
+import { superAdminHandlers, resetOnboardingMockData } from './handlers/superAdminHandlers'
 import { scheduleHandlers } from './handlers/scheduleHandlers'
-// ==========
 import { examAssetHandlers } from './handlers/examAssetHandlers'
 import { resetScheduleData } from './handlers/scheduleHandlers'
-// Ekspos resetMockData ke global agar bisa dipanggil dari console (opsional)
+import { publicHandlers } from './handlers/publicHandlers' // ← BARU
+
 if (typeof window !== 'undefined') {
   window.resetMockData = resetMockData
   window.resetScheduleData = resetScheduleData
+  window.resetOnboardingMockData = resetOnboardingMockData // ← BARU
 }
 
 /**
- * Setup mock interceptor menggunakan axios-mock-adapter
- * @param {import('axios').AxiosInstance} api - Instance Axios yang akan di-mock
+ * Ribbon visual: indikator MOCK MODE aktif. Hanya DEV.
  */
-export const setupMockInterceptor = (api) => {
-  const mock = new MockAdapter(api, { delayResponse: 300 }) // delay global opsional
+const mountMockRibbon = () => {
+  if (typeof document === 'undefined') return
+  if (document.getElementById('__mock_mode_ribbon')) return
 
-  // Daftarkan semua handler
+  const el = document.createElement('div')
+  el.id = '__mock_mode_ribbon'
+  el.textContent = '⚠ MOCK MODE'
+  el.style.cssText = [
+    'position:fixed',
+    'top:0',
+    'right:0',
+    'z-index:99999',
+    'background:#ff9800',
+    'color:#fff',
+    'font:600 11px/1.4 monospace',
+    'padding:4px 10px',
+    'border-bottom-left-radius:6px',
+    'letter-spacing:1px',
+    'pointer-events:none',
+    'opacity:0.85',
+  ].join(';')
+  document.body.appendChild(el)
+}
+
+export const setupMockInterceptor = (api) => {
+  const mock = new MockAdapter(api, { delayResponse: 300 })
+
   authHandlers(mock)
   adminHandlers(mock)
   examHandlers(mock)
@@ -36,8 +58,12 @@ export const setupMockInterceptor = (api) => {
   superAdminHandlers(mock)
   scheduleHandlers(mock)
   examAssetHandlers(mock)
-  // (Opsional) fallback untuk route yang tidak terdefinisi
-  mock.onAny().passThrough() // atau .reply(404, { message: 'Mock not found' });
+  publicHandlers(mock) // ← BARU
+
+  // Jangan passthrough /public/schools — sudah di-handle publicHandlers
+  mock.onAny().passThrough()
+
+  mountMockRibbon() // ← BARU
 
   console.log('✅ [MOCK] Interceptor siap dengan axios-mock-adapter')
 }

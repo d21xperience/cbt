@@ -29,3 +29,37 @@ Belum diverifikasi di sesi ini. Perlu `npm run build`.
 ## NEXT ACTION
 
 Tunggu konfirmasi user untuk mulai implementasi P0/P1.
+
+# FRONTEND STATE
+
+**Last update:** 2026-09-19 by AI #2 (Session 01 — P0 fixes)
+
+## STATUS PER MODUL
+
+| Modul             | State         | Notes                                                     |
+| ----------------- | ------------- | --------------------------------------------------------- |
+| Auth Store        | ✅ FUNCTIONAL | LocalStorage API + role normalize + clearSession lengkap  |
+| Auth Service      | ✅ FUNCTIONAL | Sesuai kontrak backend                                    |
+| Boot Axios        | ✅ FUNCTIONAL | X-Tenant-Slug + 401 clear lengkap                         |
+| Router Guard      | ✅ FUNCTIONAL | RBAC /super fixed, dashboardMap fixed, fallback per-route |
+| Routes            | ✅ FUNCTIONAL | Meta standardized ke `allowedRoles`                       |
+| Utils Tenant      | ✅ FUNCTIONAL | Fallback 'default' aman (backend accept)                  |
+| Composable Tenant | ✅ FUNCTIONAL | Backend fix #1 sudah live                                 |
+| quasar.config.js  | ✅ FUNCTIONAL | Boot file terdaftar                                       |
+| Mock              | ✅ SAFE       | Hanya aktif di DEV                                        |
+| .env.production   | ✅ FUNCTIONAL | QCLI_MOCK_MODE=false                                      |
+
+## PRIORITY BACKLOG
+
+- P1: placeholder UI `/admin/participants` & `/proctor/monitoring/:id`
+- P2: guard baca dari useAuthStore (bukan LocalStorage langsung)
+- P2: verifikasi lint `vite-plugin-checker` di production build
+- P2: mapping endpoint lengkap (butuh source store/service admin/exam/super)
+
+## BUILD STATUS
+
+⏳ Belum diverifikasi. Menunggu `npm run build` oleh user.
+
+## BLOCKERS
+
+Tidak ada.

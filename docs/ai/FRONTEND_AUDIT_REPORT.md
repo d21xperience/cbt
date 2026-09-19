@@ -129,3 +129,39 @@ Prioritas: perbaiki AUTH + ROUTER sebelum modul lain.
   `stores/admin/users.js`, `stores/exam/*`, `stores/super/*`,
   `services/admin/*`, `services/exam/*`, `services/super/*`.
 - Verifikasi endpoint `TenantService.getConfig`.
+
+## UPDATE — 2026-09-19 (setelah jawaban AI #1)
+
+### CLARIFICATIONS APPLIED
+- Role codes = source of truth: ADMIN, SUPER_ADMIN, PROCTOR, TEACHER, PARTICIPANT.
+  → B.2.2, B.4.2 naik ke P0 CONFIRMED.
+- Tenant fallback 'default' di root domain = aman (backend accept X-Tenant-Slug: default).
+  → B.6.1 CLOSED — NOT A BUG.
+- Endpoint NOT_READY (/admin/participants, /proctor/monitor/:id, import-excel)
+  = expected. Handle 404 gracefully. → B.5.2 CONFIRMED, bukan bug.
+- Backend FIX #1 (HandleGetTenantConfig) sudah diimplement.
+  → B.7 useTenant FUNCTIONAL.
+
+### DAFTAR PRIORITAS FINAL
+
+#### P0 — BLOCKER (sebelum modul lain)
+1. B.4.1 — Fix RBAC `/super` (meta `role` singular → `allowedRoles`)
+2. B.4.2 — Fix `dashboardMap` di `router/index.js`: ganti
+   `ADMIN_SEKOLAH` → `ADMIN`, `GURU_PROKTOR` → `PROCTOR`
+3. B.2.1 — Konfirmasi API LocalStorage di `stores/auth.js`
+   (`setItem`/`removeItem` vs `set`/`remove`)
+4. B.2.2 — Konsistenkan role code dari input & response login
+
+#### P1 — HIGH
+5. B.9.1 — Daftarkan `boot/axios.js` di `quasar.config.js` `boot: []`
+6. B.4.3 — Fallback login sesuai role (`/super` → `/auth/super`, dst.)
+7. B.5.1 — Standardisasi meta route → `allowedRoles` saja
+8. B.5.2 — Placeholder UI untuk route NOT_READY (Participants, ProctorMonitoring)
+9. B.1   — Clear `cbt_exam_id` di 401 interceptor
+
+#### P2 — MEDIUM
+10. B.4.4 — Guard baca dari `useAuthStore`, bukan `LocalStorage` langsung
+11. B.2.3 — `clearSession` hapus `cbt_exam_id`
+12. B.5.3 — `/exam` pakai `allowedRoles`
+13. B.9.3 — Review ESLint rule untuk build production
+14. Mapping endpoint lengkap (butuh source store/service admin/exam/super)
