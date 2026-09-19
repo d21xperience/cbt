@@ -1,165 +1,131 @@
-# Frontend Audit Report
+# FRONTEND AUDIT REPORT
 
-**Owner:** AI Implementasi #2  
-**Date Started:** `YYYY-MM-DD`  
-**Date Completed:** `[pending]`  
-**Status:** `NOT_STARTED` / `IN_PROGRESS` / `COMPLETED`
-
----
-
-## ⚠️ Purpose
-
-Audit awal frontend **sebelum coding**. Tanpa audit, perubahan besar berisiko:
-
-- Duplikasi logic
-- Breaking existing feature
-- Mismatch dengan kontrak backend
+**Auditor:** AI #2 (Frontend Owner)
+**Date:** 2026-09-19
+**Session:** 01
+**Basis:** P1 source (7 files) + P2 tree + `.env.production` + `quasar.config.js`
 
 ---
 
-## Section A — Contract Mapping
+## A. RINGKASAN
 
-Untuk setiap page kritikal, mapping end-to-end:
-Page → Store → Service → Axios → Backend Endpoint → Handler → Status
+- Kontrak inti SELARAS: payload login tanpa `tenant_id`, `X-Tenant-Slug` di-inject,
+  mock OFF di production, 401 handler membersihkan `cbt_*`.
+- 3 BUG KRITIS pada RBAC & auth flow.
+- 7 temuan HIGH, 5 temuan MEDIUM.
 
-text
-
-**Format:**
-
-| Page               | Store           | Service           | Endpoint                     | Backend Status | Frontend Status | Mismatch                         |
-| ------------------ | --------------- | ----------------- | ---------------------------- | -------------- | --------------- | -------------------------------- |
-| Admin Dashboard    | adminDashboard  | DashboardService  | `GET /admin/dashboard/stats` | ✅             | `UNKNOWN`       | `field total_questions missing`  |
-| Admin Participants | adminDashboard  | ...               | `GET /admin/participants`    | ❌ Missing     | `UNKNOWN`       | `404`                            |
-| Admin Login        | auth            | AuthService       | `POST /auth/admin/login`     | ✅             | `UNKNOWN`       | `payload masih kirim tenant_id?` |
-| Participant Login  | auth            | AuthService       | `POST /auth/exam/login`      | ✅             | `UNKNOWN`       | `?`                              |
-| Super Admin Login  | auth            | AuthService       | `POST /auth/super/login`     | ✅             | `UNKNOWN`       | `?`                              |
-| Exam Room          | examActive      | ActiveExamService | `/exam/*`                    | ✅             | `UNKNOWN`       | `?`                              |
-| Waiting Room       | examWaitingRoom | ?                 | `/exam/dashboard`            | ✅             | `UNKNOWN`       | `?`                              |
-| Token Display      | ?               | ?                 | `/admin/sessions/:id/token`  | ✅             | `UNKNOWN`       | `?`                              |
-| Payment Gate       | ?               | ?                 | `/admin/payments/*`          | ✅             | `UNKNOWN`       | `?`                              |
-
-**Fill this table during audit.**
+Prioritas: perbaiki AUTH + ROUTER sebelum modul lain.
 
 ---
 
-## Section B — Mismatch Summary
+## B. TEMUAN
 
-### B1. Missing Endpoints
+### B.1 boot/axios.js — FUNCTIONAL
 
-| Endpoint                                | Used By            | Impact | Action                |
-| --------------------------------------- | ------------------ | ------ | --------------------- |
-| `GET /admin/participants`               | `Participants.vue` | HIGH   | Wait for Phase 6 (D4) |
-| `POST /admin/participants/import-excel` | `Participants.vue` | MEDIUM | Wait for Phase 6      |
+- ✅ X-Tenant-Slug inject
+- ✅ 401 clear cbt\_\*
+- 🟡 401 TIDAK clear `cbt_exam_id` → stale session
 
-### B2. Contract Mismatch
+### B.2 stores/auth.js — PARTIALLY_FUNCTIONAL
 
-| Frontend call                                     | Backend contract         | Delta                         |
-| ------------------------------------------------- | ------------------------ | ----------------------------- |
-| e.g. `payload: { username, password, tenant_id }` | `{ username, password }` | `tenant_id` should be removed |
+- 🔴 B.2.1 API LocalStorage inkonsisten: `setItem`/`removeItem` (bukan API Quasar)
+- 🟠 B.2.2 Role code inkonsisten antar jalur login
+- 🟡 B.2.3 `setExamToken` set `cbt_exam_id`, `clearSession` tidak clear
 
-### B3. Fields Missing / Extra
+### B.3 services/AuthService.js — FUNCTIONAL
 
-| Endpoint                     | Frontend expects                        | Backend returns                                                         | Delta                     |
-| ---------------------------- | --------------------------------------- | ----------------------------------------------------------------------- | ------------------------- |
-| `GET /admin/dashboard/stats` | `{ totalQuestions, totalParticipants }` | `{ total_exams, total_participants, active_sessions, completed_exams }` | Missing `total_questions` |
+- ✅ Semua endpoint benar
+- ✅ Payload `{username, password}`, tanpa `tenant_id`
 
-### B4. Auth Pattern
+### B.4 router/index.js — BROKEN 🔴
 
-- [ ] Axios interceptor inject `X-Tenant-Slug` correct?
-- [ ] JWT storage correct (LocalStorage via Quasar)?
-- [ ] 401 handling correct (auto logout)?
-- [ ] Route guard consistent with RBAC?
+- 🔴 B.4.1 /super TIDAK ter-proteksi RBAC (`role` singular tidak dibaca)
+- 🔴 B.4.2 dashboardMap pakai `ADMIN_SEKOLAH`/`GURU_PROKTOR` (bukan `ADMIN`/`PROCTOR`)
+- 🟠 B.4.3 Fallback unauthenticated selalu `/auth/participant`
+- 🟡 B.4.4 Guard baca LocalStorage langsung (bukan useAuthStore)
 
-**Fill during audit.**
+### B.5 routes.js — PARTIALLY_FUNCTIONAL
 
----
+- 🟠 B.5.1 Meta field campur: `role`/`roles`/`allowedRoles`
+- 🟠 B.5.2 Route ke endpoint NOT_READY (`/admin/participants`, `/proctor/monitoring/:id`)
+- 🟡 B.5.3 `/exam` pakai `roles` bukan `allowedRoles`
 
-## Section C — Mock vs Real API
+### B.6 utils/tenant.js — PARTIALLY_FUNCTIONAL
 
-Frontend existing `mocks/` folder — audit:
+- 🟠 B.6.1 Fallback `'default'` di production root domain → kemungkinan backend reject
+- 🟡 B.6.2 Komentar masih `ulangan.co.id`
+- 🟡 B.6.3 Tidak ada fallback eksplisit dev
 
-| Mock handler       | Production impact     | Action                        |
-| ------------------ | --------------------- | ----------------------------- |
-| `authHandlers.js`  | Should be OFF in prod | Verify `QCLI_MOCK_MODE=false` |
-| `adminHandlers.js` | Should be OFF in prod | Idem                          |
-| ...                | ...                   | ...                           |
+### B.7 composables/super/useTenant.js — FUNCTIONAL
 
-**Verify build**: `npm run build` → grep dist untuk "mockInterceptor" → should be empty.
+- ✅ Graceful fallback 404
+- 🟡 `TenantService.getConfig` endpoint NEEDS_VERIFICATION
 
----
+### B.8 .env.production — FUNCTIONAL
 
-## Section D — Outdated Code Candidates
+- ✅ QCLI_MOCK_MODE=false, QCLI_API_BASE_URL=/api/v1/cbt
 
-Files/functions yang tidak sinkron dengan kontrak backend **aktual**:
+### B.9 quasar.config.js — PARTIALLY_FUNCTIONAL
 
-| File | Reason | Action            |
-| ---- | ------ | ----------------- |
-| ...  | ...    | REFACTOR / REMOVE |
-
-**Fill during audit.**
+- 🔴 B.9.1 `boot: []` kosong → `$api`/`$axios` global tidak ter-set
+- 🟠 B.9.2 vueRouterMode: 'hash'
+- 🟡 B.9.3 vite-plugin-checker aktif → build bisa fail oleh lint
 
 ---
 
-## Section E — Functional Classification
+## C. KLASIFIKASI MODUL
 
-Klasifikasi per modul:
-
-| Module             | Classification         | Notes            |
-| ------------------ | ---------------------- | ---------------- |
-| Admin Dashboard    | `UNKNOWN`              |                  |
-| Admin Participants | `PARTIALLY_FUNCTIONAL` | Endpoint missing |
-| ...                | ...                    | ...              |
-
-**Fill during audit.**
-
----
-
-## Section F — Risk Assessment
-
-| Risk | Level        | Mitigation |
-| ---- | ------------ | ---------- |
-| ...  | LOW/MED/HIGH | ...        |
+| Modul                          | Klasifikasi          |
+| ------------------------------ | -------------------- |
+| boot/axios.js                  | FUNCTIONAL           |
+| stores/auth.js                 | PARTIALLY_FUNCTIONAL |
+| services/AuthService.js        | FUNCTIONAL           |
+| router/index.js                | BROKEN               |
+| routes.js                      | PARTIALLY_FUNCTIONAL |
+| utils/tenant.js                | PARTIALLY_FUNCTIONAL |
+| composables/super/useTenant.js | FUNCTIONAL           |
+| quasar.config.js               | PARTIALLY_FUNCTIONAL |
+| .env.production                | FUNCTIONAL           |
 
 ---
 
-## Section G — Recommended Work Order
+## D. MAPPING PAGE → ENDPOINT
 
-Priority list untuk perbaikan:
-
-1. **[BLOCKER]** Verify mock OFF di production build
-2. **[HIGH]** Fix login payload (remove tenant_id)
-3. **[HIGH]** Wire dashboard stats ke `/admin/dashboard/stats`
-4. **[MEDIUM]** Data Peserta — tampilkan fallback yang jelas
-5. **[LOW]** Hapus hardcoded values
-
-**Refine setelah audit selesai.**
+(lihat tabel di chat — banyak NEEDS_VERIFICATION, akan dilengkapi di sesi lanjutan)
 
 ---
 
-## Section H — Verification Steps
+## E. REKOMENDASI PRIORITAS
 
-Setelah audit selesai, jalankan:
+### P0 (BLOCKER — sebelum modul lain)
 
-```bash
-# Build
-npm run build
+1. B.4.1 Fix RBAC `/super` (privilege escalation)
+2. B.4.2 Fix `dashboardMap` role code
+3. B.2.1 Konfirmasi & perbaiki API LocalStorage di `auth.js`
 
-# Verify no mock in build
-grep -r "mockInterceptor" dist/spa/ || echo "OK — no mock in build"
+### P1 (HIGH)
 
-# Verify login payload
-grep -r "tenant_id" src/services/AuthService.js || echo "OK — no tenant_id"
+4. B.9.1 Daftarkan `boot/axios.js` di `quasar.config.js`
+5. B.4.3 Fallback login sesuai role
+6. B.5.1 Standardisasi meta → `allowedRoles` saja
+7. B.5.2 Handle route NOT_READY dengan placeholder
+8. B.2.2 Konsistenkan role code
+9. B.6.1 Fix fallback tenant slug
+10. B.1 Clear `cbt_exam_id` di 401
 
-# Verify tenant header inject
-grep -A5 "X-Tenant-Slug" src/boot/axios.js
-Fill output after running.
+### P2 (MEDIUM)
 
-Completion
-Setelah audit selesai:
+11. B.4.4 Guard baca dari useAuthStore
+12. B.2.3 clearSession hapus cbt_exam_id
+13. B.5.3 Standardisasi `/exam`
+14. B.9.3 Review lint rule
+15. Lengkapi mapping endpoint (P3 file source)
 
-Update FRONTEND_STATE.md
+---
 
-Post findings di section ini
+## F. NEXT SESSION
 
-Tunggu konfirmasi sebelum mulai implementasi
-```
+- Verifikasi source: `stores/admin/dashboard.js`, `stores/admin/questions.js`,
+  `stores/admin/users.js`, `stores/exam/*`, `stores/super/*`,
+  `services/admin/*`, `services/exam/*`, `services/super/*`.
+- Verifikasi endpoint `TenantService.getConfig`.
