@@ -26,3 +26,6 @@ loadtest/results/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+backend/data/
+*.db-shm
+*.db-wal

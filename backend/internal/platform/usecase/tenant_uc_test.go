@@ -71,8 +71,8 @@ func TestValidateRegistration_InvalidSubdomain(t *testing.T) {
 	uc := &TenantUseCase{}
 
 	cases := []string{
-		"ab",      // too short
-		"ABC",     // uppercase
+		"ab", // too short
+		// "ABC",     // uppercase
 		"-abc",    // starts with hyphen
 		"abc_def", // underscore
 		"admin",   // reserved
@@ -126,5 +126,22 @@ func TestGenerateTempPassword(t *testing.T) {
 		if len(pw) != length {
 			t.Errorf("length=%d: got %d chars", length, len(pw))
 		}
+	}
+}
+
+// TestValidateRegistration_NormalizesCase — uppercase diterima, di-lowercase
+// Bukti: design normalizes di 3 tempat (validate, register, resolve).
+func TestValidateRegistration_NormalizesCase(t *testing.T) {
+	uc := &TenantUseCase{}
+
+	req := domain.RegisterSchoolRequest{
+		NPSN:          "20254180",
+		SchoolName:    "Test",
+		Subdomain:     "SMKJaya",
+		AdminUsername: "admin",
+		AdminPassword: "password123",
+	}
+	if err := uc.validateRegistration(req); err != nil {
+		t.Errorf("expected uppercase subdomain to be accepted (normalized), got: %v", err)
 	}
 }

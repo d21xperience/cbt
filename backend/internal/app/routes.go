@@ -110,21 +110,6 @@ func registerPlatformRoutes(api fiber.Router, handler *cbtHttp.CBTHandler) {
 		middleware.RateLimiter(middleware.RatePublicList),
 		handler.HandleListProgramKeahlian,
 	)
-	// findOrCreate untuk admin
-	adminRef := api.Group("/admin/program-keahlian",
-		middleware.RequireRole("ADMIN", "SUPER_ADMIN"),
-		middleware.TenantGuard(),
-	)
-	adminRef.Post("/find-or-create", handler.HandleFindOrCreateProgram)
-
-	// tenant programs management
-	adminProg := api.Group("/admin/programs",
-		middleware.RequireRole("ADMIN", "SUPER_ADMIN"),
-		middleware.TenantGuard(),
-	)
-	adminProg.Get("", handler.HandleListTenantPrograms)
-	adminProg.Post("/assign", handler.HandleAssignTenantProgram)
-	adminProg.Post("/remove", handler.HandleRemoveTenantProgram)
 }
 
 // ============================================
@@ -188,6 +173,11 @@ func registerAdminRoutes(admin fiber.Router, h *cbtHttp.CBTHandler) {
 	admin.Get("/credentials/view", h.HandleViewCredentials)
 	admin.Get("/proctors", h.HandleListProctors)
 	admin.Post("/proctors/assign", h.HandleAssignProctor)
+	// VER-007: Master Program Keahlian (self-service admin tenant)
+	admin.Post("/program-keahlian/find-or-create", h.HandleFindOrCreateProgram)
+	admin.Get("/programs", h.HandleListTenantPrograms)
+	admin.Post("/programs/assign", h.HandleAssignTenantProgram)
+	admin.Post("/programs/remove", h.HandleRemoveTenantProgram)
 }
 
 func registerProctorRoutes(proctor fiber.Router, h *cbtHttp.CBTHandler) {

@@ -122,7 +122,4 @@ type RegisterSchoolRequest struct {
 	AdminPassword        string `json:"admin_password"`
 	Jenjang              string `json:"jenjang,omitempty"`                // optional,default SMA
 	ProgramDurationYears int    `json:"program_duration_years,omitempty"` // optional, default 3
-	// VER-007 Extension — SMK/MAK
-	BidangKeahlianID   string   `json:"bidang_keahlian_id,omitempty"`   // opsional
-	ProgramKeahlianIDs []string `json:"program_keahlian_ids,omitempty"` // JSON array (comma-separated di DB)
 }

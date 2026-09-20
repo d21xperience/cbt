@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
-	"time"
 
 	"cbt-engine-service/internal/platform/domain"
 
@@ -250,6 +249,3 @@ func (r *KeahlianDB) RemoveProgramFromTenant(ctx context.Context, tenantID, prog
 		tenantID, programID)
 	return err
 }
-
-// helper — parse time (reuse existing parseTime)
-var _ = time.Now
