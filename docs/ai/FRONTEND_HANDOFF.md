@@ -1,3 +1,17 @@
+## 2026-09-20 — VER-007 + VER-008 READY
+
+**Baca dulu:** [`VER-007_VER-008_REPORT.md`](./VER-007_VER-008_REPORT.md)
+
+**Action items untuk AI #2:**
+1. Endpoint baru tersedia — lihat Section 2 contract (LOCKED)
+2. Q1/Q2/Q3 dijawab lengkap di Section 3
+3. `bidang_nama` sudah embedded — tidak perlu join manual
+4. Non-SMK: `GET /admin/programs` return `[]` HTTP 200 (bukan 404)
+5. RegisterSchoolRequest: field `program_keahlian_ids` dihapus — sekolah daftar simpel
+6. Route URL tidak berubah, hanya scope internal
+
+**Example usage grade auto-populate:** lihat Section 3 Q1.
+
 # Handoff Readiness Report
 
 **Reported By:** AI #1 (Backend Owner)  

@@ -1,3 +1,20 @@
+## [LOW] Nil-slice → JSON null di TenantDB.scanMany
+
+**File:** `internal/platform/repository/tenant_db.go:97, 233`
+**Pattern:**
+```go
+var out []domain.PublicSchoolDTO   // line 97
+var out []domain.Tenant            // line 233
+Dampak: kalau DB kosong → response "data":null (bukan [])
+
+Frontend data.length akan crash
+
+Terjadi di: GET /super/schools, GET /public/schools, GET /super/schools/pending
+Konteks: Production tidak terpengaruh (sudah ada tenant). Dev DB bisa kosong.
+Fix: Ganti var out []T → out := make([]T, 0)
+Sudah difix untuk KeahlianDB di VER-008 — pattern sama.
+Priority: LOW — fix di batch berikutnya.
+
 # Backend Gaps & TODO
 
 **Last Updated:** 2026-09-18

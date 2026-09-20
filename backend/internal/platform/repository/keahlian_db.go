@@ -35,7 +35,7 @@ func (r *KeahlianDB) ListBidang(ctx context.Context) ([]domain.BidangKeahlian, e
 	}
 	defer rows.Close()
 
-	var out []domain.BidangKeahlian
+	out := make([]domain.BidangKeahlian, 0)
 	for rows.Next() {
 		var b domain.BidangKeahlian
 		var createdAt string
@@ -81,7 +81,7 @@ func (r *KeahlianDB) ListProgram(ctx context.Context, bidangID string, onlyDefau
 	}
 	defer rows.Close()
 
-	var out []domain.ProgramKeahlian
+	out := make([]domain.ProgramKeahlian, 0)
 	for rows.Next() {
 		var p domain.ProgramKeahlian
 		var isDefault, isCustom int
@@ -223,7 +223,7 @@ func (r *KeahlianDB) ListTenantPrograms(ctx context.Context, tenantID string) ([
 	}
 	defer rows.Close()
 
-	var out []domain.ProgramKeahlian
+	out := make([]domain.ProgramKeahlian, 0)
 	for rows.Next() {
 		var p domain.ProgramKeahlian
 		var isDefault, isCustom int

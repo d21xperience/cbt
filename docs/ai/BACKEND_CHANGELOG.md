@@ -1,3 +1,15 @@
+## 2026-09-20 — VER-007 + VER-008 CLOSED
+
+Ringkasan lengkap: lihat [`VER-007_VER-008_REPORT.md`](./VER-007_VER-008_REPORT.md)
+
+**Highlights:**
+- 6 endpoint baru: 2 public references, 1 find-or-create, 3 tenant program management
+- Migration 000017 applied ke dev platform DB
+- Fix nil-slice bug di KeahlianDB (data:[] bukan null)
+- Fix pre-existing test `TestValidateRegistration_InvalidSubdomain`
+- Test scripts: `verify-backend.sh`, `verify-endpoints.sh` (23 assertions, all PASS)
+- Known limitation: `TenantDB.scanMany` nil-slice (LOW priority, masuk BACKEND_GAPS.md)
+
 # Backend Changelog
 
 Setiap perubahan backend yang **berdampak frontend** dicatat di sini.
