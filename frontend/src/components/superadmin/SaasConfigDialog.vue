@@ -20,29 +20,15 @@
 
         <div class="row q-col-gutter-sm">
           <div class="col-12 col-sm-6">
-            <q-select
-              v-model="config.package_tier"
-              :options="tierOptions"
-              label="Tiering Paket"
-              outlined
-              dense
-              emit-value
-              map-options
-            />
+            <q-select v-model="config.package_tier" :options="tierOptions" label="Tiering Paket" outlined dense
+              emit-value map-options />
           </div>
           <div class="col-12 col-sm-6">
             <div class="text-caption text-grey-7 q-mb-xs">
               Maksimal Siswa Aktif Ujian: <strong>{{ config.max_active_students }}</strong>
             </div>
             <!-- Slider pengontrol RAM VPS agar presisi -->
-            <q-slider
-              v-model="config.max_active_students"
-              :min="50"
-              :max="1000"
-              :step="50"
-              label
-              color="indigo"
-            />
+            <q-slider v-model="config.max_active_students" :min="50" :max="1000" :step="50" label color="indigo" />
           </div>
         </div>
 
@@ -54,36 +40,21 @@
         </div>
 
         <div class="q-gutter-sm">
-          <q-radio
-            v-model="config.domain_mode"
-            val="SUBDOMAIN"
-            label="Gunakan Subdomain Utama"
-            color="indigo"
-          />
-          <q-radio
-            v-model="config.domain_mode"
-            val="CUSTOM_DOMAIN"
-            label="Gunakan Custom Domain Sendiri"
-            color="indigo"
-          />
+          <q-radio v-model="config.domain_mode" val="SUBDOMAIN" label="Gunakan Subdomain Utama" color="indigo" />
+          <q-radio v-model="config.domain_mode" val="CUSTOM_DOMAIN" label="Gunakan Custom Domain Sendiri"
+            color="indigo" />
         </div>
 
         <!-- Tampilan Kondisional Input Domain -->
-        <q-input
-          v-if="config.domain_mode === 'SUBDOMAIN'"
-          v-model="config.subdomain"
-          label="Subdomain Aplikasi"
-          outlined
-          dense
-          suffix=".ulangan.co.id"
-        />
+        <q-input v-if="config.domain_mode === 'SUBDOMAIN'" v-model="config.subdomain" label="Subdomain Aplikasi"
+          outlined dense suffix=".ulangan.co.id" />
 
         <!-- <q-input v-slot:prepend v-if="config.domain_mode === 'CUSTOM_DOMAIN'" v-model="config.custom_domain"
           label="Custom Domain Sekolah" outlined dense placeholder="contoh: cbt.sekolah.sch.id">
           <template v-slot:prepend>
             <q-icon name="language" />
           </template>
-        </q-input> -->
+</q-input> -->
 
         <q-separator q-my-sm />
 
@@ -96,12 +67,8 @@
           <q-list dense>
             <q-item tag="label" v-ripple>
               <q-item-section>
-                <q-item-label class="text-weight-medium"
-                  >Modul Proctoring AI (Webcam Audit)</q-item-label
-                >
-                <q-item-label caption
-                  >Memakan resource VPS tinggi untuk deteksi kecurangan.</q-item-label
-                >
+                <q-item-label class="text-weight-medium">Modul Proctoring AI (Webcam Audit)</q-item-label>
+                <q-item-label caption>Memakan resource VPS tinggi untuk deteksi kecurangan.</q-item-label>
               </q-item-section>
               <q-item-section avatar>
                 <q-toggle v-model="config.allowed_features.proctoring_ai" color="green" />
@@ -110,12 +77,8 @@
 
             <q-item tag="label" v-ripple>
               <q-item-section>
-                <q-item-label class="text-weight-medium"
-                  >Evaluator Code Linting (Soal Coding)</q-item-label
-                >
-                <q-item-label caption
-                  >Mengaktifkan fitur pengetikan skrip kode program interaktif.</q-item-label
-                >
+                <q-item-label class="text-weight-medium">Evaluator Code Linting (Soal Coding)</q-item-label>
+                <q-item-label caption>Mengaktifkan fitur pengetikan skrip kode program interaktif.</q-item-label>
               </q-item-section>
               <q-item-section avatar>
                 <q-toggle v-model="config.allowed_features.coding_question" color="green" />
@@ -138,12 +101,7 @@
       <!-- Tombol Aksi -->
       <q-card-actions align="right" class="q-pb-md q-pr-md">
         <q-btn flat label="Batal" v-close-popup color="grey-7" />
-        <q-btn
-          color="indigo-9"
-          label="Simpan Parameter SaaS"
-          :loading="saving"
-          @click="saveSaasConfig"
-        />
+        <q-btn color="indigo-9" label="Simpan Parameter SaaS" :loading="saving" @click="saveSaasConfig" />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -151,9 +109,8 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { api } from '@/boot/axios'
 import { useQuasar } from 'quasar'
-
+import { TenantService } from '@/services/super/TenantService'
 const props = defineProps({
   modelValue: Boolean,
   schoolId: String,
@@ -199,11 +156,10 @@ watch(isOpen, (val) => emit('update:modelValue', val))
 // Muat data pengaturan terkini dari server lewat API
 const loadCurrentConfig = async () => {
   try {
-    const response = await api.get(`/api/v1/cbt/superadmin/schools/${props.schoolId}/config`)
+    const response = await TenantService.getSaaSConfig(props.schoolId)
     config.value = response.data
   } catch (error) {
     console.log(error)
-
     $q.notify({ type: 'negative', message: 'Gagal mengambil parameter konfigurasi SaaS.' })
   }
 }
@@ -212,7 +168,7 @@ const loadCurrentConfig = async () => {
 const saveSaasConfig = async () => {
   saving.value = true
   try {
-    await api.post(`/api/v1/cbt/superadmin/schools/${props.schoolId}/config`, config.value)
+    await TenantService.saveSaaSConfig(props.schoolId, config.value)
     $q.notify({
       type: 'positive',
       message: 'Parameter SaaS berhasil disinkronkan ke server pusat!',

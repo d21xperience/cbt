@@ -5,6 +5,7 @@ import (
 	cbtHttp "cbt-engine-service/internal/cbt/delivery/http"
 	"cbt-engine-service/internal/config"
 	"cbt-engine-service/internal/middleware"
+	platformRepo "cbt-engine-service/internal/platform/repository"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
@@ -42,7 +43,8 @@ func RegisterRoutes(app *fiber.App, cfg config.Config, infra *Infrastructure) *c
 
 func newCBTHandler(infra *Infrastructure) *cbtHttp.CBTHandler {
 	d := infra.HandlerDeps
-
+	// Buat keahlianDB dari PlatformDB (shared platform-level)
+	keahlianDB := platformRepo.NewKeahlianDB(infra.PlatformDB)
 	handler := cbtHttp.NewCBTHandler(
 		d.SchedulingUC,
 		d.AdminLoginUC,
@@ -55,9 +57,10 @@ func newCBTHandler(infra *Infrastructure) *cbtHttp.CBTHandler {
 		d.TokenUC,
 		d.ProctorUC,
 		d.PaymentUC,
+		keahlianDB,
 	)
 	// Attach factory untuk tenant-scoped handlers (Phase 3A migration path)
-	handler.SetFactory(infra.Factory, infra.TenantUC, infra.PlatformUser)
+	handler.SetFactory(infra.Factory, infra.TenantUC, infra.PlatformUser, infra.PlatformKeahlian)
 	log.Info().Msg("✅ Handler + factory siap")
 
 	return handler
@@ -102,6 +105,26 @@ func registerPlatformRoutes(api fiber.Router, handler *cbtHttp.CBTHandler) {
 		middleware.RateLimiter(middleware.RatePublicList),
 		handler.HandleListPublicSchools,
 	)
+	public.Get("/references/bidang-keahlian", handler.HandleListBidangKeahlian)
+	public.Get("/references/program-keahlian",
+		middleware.RateLimiter(middleware.RatePublicList),
+		handler.HandleListProgramKeahlian,
+	)
+	// findOrCreate untuk admin
+	adminRef := api.Group("/admin/program-keahlian",
+		middleware.RequireRole("ADMIN", "SUPER_ADMIN"),
+		middleware.TenantGuard(),
+	)
+	adminRef.Post("/find-or-create", handler.HandleFindOrCreateProgram)
+
+	// tenant programs management
+	adminProg := api.Group("/admin/programs",
+		middleware.RequireRole("ADMIN", "SUPER_ADMIN"),
+		middleware.TenantGuard(),
+	)
+	adminProg.Get("", handler.HandleListTenantPrograms)
+	adminProg.Post("/assign", handler.HandleAssignTenantProgram)
+	adminProg.Post("/remove", handler.HandleRemoveTenantProgram)
 }
 
 // ============================================

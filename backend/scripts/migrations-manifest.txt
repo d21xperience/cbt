@@ -21,3 +21,5 @@
 # ----- Platform DB -----
 000014_add_tenant_status.up.sql              platform
 000015_add_pending_admin_username.up.sql     platform
+000016_add_tenant_jenjang.up.sql             platform
+000017_add_master_keahlian.up.sql            platform

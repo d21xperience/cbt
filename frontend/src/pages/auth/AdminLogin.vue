@@ -62,7 +62,6 @@ import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from '@/stores/auth'
 import { useTenant } from '@/composables/super/useTenant'
-
 import PasswordInput from '@/components/ui/PasswordInput.vue'
 
 const router = useRouter()
@@ -102,7 +101,14 @@ const onSubmit = async () => {
         message: `Selamat datang di panel admin ${schoolName.value}! 😁`,
       })
       router.push('/admin')
+    } else {
+      $q.notify({
+        type: 'negative',
+        message:
+          'Login gagal. Periksa kembali kredensial proktor Anda.',
+      })
     }
+
   } catch (err) {
     console.log(err)
     $q.notify({

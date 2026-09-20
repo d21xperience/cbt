@@ -36,6 +36,8 @@ type Tenant struct {
 	ApprovedBy           string     `json:"approved_by,omitempty"`
 	RejectedReason       string     `json:"rejected_reason,omitempty"`
 	PendingAdminUsername string     `json:"pending_admin_username,omitempty"`
+	Jenjang              string     `json:"jenjang"`
+	ProgramDurationYears int        `json:"program_duration_years"`
 	CreatedAt            time.Time  `json:"created_at"`
 	UpdatedAt            time.Time  `json:"updated_at"`
 }
@@ -111,11 +113,16 @@ type TenantResolution struct {
 // ============================================
 
 type RegisterSchoolRequest struct {
-	NPSN          string `json:"npsn"`
-	SchoolName    string `json:"school_name"`
-	Subdomain     string `json:"subdomain"`
-	ContactEmail  string `json:"contact_email"`
-	ContactPhone  string `json:"contact_phone"`
-	AdminUsername string `json:"admin_username"`
-	AdminPassword string `json:"admin_password"`
+	NPSN                 string `json:"npsn"`
+	SchoolName           string `json:"school_name"`
+	Subdomain            string `json:"subdomain"`
+	ContactEmail         string `json:"contact_email"`
+	ContactPhone         string `json:"contact_phone"`
+	AdminUsername        string `json:"admin_username"`
+	AdminPassword        string `json:"admin_password"`
+	Jenjang              string `json:"jenjang,omitempty"`                // optional,default SMA
+	ProgramDurationYears int    `json:"program_duration_years,omitempty"` // optional, default 3
+	// VER-007 Extension — SMK/MAK
+	BidangKeahlianID   string   `json:"bidang_keahlian_id,omitempty"`   // opsional
+	ProgramKeahlianIDs []string `json:"program_keahlian_ids,omitempty"` // JSON array (comma-separated di DB)
 }

@@ -40,8 +40,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
-import { api } from '@/boot/axios'
-
+import { PaymentService } from '@/services/admin/PaymentService'
 const $q = useQuasar()
 const loading = ref(false)
 const submitting = ref(false)
@@ -59,7 +58,7 @@ const columns = [
 const load = async () => {
   loading.value = true
   try {
-    const { data } = await api.get('/admin/payments/blocked')
+    const { data } = await PaymentService.getBlockedList()
     list.value = data.data || []
   } catch (e) { console.error(e) } finally { loading.value = false }
 }
@@ -68,16 +67,18 @@ const block = async () => {
   if (!form.value.nisn) return
   submitting.value = true
   try {
-    await api.post('/admin/payments/block', form.value)
+    await PaymentService.blockParticipant(form.value)
     $q.notify({ type: 'positive', message: 'Siswa diblokir' })
     form.value = { nisn: '', reason: '' }
     await load()
-  } catch (e) { $q.notify({ type: 'negative', message: e.response?.data?.error || 'Gagal' }) } finally { submitting.value = false }
+  } catch (e) {
+    $q.notify({ type: 'negative', message: e.response?.data?.error || 'Gagal' })
+  } finally { submitting.value = false }
 }
 
 const unblock = async (row) => {
   try {
-    await api.post('/admin/payments/unblock', { nisn: row.nisn, note: 'Unblock manual' })
+    await PaymentService.unblockParticipant(row.nisn)
     $q.notify({ type: 'positive', message: 'Siswa di-unblock' })
     await load()
   } catch (e) {

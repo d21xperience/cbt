@@ -194,7 +194,15 @@ func (uc *TenantUseCase) RegisterSchool(ctx context.Context, req domain.Register
 	if exists {
 		return nil, ErrSubdomainExists
 	}
-
+	// VER-007 — set default jenjang kalau kosong
+	jenjang := req.Jenjang
+	if jenjang == "" {
+		jenjang = "SMA"
+	}
+	duration := req.ProgramDurationYears
+	if duration <= 0 {
+		duration = 3
+	}
 	// 4. Build tenant record (status = PENDING)
 	tenantID := uuid.NewString()
 	relDBPath := filepath.Join("tenants", tenantID, "cbt.db")
@@ -211,6 +219,8 @@ func (uc *TenantUseCase) RegisterSchool(ctx context.Context, req domain.Register
 		DBPath:               relDBPath,
 		Status:               domain.TenantStatusPending,
 		PendingAdminUsername: req.AdminUsername,
+		Jenjang:              jenjang, // ← NEW
+		ProgramDurationYears: duration,
 	}
 
 	if err := uc.tenantRepo.Create(ctx, t); err != nil {
@@ -363,6 +373,23 @@ func (uc *TenantUseCase) invalidatePublicCache(ctx context.Context) {
 func (uc *TenantUseCase) validateRegistration(req domain.RegisterSchoolRequest) error {
 	if !npsnRegex.MatchString(strings.TrimSpace(req.NPSN)) {
 		return fmt.Errorf("%w: NPSN harus 8 digit angka", ErrInvalidFormat)
+	}
+	if req.Jenjang != "" {
+		validJenjang := map[string]bool{
+			"SD": true, "MI": true,
+			"SMP": true, "MTs": true,
+			"SMA": true, "MA": true,
+			"SMK": true, "MAK": true,
+		}
+		if !validJenjang[req.Jenjang] {
+			return fmt.Errorf("%w: jenjang '%s' tidak valid", ErrInvalidFormat, req.Jenjang)
+		}
+		return nil
+	}
+
+	// VER-007 — validate duration (optional)
+	if req.ProgramDurationYears < 0 || req.ProgramDurationYears > 6 {
+		return fmt.Errorf("%w: program_duration_years harus 1-6", ErrInvalidFormat)
 	}
 
 	subdomain := strings.ToLower(strings.TrimSpace(req.Subdomain))

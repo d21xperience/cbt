@@ -34,11 +34,12 @@ type Infrastructure struct {
 	Cfg config.Config
 
 	// === Platform (cross-tenant) ===
-	PlatformDB   *sql.DB
-	PlatformUser *platformRepo.PlatformUserDB
-	TenantMgr    *tenant.Manager
-	TenantUC     *platformUC.TenantUseCase
-	Factory      *tenant.Factory
+	PlatformDB       *sql.DB
+	PlatformUser     *platformRepo.PlatformUserDB
+	PlatformKeahlian *platformRepo.KeahlianDB
+	TenantMgr        *tenant.Manager
+	TenantUC         *platformUC.TenantUseCase
+	Factory          *tenant.Factory
 
 	// === Shared services ===
 	Redis      *redis.Client
@@ -148,7 +149,7 @@ func (i *Infrastructure) initTenantManager() error {
 		i.Cfg.TenantBasePath,
 	)
 	i.PlatformUser = platformRepo.NewPlatformUserDB(i.PlatformDB)
-
+	i.PlatformKeahlian = platformRepo.NewKeahlianDB(i.PlatformDB)
 	log.Info().
 		Int("max_open", i.Cfg.TenantMaxOpen).
 		Msg("✅ Tenant DB Manager + Provisioner + SubRepo siap")

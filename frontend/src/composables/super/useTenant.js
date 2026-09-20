@@ -1,14 +1,17 @@
 // src/composables/super/useTenant.js
-// Single-tenant graceful: skip tenant fetch jika slug invalid atau endpoint belum ada
+// Single-tenant graceful: skip tenant fetch jika slug invalid atau endpoint belum ada.
 import { ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { TenantService } from '@/services/super/TenantService'
 import { getTenantSlug } from '@/utils/tenant'
+import { normalizeJenjang } from '@/domain/school/jenjang'
 
 const DEFAULT_CONFIG = {
   school_name: 'CBT Engine',
   logo_url: '',
   is_suspended: false,
+  jenjang: null,
+  program_duration_years: 3,
 }
 
 export function useTenant() {
@@ -17,11 +20,15 @@ export function useTenant() {
   const schoolTitle = ref('')
   const displayLogo = ref('')
   const isSuspended = ref(false)
+  const jenjang = ref(null) // ← BARU
+  const programDurationYears = ref(3) // ← BARU
 
   const applyDefault = () => {
     schoolTitle.value = DEFAULT_CONFIG.school_name
     displayLogo.value = DEFAULT_CONFIG.logo_url
     isSuspended.value = DEFAULT_CONFIG.is_suspended
+    jenjang.value = DEFAULT_CONFIG.jenjang
+    programDurationYears.value = DEFAULT_CONFIG.program_duration_years
     checkingTenant.value = false
   }
 
@@ -46,20 +53,22 @@ export function useTenant() {
 
       schoolTitle.value = response.data.school_name || DEFAULT_CONFIG.school_name
       displayLogo.value = response.data.logo_url || DEFAULT_CONFIG.logo_url
+
+      // ── VER-007 pending: jenjang & duration (fallback graceful)
+      jenjang.value = normalizeJenjang(response.data.jenjang) || null
+      programDurationYears.value = Number(response.data.program_duration_years) || 3
+
       checkingTenant.value = false
     } catch (err) {
-      // Guard #2: endpoint belum ada → fallback ke default, JANGAN block UI
       if (err.response?.status === 404) {
         console.warn('[Tenant] Backend endpoint config belum tersedia — pakai default')
         applyDefault()
         return
       }
 
-      // Guard #3: error lain (network, dsb.) → tetap izinkan UI render
       console.error('Tenant Config Error:', err)
       applyDefault()
 
-      // Notif hanya untuk error yang benar-benar penting (bukan network biasa)
       if (err.response?.status >= 500) {
         $q.notify({
           type: 'warning',
@@ -74,7 +83,9 @@ export function useTenant() {
     checkingTenant,
     schoolTitle,
     displayLogo,
-    loadTenantConfig,
     isSuspended,
+    jenjang, // ← BARU
+    programDurationYears, // ← BARU
+    loadTenantConfig,
   }
 }

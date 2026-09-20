@@ -35,6 +35,8 @@ const tenantColumns = `
 	COALESCE(approved_by, '') AS approved_by,
 	COALESCE(rejected_reason, '') AS rejected_reason,
 	COALESCE(pending_admin_username, '') AS pending_admin_username,
+	COALESCE(jenjang, 'SMA') AS jenjang,
+	COALESCE(program_duration_years, 3) AS program_duration_years,
 	created_at, updated_at
 `
 
@@ -118,19 +120,19 @@ func (r *TenantDB) Create(ctx context.Context, t *domain.Tenant) error {
 	}
 
 	const q = `
-		INSERT INTO tenants (
-			tenant_id, npsn, subdomain, school_name,
-			contact_email, contact_phone, address,
-			is_active, is_suspended, db_path, status, logo_url,
-			pending_admin_username
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    INSERT INTO tenants (
+        tenant_id, npsn, subdomain, school_name,
+        contact_email, contact_phone, address,
+        is_active, is_suspended, db_path, status, logo_url,
+        pending_admin_username, jenjang, program_duration_years
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := r.DB.ExecContext(ctx, q,
 		t.TenantID, t.NPSN, t.Subdomain, t.SchoolName,
 		t.ContactEmail, t.ContactPhone, t.Address,
 		boolToInt(t.IsActive), boolToInt(t.IsSuspended),
 		t.DBPath, t.Status, t.LogoURL,
-		t.PendingAdminUsername,
+		t.PendingAdminUsername, t.Jenjang, t.ProgramDurationYears,
 	)
 	if err != nil {
 		return fmt.Errorf("create tenant: %w", err)
@@ -252,7 +254,9 @@ func (r *TenantDB) scanRowFields(src rowScanner) (*domain.Tenant, error) {
 		&isActive, &isSuspended, &t.SuspendReason,
 		&t.DBPath, &t.Status, &t.LogoURL,
 		&approvedAt, &approvedBy, &rejectedReason,
-		&pendingAdminUsername, &createdAt, &updatedAt,
+		&pendingAdminUsername,
+		&t.Jenjang, &t.ProgramDurationYears, // ← NEW
+		&createdAt, &updatedAt,
 	)
 	if err != nil {
 		return nil, err

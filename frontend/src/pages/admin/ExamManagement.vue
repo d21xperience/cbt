@@ -9,13 +9,8 @@
           Pemetaan distribusi waktu ujian tengah/akhir semester sekolah.
         </div>
       </div>
-      <q-btn
-        v-if="viewMode === 'LIST' && schedules.length > 0"
-        color="primary"
-        icon="add"
-        label="Buat Jadwal Baru"
-        @click="startWizard"
-      />
+      <q-btn v-if="viewMode === 'LIST' && schedules.length > 0" color="primary" icon="add" label="Buat Jadwal Baru"
+        @click="startWizard" />
     </div>
 
     <!-- KONDISI 1: TAMPILKAN JADWAL JIKA ADA -->
@@ -35,13 +30,8 @@
         <p class="text-caption text-grey-6 q-mb-md">
           Silakan buat panduan distribusi jadwal awal untuk tahun pelajaran aktif ini.
         </p>
-        <q-btn
-          color="primary"
-          icon="edit_calendar"
-          label="Mulai Buat Jadwal Ujian"
-          class="text-weight-bold"
-          @click="startWizard"
-        />
+        <q-btn color="primary" icon="edit_calendar" label="Mulai Buat Jadwal Ujian" class="text-weight-bold"
+          @click="startWizard" />
       </div>
     </q-card>
 
@@ -57,56 +47,50 @@
       <!-- Filter Pilihan Awal -->
       <div class="row q-col-gutter-md q-mb-lg">
         <div class="col-12 col-sm-4">
-          <q-select
-            v-model="wizard.grade"
-            :options="gradeOptions"
-            label="Pilih Tingkat Kelas"
-            outlined
-            dense
-            emit-value
-            map-options
-          />
+          <q-select v-model="wizard.grade" :options="gradeOptions" label="Pilih Tingkat Kelas" outlined dense emit-value
+            map-options />
         </div>
 
-        <div class="col-12 col-sm-4">
-          <q-select
-            v-model="wizard.jenjang"
-            :options="['SMA', 'SMK', 'SMP']"
-            label="Jenjang Sekolah"
-            outlined
-            dense
-          />
+        <!-- <div class="col-12 col-sm-4">
+          <q-select v-model="wizard.jenjang" :options="['SMA', 'SMK', 'SMP']" label="Jenjang Sekolah" outlined dense />
         </div>
 
-        <!-- OOTOMATIS MUNCUL JIKA JENJANG SMK -->
-        <div
-          v-if="wizard.jenjang === 'SMK'"
-          class="col-12 col-sm-4 animate__animated animate__fadeIn"
-        >
-          <q-select
-            v-model="wizard.major_id"
-            :options="majors"
-            option-value="id"
-            option-label="name"
-            label="Pilih Jurusan Kompetensi"
-            outlined
-            dense
-            emit-value
-            map-options
-            :rules="[(val) => !!val || 'Jurusan SMK wajib ditentukan']"
-          />
+        <div v-if="wizard.jenjang === 'SMK'" class="col-12 col-sm-4 animate__animated animate__fadeIn">
+          <q-select v-model="wizard.major_id" :options="majors" option-value="id" option-label="name"
+            label="Pilih Jurusan Kompetensi" outlined dense emit-value map-options
+            :rules="[(val) => !!val || 'Jurusan SMK wajib ditentukan']" />
+        </div> -->
+        <!-- Info jenjang dari data sekolah (VER-007) -->
+        <div v-if="schoolJenjang" class="col-12 col-sm-8">
+          <q-banner dense rounded class="bg-blue-1 text-blue-9">
+            <template v-slot:avatar>
+              <q-icon name="school" color="primary" />
+            </template>
+            <div>
+              <b>Jenjang Sekolah:</b> {{ getJenjangLabel(schoolJenjang) }}
+              <span v-if="programDurationYears > 3" class="text-caption q-ml-sm">
+                ({{ programDurationYears }} tahun)
+              </span>
+            </div>
+            <div class="text-caption">
+              Data ini otomatis dari profil sekolah. Hubungi super admin jika tidak sesuai.
+            </div>
+          </q-banner>
+        </div>
+        <div v-else class="col-12 col-sm-8">
+          <q-banner dense rounded class="bg-orange-1 text-orange-9">
+            <template v-slot:avatar>
+              <q-icon name="warning" color="orange" />
+            </template>
+            Jenjang sekolah belum tersedia dari server. Hubungi super admin.
+          </q-banner>
         </div>
       </div>
 
       <!-- Tombol Pemicu Load Semua Mata Pelajaran -->
       <div v-if="!allSubjectsLoaded" class="row justify-end">
-        <q-btn
-          color="indigo"
-          icon="playlist_add_check"
-          label="Tampilkan Semua Mata Pelajaran"
-          @click="loadFormSubjects"
-          :disable="!wizard.grade"
-        />
+        <q-btn color="indigo" icon="playlist_add_check" label="Tampilkan Semua Mata Pelajaran" @click="loadFormSubjects"
+          :disable="!wizard.grade" />
       </div>
 
       <!-- TABEL DAFTAR SEMUA MAPEL UNTUK INPUT MASSAL -->
@@ -117,57 +101,29 @@
         </div>
 
         <q-list bordered separator class="rounded-borders bg-grey-1">
-          <q-item
-            v-for="mapel in subjectForms"
-            :key="mapel.subject_id"
-            class="q-py-md row items-center bg-white q-mb-sm rounded-borders shadow-1"
-          >
+          <q-item v-for="mapel in subjectForms" :key="mapel.subject_id"
+            class="q-py-md row items-center bg-white q-mb-sm rounded-borders shadow-1">
             <!-- Nama Mata Pelajaran -->
             <div class="col-12 col-md-3">
               <div class="text-weight-bold text-grey-9 text-subtitle2">
                 {{ mapel.subject_name }}
               </div>
-              <q-badge color="indigo-2" text-color="indigo-9" class="text-caption"
-                >Tingkat {{ wizard.grade }}</q-badge
-              >
+              <q-badge color="indigo-2" text-color="indigo-9" class="text-caption">Tingkat {{ wizard.grade }}</q-badge>
             </div>
 
             <!-- Input Tanggal, Jam Mulai, Durasi -->
             <div class="col-12 col-md-9 row q-col-gutter-sm">
               <div class="col-12 col-sm-4">
-                <q-input
-                  v-model="mapel.date"
-                  type="date"
-                  label="Tanggal Ujian"
-                  outlined
-                  dense
-                  stack-label
-                />
+                <q-input v-model="mapel.date" type="date" label="Tanggal Ujian" outlined dense stack-label />
               </div>
               <div class="col-12 col-sm-3">
-                <q-input
-                  v-model="mapel.start_time"
-                  type="time"
-                  label="Jam Mulai"
-                  outlined
-                  dense
-                  stack-label
-                />
+                <q-input v-model="mapel.start_time" type="time" label="Jam Mulai" outlined dense stack-label />
               </div>
               <div class="col-12 col-sm-2">
-                <q-input
-                  v-model.number="mapel.duration"
-                  type="number"
-                  label="Durasi"
-                  outlined
-                  dense
-                  suffix="Mnt"
-                />
+                <q-input v-model.number="mapel.duration" type="number" label="Durasi" outlined dense suffix="Mnt" />
               </div>
               <!-- Preview Real-time Waktu Selesai -->
-              <div
-                class="col-12 col-sm-3 flex items-center justify-end text-caption text-weight-bold text-indigo"
-              >
+              <div class="col-12 col-sm-3 flex items-center justify-end text-caption text-weight-bold text-indigo">
                 Selesai: {{ calculateEndTime(mapel.start_time, mapel.duration) }}
               </div>
             </div>
@@ -177,13 +133,8 @@
         <!-- Aksi Simpan Final Massal -->
         <div class="row justify-end q-mt-lg q-gutter-sm">
           <q-btn flat label="Batal" color="grey-7" @click="viewMode = 'LIST'" />
-          <q-btn
-            color="green-9"
-            icon="save"
-            label="Simpan Semua Jadwal"
-            :loading="savingMassal"
-            @click="submitMassalSchedules"
-          />
+          <q-btn color="green-9" icon="save" label="Simpan Semua Jadwal" :loading="savingMassal"
+            @click="submitMassalSchedules" />
         </div>
       </div>
     </q-card>
@@ -192,9 +143,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { api } from '@/boot/axios'
 import { useQuasar } from 'quasar'
-
+import { ScheduleService } from '@/services/admin/ScheduleService'
 const $q = useQuasar()
 
 // State Navigasi Alur
@@ -207,6 +157,12 @@ const savingMassal = ref(false)
 const schedules = ref([])
 const majors = ref([])
 const subjectForms = ref([])
+
+// startWizard
+
+
+
+
 
 // Payload Wizard
 const wizard = ref({
@@ -229,12 +185,10 @@ const columns = [
   { name: 'end_time', label: 'Jam Selesai (Auto)', align: 'left' },
 ]
 
-// 1. Ambil List Jadwal Existing
 const loadSchedulesList = async () => {
   loading.value = true
   try {
-    const response = await api.get('/api/v1/cbt/admin/schedules-list')
-    schedules.value = response.data
+    schedules.value = await ScheduleService.getSchedulesList()
   } catch (e) {
     console.error(e)
   } finally {
@@ -248,8 +202,7 @@ const startWizard = async () => {
   allSubjectsLoaded.value = false
   // Load data master jurusan pendukung apabila sekolah bertipe SMK
   try {
-    const res = await api.get('/api/v1/cbt/admin/majors')
-    majors.value = res.data
+    majors.value = await ScheduleService.getMajors()
   } catch (e) {
     console.error(e)
   }
@@ -258,11 +211,9 @@ const startWizard = async () => {
 // 2. Mengambil Semua Mata Pelajaran Sekaligus untuk Form Massal
 const loadFormSubjects = async () => {
   // $q.loading.show({ message: 'Menyiapkan lembar isian seluruh kompetensi mapel...' })
-
   try {
-    const response = await api.get('/admin/all-subjects-form')
-    console.log(response)
-    subjectForms.value = response.data
+    // loadFormSubjects
+    subjectForms.value = await ScheduleService.getSubjectsForForm()
     allSubjectsLoaded.value = true
   } catch (err) {
     console.log(err)
@@ -286,7 +237,7 @@ const submitMassalSchedules = async () => {
 
   savingMassal.value = true
   try {
-    await api.post('/api/v1/cbt/admin/schedules-massal', {
+    await ScheduleService.saveMassalSchedules({
       grade: wizard.value.grade,
       major: wizard.value.major_id,
       schedules: checkedSchedules,

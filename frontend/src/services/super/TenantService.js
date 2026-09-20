@@ -34,4 +34,11 @@ export const TenantService = {
   rejectSchool(tenantId, reason) {
     return api.post(`/super/schools/${tenantId}/reject`, { reason })
   },
+  // ── BARU (Fase 1b): SaaS config per tenant
+  getSaaSConfig(tenantId) {
+    return api.get(`/super/schools/${tenantId}/config`)
+  },
+  saveSaaSConfig(tenantId, payload) {
+    return api.post(`/super/schools/${tenantId}/config`, payload)
+  },
 }

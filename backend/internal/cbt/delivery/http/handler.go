@@ -42,6 +42,7 @@ type CBTHandler struct {
 	tokenUC           *cbtUC.TokenUseCase
 	proctorUC         *schedulingUsecase.ProctorUseCase
 	paymentUC         *cbtUC.PaymentUseCase
+	keahlianDB        *platformRepo.KeahlianDB
 }
 type ExternalImportRequest struct {
 	ExamID   string                                 `json:"exam_id"`
@@ -66,6 +67,7 @@ func NewCBTHandler(
 	tokenUC *cbtUC.TokenUseCase,
 	proctorUC *schedulingUsecase.ProctorUseCase,
 	paymentUC *cbtUC.PaymentUseCase,
+	keahlianDB *platformRepo.KeahlianDB,
 ) *CBTHandler {
 	return &CBTHandler{
 		schedulingUC:      sched,
@@ -79,6 +81,7 @@ func NewCBTHandler(
 		tokenUC:           tokenUC,
 		proctorUC:         proctorUC,
 		paymentUC:         paymentUC,
+		keahlianDB:        keahlianDB,
 	}
 }
 
@@ -88,10 +91,12 @@ func (h *CBTHandler) SetFactory(
 	factory *tenant.Factory,
 	tenantUC *platformUsecase.TenantUseCase,
 	platformUserDB *platformRepo.PlatformUserDB,
+	keahlianDB *platformRepo.KeahlianDB,
 ) {
 	h.factory = factory
 	h.tenantUC = tenantUC
 	h.platformUserDB = platformUserDB
+	h.keahlianDB = keahlianDB
 }
 
 type CreateSessionRequest struct {
@@ -1078,11 +1083,56 @@ func (h *CBTHandler) HandleRotateTokenManual(c *fiber.Ctx) error {
 // Multi-tenant SaaS akan diimplementasi di PHASE 10.
 func (h *CBTHandler) HandleGetTenantConfig(c *fiber.Ctx) error {
 	slug := c.Params("slug")
+	if slug == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "slug wajib",
+		})
+	}
+
+	if h.tenantUC == nil {
+		return c.JSON(fiber.Map{
+			"slug":                   slug,
+			"school_name":            "CBT Engine",
+			"logo_url":               "",
+			"is_suspended":           false,
+			"is_active":              true,
+			"jenjang":                "SMA",
+			"program_duration_years": 3,
+		})
+	}
+
+	tenant, err := h.tenantUC.GetTenantBySubdomain(c.Context(), slug)
+	if err != nil {
+		log.Printf("[Handler] GetTenantConfig failed: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "gagal memuat config tenant",
+		})
+	}
+	if tenant == nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "tenant_not_found",
+		})
+	}
+
+	// Default fallback kalau kosong
+	jenjang := tenant.Jenjang
+	if jenjang == "" {
+		jenjang = "SMA"
+	}
+	duration := tenant.ProgramDurationYears
+	if duration <= 0 {
+		duration = 3
+	}
+
 	return c.JSON(fiber.Map{
-		"slug":         slug,
-		"school_name":  "CBT Engine",
-		"logo_url":     "",
-		"is_suspended": false,
+		"slug":                   tenant.Subdomain,
+		"npsn":                   tenant.NPSN,
+		"school_name":            tenant.SchoolName,
+		"jenjang":                jenjang,  // ← NEW
+		"program_duration_years": duration, // ← NEW
+		"logo_url":               tenant.LogoURL,
+		"is_suspended":           tenant.IsSuspended,
+		"is_active":              tenant.IsActive,
 	})
 }
 
