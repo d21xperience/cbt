@@ -110,3 +110,73 @@ NONE / [describe]
 
 - Tidak ada perubahan. Clarification AI #1 sudah menutup B.6.1 dan B.5.2.
 ```
+
+## [2b-3a] — 2026-09-26 — Kartu Ujian + Menu Cetak Dokumen Ujian
+
+### Added
+
+- Menu baru "Cetak Dokumen Ujian" (hub 5 dokumen)
+- Halaman `/admin/cetak-dokumen` — hub
+- Halaman `/admin/cetak-dokumen/kartu-ujian` — Kartu Ujian
+- `ExamCardService.js`, `cardsData.js`, `cardsHandlers.js`
+- `cardTemplatePdf.js` (pdfmake, CR80, 10/A4)
+- `useExamCardPrint.js` composable
+- QR opaque token (32 hex char) — mengganti `SERIAL:xxx` lama
+- Device binding hybrid (Q-B) + tombol reset (Q-E)
+- PIN 4 digit untuk TEMPORARY (Q-C)
+
+### Changed
+
+- Kartu Ujian: buang `localStorage`, pakai Service + Mock
+- Print: `window.open` → `pdfmake`
+- Layout: blok 350px → CR80 grid 2×5
+
+### Deferred
+
+- Login QR flow (butuh backend, lihat FRONTEND_CHANGE_REQUEST.md)
+- Daftar Pengawas (2b-3b)
+- Berita Acara (2b-3c)
+- Denah Duduk (2b-3d)
+- Aturan Ujian (2b-3e)
+- Export + Share (2b-3f)
+## [2b-3a + 2b-3a-1] — 2026-09-27 — Kartu Ujian + Menu Cetak Dokumen Ujian
+
+### Added
+- **Menu baru "Cetak Dokumen Ujian"** di section Manajemen Ujian
+- Halaman hub `/admin/cetak-dokumen` (5 dokumen: Kartu Ujian, Daftar Pengawas, Berita Acara, Denah Duduk, Aturan Ujian)
+- Halaman `/admin/cetak-dokumen/kartu-ujian` — Kartu Ujian (list, filter, create, print, revoke, reset-device)
+- Service: `ExamCardService.js`
+- Mock: `cardsData.js` + `cardsHandlers.js`
+- Composable: `useExamCardPrint.js`
+- Template PDF: `cardTemplatePdf.js` (pdfmake, CR80, 10/A4)
+
+### Security — QR Login (P1–P4 locked)
+- QR opaque token 32-hex-char — mengganti `SERIAL:xxx` lama
+- Format URL: `{origin}/qr/{token}` (bukan NIS + password)
+- Device binding hybrid (bind di login pertama, admin reset via tombol)
+- PIN 4 digit untuk kartu TEMPORARY
+- Audit log: semua login akan dicatat (backend, deferred)
+- Session JWT TTL: 1 jam
+- Signature QR (kecil, di footer) = verifikasi keaslian kartu
+
+### Changed
+- Kartu Ujian: buang `localStorage` (`exam_cards`, `appData`, `exam_data`) → pakai Service + Mock
+- Print engine: `window.open` → **pdfmake** (PDF native, tajam)
+- Layout: blok 350px → CR80 grid 2×5 = 10 kartu/A4
+- Header kartu: logo (kiri) + nama sekolah + alamat + No. Kartu (kanan)
+- Footer kartu: foto placeholder | ttd Kepala Sekolah + QR kecil | QR besar login
+- Sisi belakang: tabel jadwal ujian (kode mapel, hari, tanggal, jam)
+- Duplex flip long-edge: kolom belakang di-mirror
+
+### Deferred (Backend)
+- Endpoint QR login: `POST /qr/login`, `POST /admin/cards/{id}/qr/regenerate`
+- Halaman `/qr/:token` di frontend (2b-3a-2)
+- Halaman `/verify/card/:cardNumber` untuk signature QR
+- Migrasi kartu dari mock → API backend (VER-CARD)
+
+### Next
+- 2b-3b — Daftar Pengawas (per hari)
+- 2b-3c — Berita Acara (editable template)
+- 2b-3d — Denah Duduk (editor + print)
+- 2b-3e — Aturan Ujian (master baru)
+- 2b-3f — Export + Share

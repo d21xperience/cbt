@@ -188,6 +188,18 @@ const routes = [
         name: 'admin-payment-gates',
         component: () => import('@/pages/admin/PaymentGates.vue'),
       },
+      {
+        path: 'cetak-dokumen',
+        name: 'admin-cetak-dokumen',
+        component: () => import('@/pages/admin/CetakDokumenUjian.vue'),
+        meta: { allowedRoles: ['ADMIN', 'SUPER_ADMIN'] },
+      },
+      {
+        path: 'cetak-dokumen/kartu-ujian',
+        name: 'admin-cetak-kartu-ujian',
+        component: () => import('@/pages/admin/cetak/KartuUjianPrint.vue'),
+        meta: { allowedRoles: ['ADMIN', 'SUPER_ADMIN'] },
+      },
     ],
   },
   // STUDENT

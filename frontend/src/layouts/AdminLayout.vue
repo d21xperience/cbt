@@ -278,6 +278,7 @@ const ALL_REFERENSI_NAV = [
 const ALL_MANAGEMENT_NAV = [
   { name: 'participants', label: 'Data Peserta', icon: 'group', to: { name: 'admin-participants' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
   { name: 'examCard', label: 'Kartu Ujian', icon: 'card_membership', to: { name: 'admin-exam-card' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'cetakDokumen', label: 'Cetak Dokumen Ujian', icon: 'print', to: { name: 'admin-cetak-dokumen' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
   { name: 'buatJadwal', label: 'Buat Jadwal', icon: 'schedule', to: { name: 'admin-exam-management' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
   { name: 'kelolaSoal', label: 'Kelola Soal', icon: 'quiz', to: { name: 'admin-questions' }, roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'] },
   { name: 'paymentGates', label: 'Payment Gate', icon: 'payments', to: { name: 'admin-payment-gates' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
@@ -332,6 +333,8 @@ const getBreadcrumbLabel = computed(() => {
     'admin-questions': 'Kelola Soal',
     'admin-participants': 'Data Peserta',
     'admin-archive': 'Archive Semester',
+    'admin-cetak-dokumen': 'Cetak Dokumen Ujian',
+    'admin-cetak-kartu-ujian': 'Kartu Ujian',
   }
   return nameMap[route.name] || route.name || 'Page'
 })

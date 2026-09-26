@@ -167,3 +167,117 @@ AI #1 acknowledge audit report. Summary:
 ---
 ```
 ````
+
+## CR-QR-LOGIN — QR Login Flow
+
+**Konteks:** Kartu Ujian cetak berisi QR opaque token. Siswa scan → login tanpa ketik user/pass.
+
+### Endpoints dibutuhkan
+
+#### 1. Generate / Regenerate QR token (admin)
+
+POST /admin/cards/{id}/qr/regenerate
+Response: { qr_token: "abc...", expires_at: null }
+
+#### 2. QR Login (student)
+
+POST /qr/login
+Body: { qr_token, device_fingerprint }
+Success 200: { jwt, user, redirect: "/student" }
+Error:
+
+- 401 { code: "invalid_token" }
+- 403 { code: "card_revoked" }
+- 403 { code: "card_expired" }
+- 403 { code: "device_mismatch" }
+- 429 { code: "rate_limited" }
+
+#### 3. Reset device binding (admin)
+
+POST /admin/cards/{id}/reset-device
+Response: { success: true }
+
+### Security Rules (per keputusan PO)
+
+- Token opaque 128-bit, bukan NIS/password
+- HTTPS only
+- Device binding hybrid: bind di login pertama, admin bisa reset
+- Rate limit 5 attempt/menit/card
+- Session JWT TTL: 1 jam
+- Audit log: semua login tercatat (IP, device, timestamp, result)
+- Revoke → token instant invalid
+
+### Deferred
+
+- Halaman `/qr/:token` di frontend (sub-fase 2b-3a-2)
+
+## CR-CARD-QR — Kartu Ujian & QR Login Flow
+
+**Status:** Draft (deferred — frontend mock dulu)
+**Konteks:** Kartu Ujian cetak berisi QR opaque token. Siswa scan → login tanpa ketik user/pass.
+
+### Endpoints dibutuhkan
+
+#### 1. List / CRUD Kartu
+
+- `GET  /admin/cards?search=&card_type=&status=`
+- `POST /admin/cards` — { student, card_type, expiry_date?, reason? }
+- `POST /admin/cards/{id}/revoke`
+- `POST /admin/cards/{id}/reset-device`
+- `POST /admin/cards/{id}/mark-printed`
+
+#### 2. QR Login (Student)
+
+- `POST /qr/login`
+  - Body: `{ qr_token, device_fingerprint }`
+  - Success 200: `{ jwt, user, redirect: "/student" }`
+  - Error: `401 invalid_token` / `403 card_revoked` / `403 card_expired` / `403 device_mismatch` / `429 rate_limited`
+
+#### 3. Regenerate QR (Admin)
+
+- `POST /admin/cards/{id}/qr/regenerate`
+  - Response: `{ qr_token, signature_qr_token }`
+
+#### 4. Verify Signature QR
+
+- `GET /verify/card/{card_number}?h={hash}`
+  - Response: `{ valid: bool, card: {...}, school: {...} }`
+
+### Security Rules (locked — keputusan PO)
+
+- Token opaque 128-bit, bukan NIS/password
+- HTTPS only
+- Device binding **hybrid**: bind di login pertama, admin bisa reset kapan saja
+- Rate limit: 5 attempt/menit/card
+- Session JWT TTL: **1 jam**
+- Audit log: IP, device, timestamp, result
+- Revoke → token instant invalid
+- Kartu TEMPORARY: PIN 4 digit (2FA ringan) + expiry_date
+- Kartu PERMANENT: tidak expire (kecuali di-revoke)
+
+### Frontend Flow (2b-3a-2 — belum diimplementasi)
+
+1. Halaman `/qr/:token` — deteksi + auto login
+2. Kirim `POST /qr/login` dengan `device_fingerprint` (fingerprintjs atau UA+screen hash)
+3. Sukses → simpan JWT → redirect `/student`
+4. Gagal device mismatch → tampil pesan "Kartu sudah terikat ke device lain. Hubungi proktor."
+
+### Data Kartu (field dari backend)
+
+id, card_number, student_id, student_name, student_nis, student_nisn,
+student_photo_url, class_id, class_nama,
+card_type ('PERMANENT'|'TEMPORARY'),
+status ('ACTIVE'|'EXPIRED'|'REVOKED'),
+qr_token (32 hex), signature_qr_token (32 hex),
+username, password, pin (nullable),
+device_fingerprint (nullable), device_bound_at (nullable),
+expiry_date (nullable), reason (nullable),
+printed_at (nullable), printed_by (nullable),
+created_at
+
+### Deferred Backend Dependencies
+
+- CR-CARD-QR-LOGIN — endpoint `/qr/login`
+- CR-CARD-SIGNATURE — endpoint `/verify/card/...`
+- CR-CARD-CRUD — endpoint `/admin/cards/*`
+- VER-CARD — migrasi kartu dari mock → DB

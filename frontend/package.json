@@ -27,6 +27,7 @@
     "katex": "^0.17.0",
     "papaparse": "^5.5.4",
     "path-browserify": "^1.0.1",
+    "pdfmake": "^0.2.23",
     "pinia": "^3.0.1",
     "prismjs": "^1.30.0",
     "qr-scanner": "^1.4.2",

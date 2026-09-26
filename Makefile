@@ -441,9 +441,13 @@ clean-all: clean
 #=============================================================================
 # Daftar file (path relatif dari root sekolah-platform)
 FILES = \
-frontend/src/components/admin/QuestionCoding.vue \
-frontend/src/components/admin/QuestionHotspot.vue \
-
+frontend/src/mocks/data/cardsData.js \
+frontend/src/mocks/handlers/cardsHandlers.js \
+frontend/src/services/admin/ExamCardService.js \
+frontend/src/utils/pdf/cardTemplatePdf.js \
+frontend/src/composables/admin/useExamCardPrint.js \
+frontend/src/pages/admin/CetakDokumenUjian.vue \
+frontend/src/pages/admin/cetak/KartuUjianPrint.vue \
 
 
 

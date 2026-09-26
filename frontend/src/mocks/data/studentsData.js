@@ -12,6 +12,7 @@ export const mockStudents = [
     kelas_id: 'cls-001',
     kelas_nama: '10 IPA 1',
     status: 'AKTIF',
+    photo_url: null,
   },
   {
     id: 'std-002',
@@ -23,6 +24,7 @@ export const mockStudents = [
     kelas_id: 'cls-001',
     kelas_nama: '10 IPA 1',
     status: 'AKTIF',
+    photo_url: null,
   },
   {
     id: 'std-003',
@@ -34,6 +36,7 @@ export const mockStudents = [
     kelas_id: 'cls-002',
     kelas_nama: '10 IPA 2',
     status: 'AKTIF',
+    photo_url: null,
   },
   {
     id: 'std-004',
@@ -45,6 +48,7 @@ export const mockStudents = [
     kelas_id: 'cls-002',
     kelas_nama: '10 IPA 2',
     status: 'AKTIF',
+    photo_url: null,
   },
   {
     id: 'std-005',
@@ -56,6 +60,7 @@ export const mockStudents = [
     kelas_id: 'cls-003',
     kelas_nama: '11 IPA 1',
     status: 'AKTIF',
+    photo_url: null,
   },
   {
     id: 'std-006',
@@ -67,6 +72,7 @@ export const mockStudents = [
     kelas_id: 'cls-003',
     kelas_nama: '11 IPA 1',
     status: 'AKTIF',
+    photo_url: null,
   },
   {
     id: 'std-007',
@@ -78,6 +84,7 @@ export const mockStudents = [
     kelas_id: 'cls-004',
     kelas_nama: '11 IPS 1',
     status: 'AKTIF',
+    photo_url: null,
   },
   {
     id: 'std-008',
@@ -89,6 +96,7 @@ export const mockStudents = [
     kelas_id: 'cls-005',
     kelas_nama: '12 IPA 1',
     status: 'AKTIF',
+    photo_url: null,
   },
   {
     id: 'std-009',
@@ -100,6 +108,7 @@ export const mockStudents = [
     kelas_id: 'cls-005',
     kelas_nama: '12 IPA 1',
     status: 'AKTIF',
+    photo_url: null,
   },
   {
     id: 'std-010',
@@ -111,6 +120,7 @@ export const mockStudents = [
     kelas_id: 'cls-007',
     kelas_nama: 'X TKJ A',
     status: 'AKTIF',
+    photo_url: null,
   },
   {
     id: 'std-011',
@@ -122,6 +132,7 @@ export const mockStudents = [
     kelas_id: 'cls-007',
     kelas_nama: 'X TKJ A',
     status: 'AKTIF',
+    photo_url: null,
   },
   {
     id: 'std-012',
@@ -133,6 +144,7 @@ export const mockStudents = [
     kelas_id: 'cls-009',
     kelas_nama: 'XI RPL A',
     status: 'AKTIF',
+    photo_url: null,
   },
   {
     id: 'std-013',
@@ -144,6 +156,7 @@ export const mockStudents = [
     kelas_id: 'cls-009',
     kelas_nama: 'XI RPL A',
     status: 'NONAKTIF',
+    photo_url: null,
   },
   {
     id: 'std-014',
@@ -155,6 +168,7 @@ export const mockStudents = [
     kelas_id: 'cls-010',
     kelas_nama: 'XII TKJ A',
     status: 'AKTIF',
+    photo_url: null,
   },
   {
     id: 'std-015',
@@ -166,6 +180,7 @@ export const mockStudents = [
     kelas_id: 'cls-011',
     kelas_nama: 'X AKL 1',
     status: 'AKTIF',
+    photo_url: null,
   },
 ]
 
