@@ -33,41 +33,21 @@
             </q-banner>
 
             <q-form @submit.prevent="showConfirmDialog" class="q-gutter-md">
-              <q-select
-                v-model="archiveForm.school_id"
-                :options="schoolOptions"
-                label="Sekolah"
-                outlined
-                emit-value
-                map-options
-                :rules="[(val) => !!val || 'Sekolah wajib dipilih']"
-              >
+              <q-select v-model="archiveForm.school_id" :options="schoolOptions" label="Sekolah" outlined emit-value
+                map-options :rules="[(val) => !!val || 'Sekolah wajib dipilih']">
                 <template v-slot:prepend><q-icon name="school" /></template>
               </q-select>
 
-              <q-select
-                v-model="archiveForm.semester_id"
-                :options="semesterOptions"
-                label="Semester yang akan di-archive"
-                outlined
-                emit-value
-                map-options
-                :rules="[(val) => !!val || 'Semester wajib dipilih']"
-              >
+              <q-select v-model="archiveForm.semester_id" :options="semesterOptions"
+                label="Semester yang akan di-archive" outlined emit-value map-options
+                :rules="[(val) => !!val || 'Semester wajib dipilih']">
                 <template v-slot:prepend><q-icon name="calendar_today" /></template>
               </q-select>
 
-              <q-toggle
-                v-model="archiveForm.is_end_of_academic_year"
-                label="Archive Akhir Tahun Ajaran (reset total sistem)"
-                color="negative"
-              />
+              <q-toggle v-model="archiveForm.is_end_of_academic_year"
+                label="Archive Akhir Tahun Ajaran (reset total sistem)" color="negative" />
 
-              <q-banner
-                v-if="archiveForm.is_end_of_academic_year"
-                class="bg-negative text-white q-mb-md"
-                rounded
-              >
+              <q-banner v-if="archiveForm.is_end_of_academic_year" class="bg-negative text-white q-mb-md" rounded>
                 <template v-slot:avatar>
                   <q-icon name="dangerous" />
                 </template>
@@ -75,24 +55,13 @@
                 soal, dan sesi.
               </q-banner>
 
-              <q-input
-                v-model="confirmPassword"
-                label="Konfirmasi Password Admin"
-                type="password"
-                outlined
-                :rules="[(val) => !!val || 'Password wajib diisi']"
-              >
+              <q-input v-model="confirmPassword" label="Konfirmasi Password Admin" type="password" outlined
+                :rules="[(val) => !!val || 'Password wajib diisi']">
                 <template v-slot:prepend><q-icon name="lock" /></template>
               </q-input>
 
-              <q-btn
-                type="submit"
-                color="negative"
-                icon="archive"
-                label="Mulai Archive"
-                class="full-width"
-                :loading="adminStore.isArchiving"
-              />
+              <q-btn type="submit" color="negative" icon="archive" label="Mulai Archive" class="full-width"
+                :loading="adminStore.isArchiving" />
             </q-form>
           </q-card-section>
         </q-card>
@@ -104,15 +73,8 @@
           <q-card-section>
             <div class="text-h6 q-mb-md">Riwayat Archive</div>
 
-            <q-table
-              :rows="adminStore.archiveHistory"
-              :columns="archiveColumns"
-              row-key="id"
-              flat
-              bordered
-              dense
-              no-data-label="Belum ada riwayat archive"
-            >
+            <q-table :rows="adminStore.archiveHistory" :columns="archiveColumns" row-key="id" flat bordered dense
+              no-data-label="Belum ada riwayat archive">
               <template v-slot:body-cell-timestamp="props">
                 <q-td :props="props">
                   {{ formatDate(props.row.timestamp) }}
@@ -121,10 +83,8 @@
 
               <template v-slot:body-cell-is_end_of_academic_year="props">
                 <q-td :props="props">
-                  <q-badge
-                    :color="props.row.is_end_of_academic_year ? 'negative' : 'primary'"
-                    :label="props.row.is_end_of_academic_year ? 'Akhir Tahun' : 'Semester'"
-                  />
+                  <q-badge :color="props.row.is_end_of_academic_year ? 'negative' : 'primary'"
+                    :label="props.row.is_end_of_academic_year ? 'Akhir Tahun' : 'Semester'" />
                 </q-td>
               </template>
 
@@ -179,12 +139,8 @@
               <q-item-section>
                 <q-item-label>Mode</q-item-label>
                 <q-item-label caption>
-                  <q-badge
-                    :color="archiveForm.is_end_of_academic_year ? 'negative' : 'primary'"
-                    :label="
-                      archiveForm.is_end_of_academic_year ? 'Akhir Tahun Ajaran' : 'Semester Biasa'
-                    "
-                  />
+                  <q-badge :color="archiveForm.is_end_of_academic_year ? 'negative' : 'primary'" :label="archiveForm.is_end_of_academic_year ? 'Akhir Tahun Ajaran' : 'Semester Biasa'
+                    " />
                 </q-item-label>
               </q-item-section>
             </q-item>
@@ -197,12 +153,8 @@
 
         <q-card-actions align="right">
           <q-btn flat label="Batal" color="grey" v-close-popup />
-          <q-btn
-            label="YA, LAKUKAN ARCHIVE"
-            color="negative"
-            :loading="adminStore.isArchiving"
-            @click="performArchive"
-          />
+          <q-btn label="YA, LAKUKAN ARCHIVE" color="negative" :loading="adminStore.isArchiving"
+            @click="performArchive" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -251,10 +203,15 @@ const archiveColumns = [
 ]
 
 const formatDate = (iso) => {
-  return new Date(iso).toLocaleString('id-ID', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  })
+  if (!iso) return '-'
+  try {
+    return new Date(iso).toLocaleString('id-ID', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    })
+  } catch {
+    return iso
+  }
 }
 
 const getSchoolName = () => {
@@ -267,26 +224,33 @@ const getSemesterLabel = () => {
   return found ? found.label : archiveForm.semester_id
 }
 
+/**
+ * Buka dialog konfirmasi.
+ *
+ * PENTING (Batch B1):
+ * Password TIDAK divalidasi di frontend — hanya cek "terisi".
+ * Verifikasi password REAL dilakukan backend di POST /admin/archive.
+ * Ini mencegah bypass via curl / devtools.
+ */
 const showConfirmDialog = () => {
-  // Validasi password (mock: admin123)
-  if (confirmPassword.value !== 'admin123') {
+  if (!confirmPassword.value || confirmPassword.value.length < 4) {
     $q.notify({
       type: 'negative',
-      message: 'Password admin salah',
+      message: 'Password admin wajib diisi (min. 4 karakter).',
     })
     return
   }
-
   showFinalConfirm.value = true
 }
 
 const performArchive = async () => {
   try {
-    const result = await adminStore.performArchive(
-      archiveForm.school_id,
-      archiveForm.semester_id,
-      archiveForm.is_end_of_academic_year,
-    )
+    const result = await adminStore.performArchive({
+      school_id: archiveForm.school_id,
+      semester_id: archiveForm.semester_id,
+      is_end_of_academic_year: archiveForm.is_end_of_academic_year,
+      password: confirmPassword.value,        // ← dikirim ke backend
+    })
 
     showFinalConfirm.value = false
 
@@ -307,16 +271,24 @@ const performArchive = async () => {
       persistent: true,
       ok: 'Selesai',
     }).onOk(() => {
-      // Reset form
       archiveForm.school_id = ''
       archiveForm.semester_id = ''
       archiveForm.is_end_of_academic_year = false
       confirmPassword.value = ''
     })
   } catch (error) {
+    const status = error?.response?.status
+    const msg =
+      status === 401
+        ? 'Password admin salah.'
+        : status === 403
+          ? 'Anda tidak memiliki izin melakukan archive.'
+          : error?.response?.data?.message || 'Gagal melakukan archive.'
+
     $q.notify({
       type: 'negative',
-      message: error.response?.data?.message || 'Gagal melakukan archive',
+      icon: 'error',
+      message: msg,
     })
   }
 }

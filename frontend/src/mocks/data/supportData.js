@@ -1,0 +1,55 @@
+// src/mocks/data/supportData.js
+// Mock log komunikasi Service After-Sales — VER-012 pending.
+
+export const mockSupportLogs = [
+  {
+    id: 'log-001',
+    school_name: 'SMK Pasundan Jatinangor',
+    contact_phone: '081234567890',
+    direction: 'INBOUND',
+    message: 'Bagaimana cara reset password admin sekolah?',
+    status: 'RESOLVED',
+    timestamp: '2026-09-20 14:30',
+    admin_notes: 'Dibantu via remote, sudah resolved.',
+  },
+  {
+    id: 'log-002',
+    school_name: 'SMKN Kawali',
+    contact_phone: '082345678901',
+    direction: 'INBOUND',
+    message: 'Invoice bulan ini belum kami terima.',
+    status: 'REPLIED',
+    timestamp: '2026-09-21 09:15',
+    admin_notes: 'Kirim ulang invoice via email.',
+  },
+  {
+    id: 'log-003',
+    school_name: 'MTs. Maarif Jatinangor',
+    contact_phone: '083456789012',
+    direction: 'OUTBOUND',
+    message: 'Follow-up: pengingat pembayaran sewa Q4.',
+    status: 'PENDING',
+    timestamp: '2026-09-21 08:00',
+    admin_notes: 'Tunggu konfirmasi balik.',
+  },
+  {
+    id: 'log-004',
+    school_name: 'SMK Pasundan Jatinangor',
+    contact_phone: '081234567890',
+    direction: 'OUTBOUND',
+    message: 'Konfirmasi jadwal maintenance server minggu depan.',
+    status: 'RESOLVED',
+    timestamp: '2026-09-19 16:45',
+    admin_notes: 'Disetujui, jadwal 25 Sep 22:00-23:00.',
+  },
+  {
+    id: 'log-005',
+    school_name: 'SMKN Kawali',
+    contact_phone: '082345678901',
+    direction: 'INBOUND',
+    message: 'Apakah bisa menambah jumlah peserta ujian di tengah semester?',
+    status: 'PENDING',
+    timestamp: '2026-09-21 10:00',
+    admin_notes: '',
+  },
+]

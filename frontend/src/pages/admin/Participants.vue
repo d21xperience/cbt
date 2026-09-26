@@ -1,25 +1,57 @@
-<!-- src/pages/admin/Participants.vue -->
 <template>
   <q-page class="q-pa-md">
+    <!-- Header -->
     <div class="row items-center q-mb-md">
       <div class="text-h4 col">
         <q-icon name="group" color="primary" size="md" class="q-mr-sm" />
         Data Peserta
       </div>
-      <q-btn color="primary" icon="upload_file" label="Import Peserta" @click="showImportDialog = true" />
+      <q-btn color="primary" icon="upload_file" label="Import Peserta" @click="openImportDialog" />
     </div>
+
+    <!-- Error banner -->
+    <q-banner v-if="errorState === 'endpoint_not_ready'" dense rounded class="bg-blue-grey-2 text-blue-grey-9 q-mb-md">
+      <template v-slot:avatar>
+        <q-icon name="construction" />
+      </template>
+      Endpoint data peserta belum tersedia di backend (Phase 6). Menampilkan data mock.
+    </q-banner>
+    <q-banner v-else-if="errorState === 'network_error'" dense rounded class="bg-orange-1 text-orange-9 q-mb-md">
+      <template v-slot:avatar>
+        <q-icon name="wifi_off" color="orange" />
+      </template>
+      Koneksi terputus. Data terakhir tetap ditampilkan.
+    </q-banner>
+    <q-banner v-else-if="errorState === 'server_error'" dense rounded class="bg-red-1 text-red-9 q-mb-md">
+      <template v-slot:avatar>
+        <q-icon name="error" color="red" />
+      </template>
+      Server error. Klik refresh untuk coba lagi.
+    </q-banner>
 
     <!-- Filter -->
     <q-card class="q-mb-md">
       <q-card-section>
-        <div class="row q-gutter-md">
-          <q-select v-model="filter.exam_id" :options="examOptions" label="Filter Ujian" outlined dense emit-value
-            map-options clearable class="col" />
-          <q-select v-model="filter.source" :options="sourceOptions" label="Filter Sumber" outlined dense emit-value
-            map-options clearable class="col" />
-          <q-input v-model="filter.search" label="Cari Nama/NISN" outlined dense clearable class="col">
-            <template v-slot:prepend><q-icon name="search" /></template>
-          </q-input>
+        <div class="row q-col-gutter-md">
+          <div class="col-12 col-md-4">
+            <q-select v-model="filterExamId" :options="examOptions" label="Filter Ujian" outlined dense emit-value
+              map-options clearable />
+          </div>
+          <div class="col-12 col-md-3">
+            <q-select v-model="filterSource" :options="sourceOptions" label="Filter Sumber" outlined dense emit-value
+              map-options clearable />
+          </div>
+          <div class="col-12 col-md-5">
+            <q-input v-model="filterSearch" label="Cari Nama / NISN" outlined dense clearable>
+              <template v-slot:prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+          </div>
+        </div>
+        <div class="text-caption text-grey-7 q-mt-sm">
+          Menampilkan <b>{{ filteredParticipants.length }}</b> dari
+          {{ participants.length }} peserta
         </div>
       </q-card-section>
     </q-card>
@@ -28,6 +60,23 @@
     <q-card>
       <q-table :rows="filteredParticipants" :columns="columns" row-key="id" flat bordered :loading="loading"
         no-data-label="Belum ada data peserta">
+        <template v-slot:body-cell-nisn="props">
+          <q-td :props="props">
+            <div class="text-weight-medium">{{ props.row.nisn || '-' }}</div>
+            <div class="text-caption text-grey-6">
+              {{ props.row.participant_id || '-' }}
+            </div>
+          </q-td>
+        </template>
+
+        <template v-slot:body-cell-class="props">
+          <q-td :props="props">
+            <q-chip dense outline color="blue" icon="school" size="sm">
+              {{ props.row.class || props.row.rombel || '-' }}
+            </q-chip>
+          </q-td>
+        </template>
+
         <template v-slot:body-cell-source="props">
           <q-td :props="props">
             <q-badge :color="props.row.source === 'SIAKAD' ? 'primary' : 'orange'" :label="props.row.source" />
@@ -35,85 +84,70 @@
         </template>
 
         <template v-slot:body-cell-actions="props">
-          <q-td :props="props">
+          <q-td :props="props" class="text-center">
             <q-btn v-if="props.row.source === 'EXTERNAL'" flat round dense icon="delete" color="negative"
               @click="confirmDelete(props.row)">
               <q-tooltip>Hapus peserta</q-tooltip>
             </q-btn>
-            <span v-else class="text-caption text-grey">
-              <q-icon name="lock" size="16px" /> Dari SIAKAD
+            <span v-else class="text-caption text-grey-6">
+              <q-icon name="lock" size="16px" /> SIAKAD
             </span>
           </q-td>
         </template>
       </q-table>
     </q-card>
 
-    <!-- Dialog Import -->
+    <!-- Import Dialog -->
     <q-dialog v-model="showImportDialog" persistent maximized transition-show="slide-up" transition-hide="slide-down">
       <q-card>
         <q-bar class="bg-primary text-white">
+          <div class="text-subtitle1">Import Peserta Eksternal</div>
           <q-space />
-          <q-btn dense flat icon="minimize" @click="showImportDialog = false">
-            <q-tooltip>Tutup</q-tooltip>
-          </q-btn>
+          <q-btn dense flat icon="close" @click="closeImportDialog" />
         </q-bar>
 
         <q-card-section>
-          <div class="text-h5 q-mb-md">Import Peserta Eksternal</div>
-
-          <q-stepper v-model="step" ref="stepper" color="primary" animated>
-            <!-- Step 1: Upload CSV -->
-            <q-step :name="1" title="Upload CSV" icon="upload_file">
-              <!-- <q-banner class="bg-blue-1 text-blue-9 q-mb-md" rounded>
+          <q-stepper v-model="step" color="primary" animated flat>
+            <!-- Step 1 — Upload -->
+            <q-step :name="1" title="Upload CSV" icon="upload_file" :done="step > 1">
+              <q-banner dense rounded class="bg-blue-1 text-blue-9 q-mb-md">
                 <template v-slot:avatar>
                   <q-icon name="info" color="primary" />
                 </template>
-                <b>Format CSV:</b> participant_id, name, class<br>
-                Contoh:<br>
-                <code>EXT-001,Ahmad Fauzi,X IPA 2</code><br>
-                <code>EXT-002,Siti Nurhaliza,X IPA 2</code>
-              </q-banner> -->
+                Format CSV: <code>participant_id,nisn,name,class</code>
+              </q-banner>
 
-              <q-form @submit.prevent="nextStep" class="q-gutter-md">
-                <!-- <q-select v-model="importForm.exam_id" :options="examOptions" label="Ujian Tujuan" outlined emit-value
-                  map-options :rules="[val => !!val || 'Ujian wajib dipilih']" />
-
-                <q-select v-model="importForm.semester_id" :options="semesterOptions" label="Semester" outlined
-                  emit-value map-options :rules="[val => !!val || 'Semester wajib dipilih']" />
-
-                <q-input v-model="importForm.school_name" label="Nama Sekolah Asal" outlined
-                  :rules="[val => !!val || 'Nama sekolah wajib diisi']" /> -->
-
-                <q-file v-model="importForm.csv_file" label="File CSV" accept=".csv" outlined
+              <q-form @submit.prevent="onUploadStep" class="q-gutter-md">
+                <q-file v-model="importFile" label="File CSV" accept=".csv" outlined
                   :rules="[(val) => !!val || 'File CSV wajib dipilih']">
-                  <template v-slot:prepend><q-icon name="attach_file" /></template>
+                  <template v-slot:prepend>
+                    <q-icon name="attach_file" />
+                  </template>
                 </q-file>
 
                 <div class="row q-gutter-sm">
-                  <q-btn type="submit" color="primary" label="Lanjut" />
-                  <q-btn flat color="grey" label="Batal" v-close-popup />
+                  <q-btn type="submit" color="primary" label="Lanjut ke Preview" :loading="isImporting" />
+                  <q-btn flat color="grey" label="Batal" @click="closeImportDialog" />
                 </div>
               </q-form>
             </q-step>
 
-            <!-- Step 2: Preview -->
+            <!-- Step 2 — Preview -->
             <q-step :name="2" title="Preview & Validasi" icon="visibility">
-              <div v-if="adminStore.importErrors.length > 0" class="q-mb-md">
-                <q-banner class="bg-negative text-white" rounded>
-                  <template v-slot:avatar>
-                    <q-icon name="error" />
-                  </template>
-                  <b>{{ adminStore.importErrors.length }} error ditemukan:</b>
-                  <ul class="q-mb-none">
-                    <li v-for="(err, idx) in adminStore.importErrors.slice(0, 5)" :key="idx">
-                      Baris {{ err.row }}: {{ err.message }}
-                    </li>
-                  </ul>
-                </q-banner>
-              </div>
+              <q-banner v-if="importErrors.length > 0" dense rounded class="bg-negative text-white q-mb-md">
+                <template v-slot:avatar>
+                  <q-icon name="error" />
+                </template>
+                <b>{{ importErrors.length }} error ditemukan:</b>
+                <ul class="q-mb-none">
+                  <li v-for="(err, idx) in importErrors.slice(0, 5)" :key="idx">
+                    Baris {{ err.row }}: {{ err.message }}
+                  </li>
+                </ul>
+              </q-banner>
 
-              <q-table :rows="adminStore.importPreview" :columns="previewColumns" row-key="_rowNumber" flat bordered
-                dense :rows-per-page-options="[10, 25, 50]">
+              <q-table :rows="importPreview" :columns="previewColumns" row-key="_rowNumber" flat bordered dense
+                :rows-per-page-options="[10, 25, 50]">
                 <template v-slot:body-cell-_error="props">
                   <q-td :props="props">
                     <q-badge v-if="props.row._error" color="negative" :label="props.row._error" />
@@ -125,8 +159,8 @@
               <div class="row q-gutter-sm q-mt-md">
                 <q-btn color="primary" label="Kembali" flat @click="step = 1" />
                 <q-btn color="positive" :label="`Import ${validCount} Peserta`" :disable="validCount === 0"
-                  :loading="adminStore.isImporting" @click="confirmImport" />
-                <q-btn flat color="grey" label="Batal" v-close-popup />
+                  :loading="isImporting" @click="onConfirmImport" />
+                <q-btn flat color="grey" label="Batal" @click="closeImportDialog" />
               </div>
             </q-step>
           </q-stepper>
@@ -137,174 +171,102 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
-import { useAdminStore } from '@/stores/admin/dashboard'
-import { useQuestionsStore } from '@/stores/exam/questions'
+import { useParticipants } from '@/composables/admin/useParticipants'
 
 const $q = useQuasar()
-const adminStore = useAdminStore()
-const questionsStore = useQuestionsStore()
 
-const loading = ref(false)
+const {
+  participants,
+  loading,
+  errorState,
+  filterExamId,
+  filterSource,
+  filterSearch,
+  filteredParticipants,
+  examOptions,
+  sourceOptions,
+  importPreview,
+  importErrors,
+  validCount,
+  isImporting,
+  deleteParticipant,
+  parseImport,
+  confirmImport,
+  resetImport,
+} = useParticipants()
+
+// ── Local UI state
 const showImportDialog = ref(false)
 const step = ref(1)
-
-const filter = reactive({
-  exam_id: null,
-  source: null,
-  search: '',
-})
-
-const importForm = reactive({
-  exam_id: '',
-  semester_id: '',
-  school_name: '',
-  csv_file: null,
-})
-
-const sourceOptions = [
-  { label: 'SIAKAD (Dapodik)', value: 'SIAKAD' },
-  { label: 'Eksternal', value: 'EXTERNAL' },
-]
-
-// eslint-disable-next-line no-unused-vars
-const semesterOptions = [
-  { label: '2025/2026 - Ganjil', value: '20251' },
-  { label: '2025/2026 - Genap', value: '20252' },
-  { label: '2026/2027 - Ganjil', value: '20261' },
-]
+const importFile = ref(null)
 
 const columns = [
-  { name: 'participant_id', label: 'NISN', field: 'participant_id', align: 'left' },
-  { name: 'name', label: 'Nama', field: 'name', align: 'left' },
-  { name: 'class', label: 'Kelas', field: 'class', align: 'center' },
-  // { name: 'exam_name', label: 'Ujian', field: 'exam_name', align: 'left' },
-  // { name: 'school_name', label: 'Sekolah', field: 'school_name', align: 'left' },
-  { name: 'source', label: 'Status', field: 'source', align: 'center' },
-  // { name: 'source', label: 'Sumber', field: 'source', align: 'center' },
-  { name: 'actions', label: 'Aksi', field: 'actions', align: 'center' },
+  { name: 'nisn', label: 'NISN / ID', field: 'nisn', align: 'left', style: 'min-width: 140px' },
+  { name: 'name', label: 'Nama', field: 'name', align: 'left', style: 'min-width: 180px' },
+  { name: 'class', label: 'Kelas', field: 'class', align: 'left', style: 'width: 140px' },
+  { name: 'source', label: 'Sumber', field: 'source', align: 'center', style: 'width: 110px' },
+  { name: 'actions', label: 'Aksi', align: 'center', style: 'width: 100px' },
 ]
 
 const previewColumns = [
-  { name: '_rowNumber', label: 'Baris', field: '_rowNumber', align: 'center' },
+  { name: '_rowNumber', label: 'Baris', field: '_rowNumber', align: 'center', style: 'width: 70px' },
   { name: 'participant_id', label: 'ID Peserta', field: 'participant_id', align: 'left' },
+  { name: 'nisn', label: 'NISN', field: 'nisn', align: 'left' },
   { name: 'name', label: 'Nama', field: 'name', align: 'left' },
   { name: 'class', label: 'Kelas', field: 'class', align: 'left' },
   { name: '_error', label: 'Status', field: '_error', align: 'center' },
 ]
 
-const examOptions = computed(() =>
-  questionsStore.exams.map((e) => ({ label: e.name, value: e.id })),
-)
+// ── Handlers
+const openImportDialog = () => {
+  showImportDialog.value = true
+  step.value = 1
+  importFile.value = null
+  resetImport()
+}
 
-const filteredParticipants = computed(() => {
-  // ✅ Guard: pastikan participants selalu array
-  const list = Array.isArray(adminStore.participants) ? adminStore.participants : []
-  return list.filter((p) => {
-    if (filter.exam_id && p.exam_id !== filter.exam_id) return false
-    if (filter.source && p.source !== filter.source) return false
-    if (filter.search) {
-      const search = filter.search.toLowerCase()
-      const name = (p.name || '').toLowerCase()
-      const pid = (p.participant_id || '').toLowerCase()
-      if (!name.includes(search) && !pid.includes(search)) return false
-    }
-    return true
-  })
-})
+const closeImportDialog = () => {
+  showImportDialog.value = false
+  step.value = 1
+  importFile.value = null
+  resetImport()
+}
 
-const validCount = computed(() => {
-  const list = Array.isArray(adminStore.importPreview) ? adminStore.importPreview : []
-  return list.filter((p) => !p._error).length
-})
-
-const nextStep = async () => {
-  if (!importForm.csv_file) return
-
-  try {
-    await adminStore.parseParticipantsFile(
-      importForm.csv_file,
-      importForm.exam_id,
-      importForm.semester_id,
-      importForm.school_name,
-    )
+const onUploadStep = async () => {
+  const res = await parseImport(importFile.value, {})
+  if (res.success) {
     step.value = 2
-  } catch (error) {
     $q.notify({
-      type: 'negative',
-      message: error.response?.data?.message || 'Gagal memproses file',
+      type: res.invalid > 0 ? 'warning' : 'positive',
+      message: `Berhasil parse ${res.total} baris (${res.valid} valid, ${res.invalid} error)`,
+      timeout: 3000,
     })
   }
 }
 
-const confirmImport = () => {
-  $q.dialog({
-    title: 'Konfirmasi Import',
-    message: `Import <b>${validCount.value}</b> peserta ke ujian ini?<br><br>Tindakan ini tidak dapat dibatalkan.`,
-    html: true,
-    cancel: { label: 'Batal', flat: true },
-    ok: { label: 'Ya, Import', color: 'positive', flat: true },
-    persistent: true,
-  }).onOk(async () => {
-    try {
-      const result = await adminStore.confirmImportParticipants(
-        importForm.exam_id,
-        importForm.semester_id,
-        importForm.school_name,
-      )
-
-      $q.notify({
-        type: 'positive',
-        message: `${result.imported_count} peserta berhasil diimport!`,
-        timeout: 3000,
-      })
-
-      // Reset form
-      showImportDialog.value = false
-      step.value = 1
-      importForm.exam_id = ''
-      importForm.semester_id = ''
-      importForm.school_name = ''
-      importForm.csv_file = null
-
-      // Refresh data
-      await adminStore.fetchParticipants()
-    } catch (error) {
-      $q.notify({
-        type: 'negative',
-        message: error.response?.data?.message || 'Gagal mengimport peserta',
-      })
-    }
-  })
+const onConfirmImport = async () => {
+  const res = await confirmImport({})
+  if (res.success) {
+    closeImportDialog()
+  }
 }
 
-const confirmDelete = (participant) => {
+const confirmDelete = (row) => {
   $q.dialog({
     title: 'Konfirmasi Hapus',
-    message: `Hapus peserta <b>${participant.name}</b> (${participant.participant_id})?<br><br>Peserta ini tidak akan bisa mengikuti ujian.`,
+    message: `Hapus peserta <b>${row.name}</b> (${row.nisn || row.participant_id})?`,
     html: true,
     cancel: { label: 'Batal', flat: true },
-    ok: { label: 'Ya, Hapus', color: 'negative', flat: true },
+    ok: { label: 'Hapus', color: 'negative', flat: true },
     persistent: true,
   }).onOk(async () => {
-    try {
-      await adminStore.deleteParticipant(participant.id)
-      $q.notify({ type: 'positive', message: 'Peserta berhasil dihapus' })
-    } catch {
-      $q.notify({ type: 'negative', message: 'Gagal menghapus peserta' })
-    }
+    await deleteParticipant(row)
   })
 }
 
-onMounted(async () => {
-  loading.value = true
-  try {
-    await adminStore.fetchParticipants()
-  } catch (err) {
-    console.warn('[Participants] load error:', err)
-  } finally {
-    loading.value = false
-  }
+onMounted(() => {
+  // Composable sudah handle onMounted — biarkan empty
 })
 </script>

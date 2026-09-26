@@ -1,56 +1,119 @@
-// src/mocks/participantsData.js
+// src/mocks/data/participantsData.js
+//
+// Mock data untuk Data Peserta — Phase 6 pending.
+// BACKWARD-COMPAT: mempertahankan semua export lama + tambah export baru.
 
+// ══════════════════════════════════════════════════════════════════
+// PARTICIPANTS — shape merged (lama + baru)
+// Field lama: id, participant_id, name, class, exam_id, exam_name,
+//             semester_id, school_name, source, created_at
+// Field baru: nisn, rombel, is_active
+// ══════════════════════════════════════════════════════════════════
 export const mockParticipants = [
   {
-    id: 'pd-001',
-    participant_id: '0012345678',
-    name: 'Budi Santoso',
-    class: 'X IPA 1',
-    exam_id: 'exam-mtk-1',
-    exam_name: 'Matematika Kelas X',
-    semester_id: '20251',
-    school_name: 'SMA Negeri 1 Jakarta',
-    source: 'SIAKAD',
-    created_at: '2026-07-01T08:00:00Z',
-  },
-  {
-    id: 'pd-002',
-    participant_id: '0012345679',
-    name: 'Siti Aminah',
-    class: 'X IPA 1',
-    exam_id: 'exam-mtk-1',
-    exam_name: 'Matematika Kelas X',
-    semester_id: '20251',
-    school_name: 'SMA Negeri 1 Jakarta',
-    source: 'SIAKAD',
-    created_at: '2026-07-01T08:00:00Z',
-  },
-  {
-    id: 'pd-003',
-    participant_id: 'EXT-001',
+    id: 'p-001',
+    participant_id: 'P001',
+    nisn: '12345001',
     name: 'Ahmad Fauzi',
-    class: 'X IPA 2',
-    exam_id: 'exam-mtk-1',
-    exam_name: 'Matematika Kelas X',
+    class: '10 IPA 1',
+    rombel: '10 IPA 1',
+    exam_id: 'exam-001',
+    exam_name: 'Ujian Matematika Kelas X',
     semester_id: '20251',
-    school_name: 'SMA Swasta Cendekia',
-    source: 'EXTERNAL',
-    created_at: '2026-07-02T10:30:00Z',
+    school_name: 'SMK Pasundan Jatinangor',
+    source: 'SIAKAD',
+    is_active: true,
+    created_at: '2026-09-01T00:00:00Z',
   },
   {
-    id: 'pd-004',
-    participant_id: '0012345680',
-    name: 'Dewi Lestari',
-    class: 'XI IPA 1',
-    exam_id: 'exam-indo-1',
-    exam_name: 'Bahasa Indonesia Kelas XI',
+    id: 'p-002',
+    participant_id: 'P002',
+    nisn: '12345002',
+    name: 'Siti Nurhaliza',
+    class: '10 IPA 1',
+    rombel: '10 IPA 1',
+    exam_id: 'exam-001',
+    exam_name: 'Ujian Matematika Kelas X',
     semester_id: '20251',
-    school_name: 'SMA Negeri 1 Jakarta',
+    school_name: 'SMK Pasundan Jatinangor',
     source: 'SIAKAD',
-    created_at: '2026-07-01T08:00:00Z',
+    is_active: true,
+    created_at: '2026-09-01T00:00:00Z',
+  },
+  {
+    id: 'p-003',
+    participant_id: 'P003',
+    nisn: '12345003',
+    name: 'Budi Santoso',
+    class: '10 IPA 2',
+    rombel: '10 IPA 2',
+    exam_id: 'exam-001',
+    exam_name: 'Ujian Matematika Kelas X',
+    semester_id: '20251',
+    school_name: 'SMK Pasundan Jatinangor',
+    source: 'SIAKAD',
+    is_active: true,
+    created_at: '2026-09-01T00:00:00Z',
+  },
+  {
+    id: 'p-004',
+    participant_id: 'EXT-001',
+    nisn: '99000001',
+    name: 'Dewi Lestari',
+    class: '11 IPS 1',
+    rombel: '11 IPS 1',
+    exam_id: 'exam-002',
+    exam_name: 'Ujian Bahasa Indonesia Kelas XI',
+    semester_id: '20251',
+    school_name: 'SMK Pasundan Jatinangor',
+    source: 'EXTERNAL',
+    is_active: true,
+    created_at: '2026-09-15T00:00:00Z',
+  },
+  {
+    id: 'p-005',
+    participant_id: 'EXT-002',
+    nisn: '99000002',
+    name: 'Eka Pratama',
+    class: '11 IPS 1',
+    rombel: '11 IPS 1',
+    exam_id: 'exam-002',
+    exam_name: 'Ujian Bahasa Indonesia Kelas XI',
+    semester_id: '20251',
+    school_name: 'SMK Pasundan Jatinangor',
+    source: 'EXTERNAL',
+    is_active: true,
+    created_at: '2026-09-15T00:00:00Z',
+  },
+  {
+    id: 'p-006',
+    participant_id: 'P006',
+    nisn: '12345006',
+    name: 'Fajar Nugroho',
+    class: '12 IPA 1',
+    rombel: '12 IPA 1',
+    exam_id: 'exam-003',
+    exam_name: 'Ujian Susulan Fisika',
+    semester_id: '20251',
+    school_name: 'SMK Pasundan Jatinangor',
+    source: 'SIAKAD',
+    is_active: true,
+    created_at: '2026-09-01T00:00:00Z',
   },
 ]
 
+// ══════════════════════════════════════════════════════════════════
+// EXAMS — dropdown filter (BARU, dipakai Batch D)
+// ══════════════════════════════════════════════════════════════════
+export const mockExams = [
+  { id: 'exam-001', name: 'Ujian Matematika Kelas X', subject: 'Matematika' },
+  { id: 'exam-002', name: 'Ujian Bahasa Indonesia Kelas XI', subject: 'Bahasa Indonesia' },
+  { id: 'exam-003', name: 'Ujian Susulan Fisika', subject: 'Fisika' },
+]
+
+// ══════════════════════════════════════════════════════════════════
+// ARCHIVE — preserved untuk Archive.vue (Session 23)
+// ══════════════════════════════════════════════════════════════════
 export const mockArchiveHistory = [
   {
     id: 1,
@@ -98,7 +161,10 @@ export const mockArchiveResponse = (isEndOfYear) => ({
   archived_sessions: Math.floor(Math.random() * 10) + 5,
 })
 
-// Data dummy untuk simulasi
+// ══════════════════════════════════════════════════════════════════
+// USER DATA — preserved (dipakai stateStore.js → getUsers)
+// Shape: { siswa: [], guru: [], admin: [] }
+// ══════════════════════════════════════════════════════════════════
 export const mockUserData = {
   siswa: [
     {

@@ -73,6 +73,16 @@ const routes = [
         name: 'log-telemetri',
         component: () => import('@/pages/super/TelemetryLogs.vue'),
       },
+      {
+        path: 'service-after-sales',
+        name: 'super-service-after-sales',
+        component: () => import('@/pages/super/ServiceAfterSales.vue'),
+      },
+      {
+        path: 'infrastructure',
+        name: 'super-infrastructure',
+        component: () => import('@/pages/super/Infrastructure.vue'),
+      },
     ],
   },
   // ADMIN
@@ -82,6 +92,47 @@ const routes = [
     meta: { requiresAuth: true, requiresTenant: true, allowedRoles: ['ADMIN'] },
     children: [
       { path: '', name: 'admin-dashboard', component: () => import('@/pages/admin/Dashboard.vue') },
+      {
+        path: 'references/school',
+        name: 'admin-school-profile',
+        component: () => import('@/pages/admin/SchoolProfile.vue'),
+      },
+      {
+        path: 'references/subjects',
+        name: 'admin-subjects', // ← TAMBAH BARIS INI
+        component: () => import('@/pages/admin/Subjects.vue'),
+      },
+      {
+        path: 'references/classes',
+        name: 'admin-classes',
+        component: () => import('@/pages/admin/Classes.vue'),
+      },
+      {
+        path: 'references/teachers',
+        name: 'admin-teachers',
+        component: () => import('@/pages/admin/Teachers.vue'),
+      },
+      {
+        path: 'references/students',
+        name: 'admin-students',
+        component: () => import('@/pages/admin/Students.vue'),
+      },
+      {
+        path: 'references/exam-types',
+        name: 'admin-exam-types',
+        component: () => import('@/pages/admin/ExamTypes.vue'),
+      },
+      {
+        path: 'references/lessons',
+        name: 'admin-lessons',
+        component: () => import('@/pages/admin/Lessons.vue'),
+      },
+      {
+        path: 'makeup',
+        name: 'admin-makeup',
+        component: () => import('@/pages/admin/MakeupExams.vue'),
+        meta: { allowedRoles: ['ADMIN', 'SUPER_ADMIN'] },
+      },
       { path: 'sync', name: 'admin-sync', component: () => import('@/pages/admin/SyncSiakad.vue') },
       {
         path: 'sessions',
@@ -92,16 +143,24 @@ const routes = [
         path: 'questions',
         name: 'admin-questions',
         component: () => import('@/pages/admin/Questions.vue'),
+        meta: { allowedRoles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'] },
       },
+      {
+        path: 'questions/edit/:examId',
+        name: 'admin-question-editor',
+        component: () => import('@/pages/admin/QuestionEditor.vue'),
+        meta: { allowedRoles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'] },
+      },
+      // {
+      //   path: 'questions/preview/:examId',
+      //   name: 'admin-question-preview',
+      //   component: () => import('@/pages/admin/QuestionPreview.vue'),
+      //   meta: { allowedRoles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'] },
+      // },
       {
         path: 'participants',
         name: 'admin-participants',
         component: () => import('@/pages/admin/Participants.vue'),
-      },
-      {
-        path: 'archive',
-        name: 'admin-archive',
-        component: () => import('@/pages/admin/Archive.vue'),
       },
       {
         path: 'kartu-ujian',
@@ -159,21 +218,42 @@ const routes = [
   {
     path: '/proctor',
     component: () => import('@/layouts/AdminLayout.vue'),
-    meta: {
-      requiresAuth: true,
-      requiresTenant: true,
-      allowedRoles: ['PROCTOR', 'TEACHER', 'ADMIN'],
-    },
+    meta: { requiresAuth: true, allowedRoles: ['PROCTOR', 'TEACHER', 'ADMIN'] },
     children: [
       {
         path: '',
         name: 'proctor-dashboard',
         component: () => import('@/pages/proctor/ProctorDashboard.vue'),
+        // ── Batch C2: dashboard proctor HANYA untuk guru
+        meta: { allowedRoles: ['PROCTOR', 'TEACHER'] },
       },
       {
         path: 'monitoring/:sessionId',
         name: 'proctor-monitoring',
         component: () => import('@/pages/proctor/ProctorMonitoring.vue'),
+      },
+      {
+        path: 'unlock',
+        name: 'proctor-unlock',
+        component: () => import('@/pages/proctor/ProctorUnlock.vue'),
+      },
+      {
+        path: 'tunggakan',
+        name: 'proctor-tunggakan',
+        component: () => import('@/pages/proctor/ProctorTunggakan.vue'),
+        meta: {
+          allowedRoles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'],
+          onlyHomeroomForRoles: ['PROCTOR', 'TEACHER'],
+        },
+      },
+      {
+        path: 'peserta-kelas',
+        name: 'proctor-peserta-kelas',
+        component: () => import('@/pages/proctor/ProctorPesertaKelas.vue'),
+        meta: {
+          allowedRoles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'],
+          onlyHomeroomForRoles: ['PROCTOR', 'TEACHER'],
+        },
       },
     ],
   },

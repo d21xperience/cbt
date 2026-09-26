@@ -51,16 +51,8 @@
             map-options />
         </div>
 
-        <!-- <div class="col-12 col-sm-4">
-          <q-select v-model="wizard.jenjang" :options="['SMA', 'SMK', 'SMP']" label="Jenjang Sekolah" outlined dense />
-        </div>
-
-        <div v-if="wizard.jenjang === 'SMK'" class="col-12 col-sm-4 animate__animated animate__fadeIn">
-          <q-select v-model="wizard.major_id" :options="majors" option-value="id" option-label="name"
-            label="Pilih Jurusan Kompetensi" outlined dense emit-value map-options
-            :rules="[(val) => !!val || 'Jurusan SMK wajib ditentukan']" />
-        </div> -->
         <!-- Info jenjang dari data sekolah (VER-007) -->
+        <!-- VER-007/008: jenjang dari data sekolah -->
         <div v-if="schoolJenjang" class="col-12 col-sm-8">
           <q-banner dense rounded class="bg-blue-1 text-blue-9">
             <template v-slot:avatar>
@@ -68,7 +60,7 @@
             </template>
             <div>
               <b>Jenjang Sekolah:</b> {{ getJenjangLabel(schoolJenjang) }}
-              <span v-if="programDurationYears > 3" class="text-caption q-ml-sm">
+              <span v-if="['SMK', 'MAK'].includes(schoolJenjang)" class="text-caption q-ml-sm">
                 ({{ programDurationYears }} tahun)
               </span>
             </div>
@@ -142,40 +134,46 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { ScheduleService } from '@/services/admin/ScheduleService'
+import { useTenant } from '@/composables/super/useTenant'
+import {
+  getGradeOptionsForJenjang,
+  hasMajor,
+  getJenjangLabel,
+} from '@/domain/school/jenjang'
+
 const $q = useQuasar()
 
-// State Navigasi Alur
-const viewMode = ref('LIST') // Pilihan: 'LIST' atau 'WIZARD'
+// ── Tenant context
+const {
+  jenjang: schoolJenjang,
+  programDurationYears,
+  loadTenantConfig,
+} = useTenant()
+
+// ── State
+const viewMode = ref('LIST')
 const allSubjectsLoaded = ref(false)
 const loading = ref(false)
 const savingMassal = ref(false)
 
-// State Data Master
 const schedules = ref([])
 const majors = ref([])
 const subjectForms = ref([])
 
-// startWizard
-
-
-
-
-
-// Payload Wizard
+// Wizard: jenjang dihapus dari form state (diambil dari sekolah)
 const wizard = ref({
   grade: '',
-  jenjang: 'SMA',
   major_id: '',
 })
 
-const gradeOptions = [
-  { label: 'Kelas 10', value: '10' },
-  { label: 'Kelas 11', value: '11' },
-  { label: 'Kelas 12', value: '12' },
-]
+// ── Domain-driven computed
+const gradeOptions = computed(() =>
+  getGradeOptionsForJenjang(schoolJenjang.value, programDurationYears.value),
+)
+const showMajorField = computed(() => hasMajor(schoolJenjang.value))
 
 const columns = [
   { name: 'grade', label: 'Tingkat', field: 'grade_level', align: 'left' },
@@ -185,47 +183,73 @@ const columns = [
   { name: 'end_time', label: 'Jam Selesai (Auto)', align: 'left' },
 ]
 
+// ── Load schedules
 const loadSchedulesList = async () => {
   loading.value = true
   try {
-    schedules.value = await ScheduleService.getSchedulesList()
+    const response = await ScheduleService.getSchedulesList()
+    // Defensive nil-slice (Known Limitation): pastikan array
+    schedules.value = Array.isArray(response.data?.data)
+      ? response.data.data
+      : Array.isArray(response.data)
+        ? response.data
+        : []
   } catch (e) {
-    console.error(e)
+    console.error('[ExamManagement] load schedules failed:', e)
+    schedules.value = []
   } finally {
     loading.value = false
   }
 }
 
-// Pemicu Awal Pembuatan Wizard
+// ── Wizard
 const startWizard = async () => {
   viewMode.value = 'WIZARD'
   allSubjectsLoaded.value = false
-  // Load data master jurusan pendukung apabila sekolah bertipe SMK
-  try {
-    majors.value = await ScheduleService.getMajors()
-  } catch (e) {
-    console.error(e)
+
+  // Hanya load programs kalau SMK/MAK
+  if (showMajorField.value) {
+    try {
+      const res = await ScheduleService.getMajors()
+      // VER-008: response {status, data:[...], count} — extract defensively
+      majors.value = Array.isArray(res.data?.data)
+        ? res.data.data
+        : Array.isArray(res.data)
+          ? res.data
+          : []
+    } catch (e) {
+      console.error('[ExamManagement] load programs failed:', e)
+      majors.value = []
+    }
+  } else {
+    majors.value = []
   }
 }
 
-// 2. Mengambil Semua Mata Pelajaran Sekaligus untuk Form Massal
 const loadFormSubjects = async () => {
-  // $q.loading.show({ message: 'Menyiapkan lembar isian seluruh kompetensi mapel...' })
   try {
-    // loadFormSubjects
-    subjectForms.value = await ScheduleService.getSubjectsForForm()
+    const response = await ScheduleService.getSubjectsForForm()
+    subjectForms.value = Array.isArray(response.data?.data)
+      ? response.data.data
+      : Array.isArray(response.data)
+        ? response.data
+        : []
     allSubjectsLoaded.value = true
   } catch (err) {
     console.log(err)
     $q.notify({ type: 'negative', message: 'Gagal memuat form mata pelajaran.' })
-  } finally {
-    $q.loading.hide()
   }
 }
 
-// 3. Eksekusi Simpan Massal Seluruh Isian Jadwal Soal
 const submitMassalSchedules = async () => {
-  // Validasi proteksi: Pastikan form terisi setidaknya satu baris waktu
+  if (!schoolJenjang.value) {
+    $q.notify({
+      type: 'negative',
+      message: 'Jenjang sekolah belum tersedia. Tidak dapat menyimpan jadwal.',
+    })
+    return
+  }
+
   const checkedSchedules = subjectForms.value.filter((s) => s.date && s.start_time)
   if (checkedSchedules.length === 0) {
     $q.notify({
@@ -235,14 +259,26 @@ const submitMassalSchedules = async () => {
     return
   }
 
+  // Kalau SMK/MAK dan program wajib dipilih untuk submit
+  if (showMajorField.value && !wizard.value.major_id) {
+    $q.notify({
+      type: 'warning',
+      message: 'Pilih program keahlian terlebih dahulu.',
+    })
+    return
+  }
+
   savingMassal.value = true
   try {
     await ScheduleService.saveMassalSchedules({
       grade: wizard.value.grade,
-      major: wizard.value.major_id,
+      major: showMajorField.value ? wizard.value.major_id : null,
       schedules: checkedSchedules,
     })
-    $q.notify({ type: 'positive', message: 'Seluruh konfig jadwal massal sukses diarsipkan!' })
+    $q.notify({
+      type: 'positive',
+      message: 'Seluruh konfig jadwal massal sukses diarsipkan!',
+    })
     viewMode.value = 'LIST'
     loadSchedulesList()
   } catch {
@@ -252,7 +288,7 @@ const submitMassalSchedules = async () => {
   }
 }
 
-// Formula Perhitungan Waktu Selesai Otomatis [stem-calculative-problem-solving]
+// DOMAIN helper (akan dipindah ke domain/exam/ di Fase 3)
 const calculateEndTime = (startTimeStr, durationMinutes) => {
   if (!startTimeStr || !durationMinutes) return '--:--'
   const [hours, minutes] = startTimeStr.split(':').map(Number)
@@ -262,7 +298,8 @@ const calculateEndTime = (startTimeStr, durationMinutes) => {
   return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await loadTenantConfig()
   loadSchedulesList()
 })
 </script>

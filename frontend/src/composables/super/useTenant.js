@@ -1,5 +1,4 @@
 // src/composables/super/useTenant.js
-// Single-tenant graceful: skip tenant fetch jika slug invalid atau endpoint belum ada.
 import { ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { TenantService } from '@/services/super/TenantService'
@@ -20,8 +19,8 @@ export function useTenant() {
   const schoolTitle = ref('')
   const displayLogo = ref('')
   const isSuspended = ref(false)
-  const jenjang = ref(null) // ← BARU
-  const programDurationYears = ref(3) // ← BARU
+  const jenjang = ref(null)
+  const programDurationYears = ref(3)
 
   const applyDefault = () => {
     schoolTitle.value = DEFAULT_CONFIG.school_name
@@ -36,7 +35,6 @@ export function useTenant() {
     checkingTenant.value = true
     const tenantSlug = getTenantSlug()
 
-    // Guard #1: single-tenant deployment — skip fetch jika slug invalid
     if (!tenantSlug || tenantSlug === 'null' || tenantSlug === 'undefined') {
       console.info('[Tenant] Slug tidak valid — pakai konfigurasi default')
       applyDefault()
@@ -54,9 +52,10 @@ export function useTenant() {
       schoolTitle.value = response.data.school_name || DEFAULT_CONFIG.school_name
       displayLogo.value = response.data.logo_url || DEFAULT_CONFIG.logo_url
 
-      // ── VER-007 pending: jenjang & duration (fallback graceful)
+      // ── VER-007/008: jenjang + duration (verified APPLIED)
       jenjang.value = normalizeJenjang(response.data.jenjang) || null
-      programDurationYears.value = Number(response.data.program_duration_years) || 3
+      const dur = Number(response.data.program_duration_years)
+      programDurationYears.value = Number.isFinite(dur) && dur >= 1 && dur <= 6 ? dur : 3
 
       checkingTenant.value = false
     } catch (err) {
@@ -84,8 +83,8 @@ export function useTenant() {
     schoolTitle,
     displayLogo,
     isSuspended,
-    jenjang, // ← BARU
-    programDurationYears, // ← BARU
+    jenjang,
+    programDurationYears,
     loadTenantConfig,
   }
 }

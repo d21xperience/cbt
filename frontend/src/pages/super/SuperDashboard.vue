@@ -1,16 +1,50 @@
 <template>
   <q-page padding class="bg-grey-2">
-    <!-- Header Dashboard -->
-    <div class="q-mb-lg">
-      <h5 class="q-my-none text-weight-bold text-primary">Pusat Kendali Sistem Multi-Tenant</h5>
-      <div class="text-caption text-grey-7">
-        Monitoring beban komputasi VPS global dan lalu lintas Cloudflare Tunnel sekolah.
+    <!-- Header -->
+    <div class="q-mb-lg row justify-between items-center">
+      <div>
+        <h5 class="q-my-none text-weight-bold text-primary">Pusat Kendali Sistem Multi-Tenant</h5>
+        <div class="text-caption text-grey-7">
+          Monitoring beban komputasi VPS global dan lalu lintas Cloudflare Tunnel sekolah.
+        </div>
       </div>
+      <q-btn flat dense round icon="refresh" color="primary" :loading="isRefreshing" @click="manualRefresh">
+        <q-tooltip>Refresh manual</q-tooltip>
+      </q-btn>
     </div>
 
-    <!-- Alert Sistem jika RAM Kritis (>85%) -->
-    <q-banner v-if="stats.vps_cpu_estimate > 80 || ramPercentage > 85" inline-actions
-      class="text-white bg-red-9 q-mb-lg rounded-borders flat animate__animated animate__fadeIn">
+    <!-- Error state banner — muncul kalau errorState !== null -->
+    <q-banner v-if="errorState === 'endpoint_not_ready'" dense rounded class="bg-blue-grey-2 text-blue-grey-9 q-mb-md">
+      <template v-slot:avatar>
+        <q-icon name="construction" />
+      </template>
+      Dashboard stats belum tersedia dari backend (Phase 7+). Menampilkan data default.
+    </q-banner>
+
+    <q-banner v-else-if="errorState === 'network_error'" dense rounded class="bg-orange-1 text-orange-9 q-mb-md">
+      <template v-slot:avatar>
+        <q-icon name="wifi_off" color="orange" />
+      </template>
+      Koneksi terputus. Data terakhir tetap ditampilkan. Polling akan mencoba lagi.
+    </q-banner>
+
+    <q-banner v-else-if="errorState === 'server_error'" dense rounded class="bg-red-1 text-red-9 q-mb-md">
+      <template v-slot:avatar>
+        <q-icon name="error" color="red" />
+      </template>
+      Server error. Data terakhir tetap ditampilkan. Klik refresh untuk coba lagi.
+    </q-banner>
+
+    <q-banner v-else-if="errorState === 'contract_mismatch'" dense rounded class="bg-purple-1 text-purple-9 q-mb-md">
+      <template v-slot:avatar>
+        <q-icon name="report" color="purple" />
+      </template>
+      Response backend tidak sesuai kontrak. Hubungi AI#1.
+    </q-banner>
+
+    <!-- Banner kritikal RAM / CPU -->
+    <q-banner v-if="cpuCritical || ramPercentage > 85" inline-actions
+      class="text-white bg-red-9 q-mb-lg rounded-borders flat">
       <template v-slot:avatar>
         <q-icon name="report_problem" color="white" />
       </template>
@@ -20,53 +54,52 @@
 
     <!-- Baris 1: Kartu Metrik Utama -->
     <div class="row q-col-gutter-md q-mb-lg">
-      <!-- Total Tenant -->
       <div class="col-12 col-sm-6 col-md-3">
         <q-card flat bordered class="bg-indigo-7 text-white">
           <q-card-section class="row justify-between items-center no-wrap">
             <div>
               <div class="text-subtitle2 text-weight-light text-uppercase">Total Sekolah</div>
-              <div class="text-h4 text-weight-bolder">{{ stats.total_schools }}</div>
+              <div class="text-h4 text-weight-bolder">{{ num(stats.total_schools) }}</div>
             </div>
             <q-icon name="corporate_fare" size="lg" class="opacity-40" />
           </q-card-section>
         </q-card>
       </div>
 
-      <!-- Sesi Ujian Aktif -->
       <div class="col-12 col-sm-6 col-md-3">
         <q-card flat bordered class="bg-teal-7 text-white">
           <q-card-section class="row justify-between items-center no-wrap">
             <div>
               <div class="text-subtitle2 text-weight-light text-uppercase">Ujian Berlangsung</div>
-              <div class="text-h4 text-weight-bolder">{{ stats.active_exams }}</div>
+              <div class="text-h4 text-weight-bolder">{{ num(stats.active_exams) }}</div>
             </div>
             <q-icon name="assignment_turned_in" size="lg" class="opacity-40" />
           </q-card-section>
         </q-card>
       </div>
 
-      <!-- Total Siswa Online -->
       <div class="col-12 col-sm-6 col-md-3">
         <q-card flat bordered class="bg-blue-7 text-white">
           <q-card-section class="row justify-between items-center no-wrap">
             <div>
               <div class="text-subtitle2 text-weight-light text-uppercase">Siswa Terkoneksi</div>
-              <div class="text-h4 text-weight-bolder">{{ stats.total_participants_online }}</div>
+              <div class="text-h4 text-weight-bolder">
+                {{ num(stats.total_participants_online) }}
+              </div>
             </div>
             <q-icon name="bolt" size="lg" class="opacity-40" />
           </q-card-section>
         </q-card>
       </div>
 
-      <!-- Tunnel Aktif -->
       <div class="col-12 col-sm-6 col-md-3">
         <q-card flat bordered class="bg-deep-purple-7 text-white">
           <q-card-section class="row justify-between items-center no-wrap">
             <div>
               <div class="text-subtitle2 text-weight-light text-uppercase">CF Tunnel Sekolah</div>
               <div class="text-h4 text-weight-bolder">
-                {{ stats.active_tunnels }} <span class="text-caption text-weight-light">Link</span>
+                {{ num(stats.active_tunnels) }}
+                <span class="text-caption text-weight-light">Link</span>
               </div>
             </div>
             <q-icon name="lan" size="lg" class="opacity-40" />
@@ -75,9 +108,8 @@
       </div>
     </div>
 
-    <!-- Baris 2: Indikator Resource VPS & Audit Trail Log -->
+    <!-- Baris 2: Resource + Audit Trail -->
     <div class="row q-col-gutter-md">
-      <!-- Sisi Kiri: Detail Resource Monitoring -->
       <div class="col-12 col-md-6">
         <q-card flat bordered class="fit">
           <q-card-section class="bg-white text-grey-9 text-weight-bold row items-center border-bottom">
@@ -90,30 +122,33 @@
             <div>
               <div class="row justify-between text-caption text-weight-medium q-mb-xs">
                 <span>Utilisasi CPU Server</span>
-                <span :class="stats.vps_cpu_estimate > 80 ? 'text-red text-weight-bold' : 'text-grey-7'">{{
-                  stats.vps_cpu_estimate }}%</span>
+                <span :class="cpuCritical ? 'text-red text-weight-bold' : 'text-grey-7'">
+                  {{ num(stats.vps_cpu_estimate) }}%
+                </span>
               </div>
-              <q-linear-progress :value="stats.vps_cpu_estimate / 100" size="12px"
-                :color="stats.vps_cpu_estimate > 80 ? 'red' : 'primary'" stripe rounded />
+              <q-linear-progress :value="cpuPercent / 100" size="12px" :color="cpuCritical ? 'red' : 'primary'" stripe
+                rounded />
             </div>
 
             <!-- RAM Progress -->
             <div>
               <div class="row justify-between text-caption text-weight-medium q-mb-xs">
                 <span>Alokasi Memori (RAM)</span>
-                <span>{{ stats.vps_ram_used_mb }}MB / {{ stats.vps_ram_total_mb }}MB</span>
+                <span>
+                  {{ num(stats.vps_ram_used_mb) }}MB /
+                  {{ num(stats.vps_ram_total_mb) }}MB
+                </span>
               </div>
               <q-linear-progress :value="ramPercentage / 100" size="12px" :color="ramPercentage > 85 ? 'red' : 'orange'"
                 stripe rounded />
               <div class="text-right text-caption text-grey-6 q-mt-xs">
-                Tersisa: {{ stats.vps_ram_total_mb - stats.vps_ram_used_mb }} MB Beban Kosong
+                Tersisa: {{ num(ramFree) }} MB Beban Kosong
               </div>
             </div>
           </q-card-section>
         </q-card>
       </div>
 
-      <!-- Sisi Kanan: Real-Time Audit System Logs -->
       <div class="col-12 col-md-6">
         <q-card flat bordered class="fit">
           <q-card-section class="bg-white text-grey-9 text-weight-bold row items-center border-bottom">
@@ -122,9 +157,16 @@
           </q-card-section>
 
           <q-card-section class="q-pt-md">
-            <q-timeline color="primary">
+            <!-- Empty state -->
+            <div v-if="!systemLogs.length" class="text-center text-grey-6 q-pa-md">
+              <q-icon name="inbox" size="md" />
+              <div class="text-caption q-mt-xs">Belum ada aktivitas.</div>
+            </div>
+
+            <!-- Timeline -->
+            <q-timeline v-else color="primary">
               <q-timeline-entry v-for="log in systemLogs" :key="log.id" :title="log.event"
-                :subtitle="`${log.time} - ${log.school}`" :color="log.status" icon="done" side="right">
+                :subtitle="`${log.time} - ${log.school}`" :color="log.status || 'primary'" icon="done" side="right">
                 <div class="text-caption text-grey-6">
                   Operasi terpantau dari interseptor Cloudflare.
                 </div>
@@ -138,52 +180,20 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { SuperDashboardService } from '@/services/super/SuperDashboardService'
-const stats = ref({
-  total_schools: 0,
-  active_exams: 0,
-  total_participants_online: 0,
-  vps_cpu_estimate: 0,
-  vps_ram_used_mb: 0,
-  vps_ram_total_mb: 2048,
-  active_tunnels: 0,
-})
+import { useSuperDashboard } from '@/composables/super/useSuperDashboard'
 
-const systemLogs = ref([])
-let pollingTimer = null
-
-// Hitung persentase RAM secara reaktif
-const ramPercentage = computed(() => {
-  if (!stats.value.vps_ram_total_mb) return 0
-  return Math.round((stats.value.vps_ram_used_mb / stats.value.vps_ram_total_mb) * 100)
-})
-
-// Fungsi memanggil API gabungan data dashboard
-const loadDashboardData = async () => {
-  try {
-    const [statsRes, logsRes] = await Promise.all([
-      SuperDashboardService.getStats(),
-      SuperDashboardService.getLogs(),
-    ])
-    stats.value = statsRes.data
-    systemLogs.value = logsRes.data
-  } catch (error) {
-    // Phase 7+ NOT_READY — graceful: tampilkan 0 dan log warning sekali
-    console.warn('[SuperDashboard] endpoint belum tersedia (Phase 7+):', error.message)
-  }
-}
-
-onMounted(() => {
-  loadDashboardData()
-  // Lakukan polling otomatis hemat daya setiap 20 detik
-  pollingTimer = setInterval(loadDashboardData, 20000)
-})
-
-onBeforeUnmount(() => {
-  // Bersihkan polling ketika pindah menu agar hemat beban CPU client
-  if (pollingTimer) clearInterval(pollingTimer)
-})
+const {
+  stats,
+  systemLogs,
+  isRefreshing,
+  errorState,
+  cpuPercent,
+  cpuCritical,
+  ramPercentage,
+  ramFree,
+  manualRefresh,
+  num,
+} = useSuperDashboard()
 </script>
 
 <style scoped>

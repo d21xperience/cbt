@@ -29,3 +29,4 @@ yarn-error.log*
 backend/data/
 *.db-shm
 *.db-wal
+/tmp

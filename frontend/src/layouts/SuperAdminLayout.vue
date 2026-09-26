@@ -104,10 +104,22 @@ const menuList = [
     to: { name: 'log-telemetri' },
   },
   {
+    label: 'Monitoring Infrastruktur',
+    icon: 'dns',
+    to: { name: 'super-infrastructure' },
+  },
+  {
+    label: 'Layanan Purna Jual',
+    icon: 'support_agent',
+    to: { name: 'super-service-after-sales' },
+  },
+  {
     label: 'Antrian Persetujuan',
     icon: 'pending_actions',
     to: { name: 'super-schools-pending' },
   },
+
+
 ]
 
 const toggleLeftDrawer = () => {

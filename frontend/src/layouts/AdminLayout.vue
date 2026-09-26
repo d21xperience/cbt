@@ -27,52 +27,6 @@
 
       <q-scroll-area style="height: calc(100% - 80px)">
         <q-list padding>
-          <!-- Main Navigation -->
-          <q-item-label header class="text-uppercase text-grey-7 q-mt-sm">
-            <q-icon name="apps" class="q-mr-xs" size="xs" aria-hidden="true" />
-            Main Navigation
-          </q-item-label>
-
-          <q-item v-for="item in mainNavItems" :key="item.name" clickable v-ripple :to="item.to"
-            active-class="bg-blue-1 text-primary" exact :aria-current="isActiveRoute(item.to) ? 'page' : undefined">
-            <q-item-section avatar>
-              <q-icon :name="item.icon" :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'" aria-hidden="true" />
-            </q-item-section>
-            <q-item-section>
-              {{ item.label }}
-            </q-item-section>
-            <q-item-section side v-if="item.badge">
-              <q-badge :color="item.badgeColor || 'red'" rounded>
-                {{ item.badge }}
-              </q-badge>
-            </q-item-section>
-          </q-item>
-
-          <q-separator class="q-my-sm" />
-
-          <!-- Management Section -->
-          <q-item-label v-if="managementNavItems.length > 0" header class="text-uppercase text-grey-7">
-            <q-icon name="settings" class="q-mr-xs" size="xs" aria-hidden="true" />
-            Management
-          </q-item-label>
-
-          <q-item v-for="item in managementNavItems" :key="item.name" clickable v-ripple :to="item.to"
-            active-class="bg-blue-1 text-primary" exact :aria-current="isActiveRoute(item.to) ? 'page' : undefined">
-            <q-item-section avatar>
-              <q-icon :name="item.icon" :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'" aria-hidden="true" />
-            </q-item-section>
-            <q-item-section>
-              {{ item.label }}
-            </q-item-section>
-            <q-item-section side v-if="item.badge">
-              <q-badge :color="item.badgeColor || 'red'" rounded>
-                {{ item.badge }}
-              </q-badge>
-            </q-item-section>
-          </q-item>
-
-          <q-separator class="q-my-sm" />
-
           <!-- Quick Stats -->
           <div v-if="!isProctor" class="q-px-md q-py-sm" role="complementary" aria-label="Quick statistics">
             <q-item-label header class="text-uppercase text-grey-7">
@@ -102,9 +56,81 @@
               </div>
             </div>
           </div>
+          <!-- Main Navigation -->
+          <q-item-label header class="text-uppercase text-grey-7 q-mt-sm">
+            <q-icon name="apps" class="q-mr-xs" size="xs" aria-hidden="true" />
+            Main Navigation
+          </q-item-label>
 
-          <!-- Footer Actions -->
+          <q-item v-for="item in mainNavItems" :key="item.name" clickable v-ripple :to="item.to"
+            active-class="bg-blue-1 text-primary" exact :aria-current="isActiveRoute(item.to) ? 'page' : undefined">
+            <q-item-section avatar>
+              <q-icon :name="item.icon" :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'" aria-hidden="true" />
+            </q-item-section>
+            <q-item-section>
+              {{ item.label }}
+            </q-item-section>
+            <q-item-section side v-if="item.badge">
+              <q-badge :color="item.badgeColor || 'red'" rounded>
+                {{ item.badge }}
+              </q-badge>
+            </q-item-section>
+          </q-item>
+
+          <!-- <q-separator class="q-my-sm" /> -->
+
+          <!-- ═══ DATA REFERENSI ═══ -->
+          <template v-if="referensiNavItems.length > 0">
+            <q-separator class="q-my-sm" />
+            <q-item-label header class="text-uppercase text-grey-7">
+              <q-icon name="storage" class="q-mr-xs" size="xs" aria-hidden="true" />
+              Data Referensi
+            </q-item-label>
+
+            <q-item v-for="item in referensiNavItems" :key="item.name" clickable v-ripple :to="item.to"
+              active-class="bg-blue-1 text-primary" exact :aria-current="isActiveRoute(item.to) ? 'page' : undefined">
+              <q-item-section avatar>
+                <q-icon :name="item.icon" :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'" aria-hidden="true" />
+              </q-item-section>
+              <q-item-section>{{ item.label }}</q-item-section>
+            </q-item>
+          </template>
+
+          <!-- ═══ MANAJEMEN UJIAN ═══ -->
+          <template v-if="managementNavItems.length > 0">
+            <q-separator class="q-my-sm" />
+            <q-item-label header class="text-uppercase text-grey-7">
+              <q-icon name="tune" class="q-mr-xs" size="xs" aria-hidden="true" />
+              Manajemen Ujian
+            </q-item-label>
+
+            <q-item v-for="item in managementNavItems" :key="item.name" clickable v-ripple :to="item.to"
+              active-class="bg-blue-1 text-primary" exact :aria-current="isActiveRoute(item.to) ? 'page' : undefined">
+              <q-item-section avatar>
+                <q-icon :name="item.icon" :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'" aria-hidden="true" />
+              </q-item-section>
+              <q-item-section>{{ item.label }}</q-item-section>
+            </q-item>
+          </template>
+
+          <!-- ═══ MONITORING ═══ -->
+          <template v-if="monitoringNavItems.length > 0">
+            <q-separator class="q-my-sm" />
+            <q-item-label header class="text-uppercase text-grey-7">
+              <q-icon name="visibility" class="q-mr-xs" size="xs" aria-hidden="true" />
+              Monitoring
+            </q-item-label>
+
+            <q-item v-for="item in monitoringNavItems" :key="item.name" clickable v-ripple :to="item.to"
+              active-class="bg-blue-1 text-primary" exact :aria-current="isActiveRoute(item.to) ? 'page' : undefined">
+              <q-item-section avatar>
+                <q-icon :name="item.icon" :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'" aria-hidden="true" />
+              </q-item-section>
+              <q-item-section>{{ item.label }}</q-item-section>
+            </q-item>
+          </template>
         </q-list>
+
       </q-scroll-area>
     </q-drawer>
 
@@ -185,11 +211,15 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
+import { useAdminStore } from '@/stores/admin/dashboard'   // ← BARU
 import { useQuasar } from 'quasar'
 import SkipLink from '@/components/ui/SkipLink.vue'
 import { useKeyboardShortcuts } from '@/composables/ui/useKeyboardShortcuts'
 import AppHeader from '@/components/ui/AppHeader.vue'
 import { useLayout } from '@/composables/ui/useLayout'
+import { useProctorProfile } from '@/composables/proctor/useProctorProfile'
+
+
 // Use layout composable for common logic
 const { leftDrawerOpen, toggleDrawer, confirmLogout } = useLayout()
 const showLogoutDialog = ref(false)
@@ -220,86 +250,76 @@ useKeyboardShortcuts({
 // ============================================
 const userRole = computed(() => authStore.role || authStore.user?.role || 'ADMIN')
 const isProctor = computed(() => userRole.value === 'PROCTOR' || userRole.value === 'TEACHER')
+const { fetchProfile, isHomeroomTeacher } = useProctorProfile()
 const panelTitle = computed(() => (isProctor.value ? 'CBT Proctor Panel' : 'CBT Admin Panel'))
 
 // Semua item menu dengan metadata roles — item tanpa `roles` = semua bisa akses
+// ══════════════════════════════════════════════════════════
+// MENU ARRAYS (Reorganisasi — 4 section)
+// ══════════════════════════════════════════════════════════
+
 const ALL_MAIN_NAV = [
-  {
-    name: 'dashboard',
-    label: 'Dashboard',
-    icon: 'dashboard',
-    to: { name: 'admin-dashboard' },
-    roles: ['ADMIN', 'SUPER_ADMIN'],
-  },
-  {
-    name: 'proctor-dashboard',
-    label: 'Dashboard Proktor',
-    icon: 'shield',
-    to: { name: 'proctor-dashboard' },
-    roles: ['PROCTOR', 'TEACHER'],
-  },
+  { name: 'dashboard', label: 'Dashboard', icon: 'dashboard', to: { name: 'admin-dashboard' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'proctor-dashboard', label: 'Dashboard Proktor', icon: 'shield', to: { name: 'proctor-dashboard' }, roles: ['PROCTOR', 'TEACHER'] },
 ]
 
+// ── DATA REFERENSI (setup master data)
+const ALL_REFERENSI_NAV = [
+  { name: 'school-profile', label: 'Profil Sekolah', icon: 'school', to: { name: 'admin-school-profile' }, roles: ['ADMIN'] },
+  { name: 'subjects', label: 'Mata Pelajaran', icon: 'menu_book', to: { name: 'admin-subjects' }, roles: ['ADMIN'] },
+  { name: 'classes', label: 'Kelas / Rombel', icon: 'class', to: { name: 'admin-classes' }, roles: ['ADMIN'] },
+  { name: 'teachers', label: 'Guru & Proctor', icon: 'supervisor_account', to: { name: 'admin-teachers' }, roles: ['ADMIN'] },
+  { name: 'students', label: 'Siswa', icon: 'groups', to: { name: 'admin-students' }, roles: ['ADMIN'] },
+  { name: 'examTypes', label: 'Jenis Ujian', icon: 'assignment', to: { name: 'admin-exam-types' }, roles: ['ADMIN'] },
+  { name: 'lessons', label: 'Pembelajaran', icon: 'school', to: { name: 'admin-lessons' }, roles: ['ADMIN'] },
+]
+
+// ── MANAJEMEN UJIAN (persiapan pelaksanaan ujian)
 const ALL_MANAGEMENT_NAV = [
-  {
-    name: 'participants',
-    label: 'Data Peserta',
-    icon: 'group',
-    to: { name: 'admin-participants' },
-    roles: ['ADMIN', 'SUPER_ADMIN'],
-  },
-  {
-    name: 'examCard',
-    label: 'Kartu Ujian',
-    icon: 'card_membership',
-    to: { name: 'admin-exam-card' },
-    roles: ['ADMIN', 'SUPER_ADMIN'],
-  },
-  {
-    name: 'buatJadwal',
-    label: 'Buat Jadwal',
-    icon: 'schedule',
-    to: { name: 'admin-exam-management' },
-    roles: ['ADMIN', 'SUPER_ADMIN'],
-  },
-  {
-    name: 'kelolaSoal',
-    label: 'Kelola Soal',
-    icon: 'quiz',
-    to: { name: 'admin-questions' },
-    roles: ['ADMIN', 'SUPER_ADMIN'],
-  },
-  {
-    name: 'archive',
-    label: 'Archive Semester',
-    icon: 'archive',
-    to: { name: 'admin-archive' },
-    roles: ['ADMIN', 'SUPER_ADMIN'],
-  },
-  {
-    name: 'tokenUjian',
-    label: 'Token Ujian',
-    icon: 'vpn_key',
-    to: { name: 'admin-token-display' },
-    roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'],
-  },
-  {
-    name: 'paymentGates',
-    label: 'Payment Gate',
-    icon: 'payments',
-    to: { name: 'admin-payment-gates' },
-    roles: ['ADMIN', 'SUPER_ADMIN'],
-  },
+  { name: 'participants', label: 'Data Peserta', icon: 'group', to: { name: 'admin-participants' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'examCard', label: 'Kartu Ujian', icon: 'card_membership', to: { name: 'admin-exam-card' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'buatJadwal', label: 'Buat Jadwal', icon: 'schedule', to: { name: 'admin-exam-management' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'kelolaSoal', label: 'Kelola Soal', icon: 'quiz', to: { name: 'admin-questions' }, roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'] },
+  { name: 'paymentGates', label: 'Payment Gate', icon: 'payments', to: { name: 'admin-payment-gates' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
 ]
 
-const mainNavItems = computed(() =>
-  ALL_MAIN_NAV.filter((i) => !i.roles || i.roles.includes(userRole.value)),
-)
-const managementNavItems = computed(() =>
-  ALL_MANAGEMENT_NAV.filter((i) => !i.roles || i.roles.includes(userRole.value)),
-)
+// ── MONITORING (runtime pelaksanaan ujian + proctor tools)
+const ALL_MONITORING_NAV = [
+  { name: 'sessions', label: 'Sesi Ujian', icon: 'event', to: { name: 'admin-sessions' }, roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'] },
+  { name: 'tokenUjian', label: 'Token Ujian', icon: 'vpn_key', to: { name: 'admin-token-display' }, roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'] },
+  { name: 'makeup', label: 'Ujian Susulan', icon: 'event_repeat', to: { name: 'admin-makeup' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'proctor-unlock', label: 'Buka Blok Ujian', icon: 'lock_open', to: { name: 'proctor-unlock' }, roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'] },
+  { name: 'proctor-tunggakan', label: 'Tunggakan', icon: 'payments', to: { name: 'proctor-tunggakan' }, roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'], onlyHomeroomForRoles: ['PROCTOR', 'TEACHER'] },
+  { name: 'proctor-peserta-kelas', label: 'Peserta Ujian Kelas', icon: 'groups', to: { name: 'proctor-peserta-kelas' }, roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'], onlyHomeroomForRoles: ['PROCTOR', 'TEACHER'] },
+]
 
-const stats = ref({ totalQuestions: 0, totalParticipants: 0 })
+const filterItems = (items) =>
+  items.filter((i) => {
+    if (i.roles && !i.roles.includes(userRole.value)) return false
+    if (i.onlyHomeroomForRoles && i.onlyHomeroomForRoles.includes(userRole.value)) {
+      if (!isHomeroomTeacher.value) return false
+    }
+    return true
+  })
+
+const mainNavItems = computed(() => filterItems(ALL_MAIN_NAV))
+const referensiNavItems = computed(() => filterItems(ALL_REFERENSI_NAV))
+const managementNavItems = computed(() => filterItems(ALL_MANAGEMENT_NAV))
+const monitoringNavItems = computed(() => filterItems(ALL_MONITORING_NAV))
+
+// ── Stats dari admin dashboard store (reactive)
+const adminStore = useAdminStore()
+
+const stats = computed(() => {
+  if (isProctor.value) {
+    return { totalQuestions: 0, totalParticipants: 0 }
+  }
+  // Fallback ke 0 kalau field belum ada di store
+  return {
+    totalQuestions: adminStore.stats?.totalQuestions ?? 0,
+    totalParticipants: adminStore.stats?.totalParticipants ?? 0,
+  }
+})
 
 const currentRoute = computed(() => route)
 const getBreadcrumbLabel = computed(() => {
@@ -361,11 +381,7 @@ const logout = () => {
 const refreshData = async () => {
   isRefreshing.value = true
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    stats.value = {
-      totalQuestions: Math.floor(Math.random() * 100) + 50,
-      totalParticipants: Math.floor(Math.random() * 200) + 100,
-    }
+    await adminStore.fetchDashboardStats()
     $q.notify({
       type: 'positive',
       message: 'Data berhasil di-refresh',
@@ -408,13 +424,12 @@ const updateDateTime = () => {
 }
 
 const loadStats = async () => {
-  if (isProctor.value) {
-    // Proctor tidak butuh stats peserta/soal global
-    stats.value = { totalQuestions: 0, totalParticipants: 0 }
-    return
+  if (isProctor.value) return
+  try {
+    await adminStore.fetchDashboardStats()
+  } catch (error) {
+    console.warn('[AdminLayout] load stats failed:', error.message)
   }
-  // TODO PHASE 10: ganti dengan API call ke /admin/dashboard/stats
-  stats.value = { totalQuestions: 75, totalParticipants: 150 }
 }
 
 onMounted(() => {
@@ -427,6 +442,9 @@ onMounted(() => {
   if (route.meta && route.meta.focusOnMount) {
     const main = document.getElementById('main-content')
     if (main) setTimeout(() => main.focus(), 100)
+  }
+  if (isProctor.value) {
+    fetchProfile()
   }
 })
 

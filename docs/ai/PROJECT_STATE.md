@@ -260,3 +260,30 @@ Update BACKEND_CHANGELOG.md
 
 Detail ada di BACKEND_GAPS.md Section "Phase 3B Plan".
 ```
+
+### 2d. `docs/ai/PROJECT_STATE.md` — update section backend
+
+9:## 1. Executive Summary
+22:## 2. Backend Completed
+24:### Authentication ✅
+33:### Multi-Tenant Infrastructure ✅
+42:### Session & Exam ✅
+52:### Participant ✅
+58:### Security ✅
+69:### Infrastructure ✅
+80:### DevOps ✅
+88:## 3. Backend In Progress
+90:### Phase 3B — Handler Migration 🟡
+103:### Workers Temporarily Disabled 🟡
+119:## 4. Backend Remaining
+132:## 5. Frontend Impact
+134:### Breaking Changes (Phase 3A)
+140:### Missing Endpoints
+144:### Partial Endpoints
+150:## 6. Frontend Blockers
+162:## 7. Data State
+164:### Tenants
+171:### Users
+176:### Exam Data
+184:## 8. Known Issues
+197:## 9. Environment Variables (Production)

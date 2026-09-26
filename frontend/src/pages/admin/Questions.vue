@@ -1,171 +1,178 @@
-<!-- src/pages/admin/Questions.vue -->
 <template>
-  <q-page class="q-pa-md">
-    <div class="text-h4 q-mb-md">
-      <q-icon name="quiz" color="primary" size="md" class="q-mr-sm" />
-      Kelola Soal Ujian
+  <q-page padding>
+    <!-- Header -->
+    <div class="row justify-between items-center q-mb-md">
+      <div>
+        <div class="text-h5 text-weight-bold">
+          <q-icon name="quiz" color="primary" size="sm" class="q-mr-sm" />
+          Kelola Soal
+        </div>
+        <div class="text-caption text-grey-7">
+          Pilih jenis ujian → kelas → mata pelajaran untuk mengelola soal.
+        </div>
+      </div>
+      <div class="row q-gutter-sm">
+        <template v-if="selectedExamType">
+          <q-chip color="primary" text-color="white" icon="assignment" class="text-weight-bold">
+            {{ selectedExamType.kode }} — {{ selectedExamType.nama }}
+          </q-chip>
+          <q-btn outline color="primary" icon="swap_horiz" label="Ganti Jenis" no-caps @click="changeExamType" />
+        </template>
+        <q-btn v-else color="primary" icon="assignment" label="Pilih Jenis Ujian" no-caps
+          @click="examTypePickerOpen = true" />
+      </div>
     </div>
 
-    <!-- Pilih Ujian -->
-    <q-card class="q-mb-md">
-      <q-card-section>
-        <div class="row items-center q-gutter-md">
-          <q-select
-            v-model="selectedExamId"
-            :options="examOptions"
-            label="Pilih Ujian"
-            outlined
-            emit-value
-            map-options
-            class="col"
-            :rules="[(val) => !!val || 'Ujian wajib dipilih']"
-          >
-            <template v-slot:prepend><q-icon name="school" /></template>
-          </q-select>
+    <!-- Error banner -->
+    <q-banner v-if="errorState === 'server_error'" dense rounded class="bg-red-1 text-red-9 q-mb-md">
+      <template v-slot:avatar><q-icon name="error" color="red" /></template>
+      Server error. Refresh halaman untuk coba lagi.
+    </q-banner>
 
-          <q-btn
-            color="grey-7"
-            icon="download"
-            label="Download Template"
-            @click="showTemplateDialog = true"
-            :disable="!selectedExamId"
-          />
+    <!-- STATE 1: Belum pilih jenis ujian -->
+    <q-card v-if="!selectedExamType" flat bordered class="bg-white">
+      <q-card-section class="text-center q-pa-xl text-grey-6">
+        <q-icon name="assignment" size="80px" color="grey-4" />
+        <div class="text-h6 q-mt-md">Belum Ada Jenis Ujian Dipilih</div>
+        <div class="text-caption q-mt-sm">
+          Pilih jenis ujian terlebih dahulu untuk mulai mengelola soal.
         </div>
+        <q-btn color="primary" icon="assignment" label="Pilih Jenis Ujian" no-caps class="q-mt-md"
+          @click="examTypePickerOpen = true" />
       </q-card-section>
     </q-card>
 
-    <!-- Tabs: Upload / Paste -->
-    <q-card>
-      <q-tabs
-        v-model="tab"
-        dense
-        class="text-grey"
-        active-color="primary"
-        indicator-color="primary"
-        align="justify"
-        narrow-indicator
-      >
-        <q-tab name="upload" icon="upload_file" label="Upload File (CSV/Excel)" />
-        <q-tab name="paste" icon="content_paste" label="Paste Manual" />
-      </q-tabs>
-
-      <q-separator />
-
-      <q-tab-panels v-model="tab" animated>
-        <!-- TAB UPLOAD -->
-        <q-tab-panel name="upload">
-          <QuestionUpload :exam-id="selectedExamId" @parsed="onQuestionsParsed" />
-        </q-tab-panel>
-
-        <!-- TAB PASTE -->
-        <q-tab-panel name="paste">
-          <QuestionPaste :exam-id="selectedExamId" @parsed="onQuestionsParsed" />
-        </q-tab-panel>
-      </q-tab-panels>
-    </q-card>
-
-    <!-- Preview & Submit (muncul jika ada soal) -->
-    <QuestionPreview
-      v-if="questionsStore.parsedQuestions.length > 0"
-      :exam-id="selectedExamId"
-      @submitted="onSubmitSuccess"
-      @cleared="questionsStore.clearParsedQuestions()"
-    />
-
-    <!-- Dialog Download Template -->
-    <q-dialog v-model="showTemplateDialog">
-      <q-card style="min-width: 400px">
-        <q-card-section class="bg-primary text-white">
-          <div class="text-h6">Download Template Soal</div>
+    <!-- STATE 2: Sudah pilih jenis ujian -->
+    <template v-else>
+      <!-- Picker Bar: Tingkat + Kelas -->
+      <q-card flat bordered class="q-mb-md bg-white">
+        <q-card-section class="row q-col-gutter-md">
+          <div class="col-12 col-md-4">
+            <q-select v-model="tingkat" :options="tingkatOptions" label="Pilih Tingkat" outlined dense emit-value
+              map-options @update:model-value="onTingkatChange">
+              <template v-slot:prepend><q-icon name="stairs" /></template>
+            </q-select>
+          </div>
+          <div class="col-12 col-md-6">
+            <q-select v-model="classId" :options="classOptions" label="Pilih Kelas" outlined dense emit-value
+              map-options :disable="!tingkat" :hint="!tingkat ? 'Pilih tingkat terlebih dahulu' : ''"
+              @update:model-value="onClassChange">
+              <template v-slot:prepend><q-icon name="class" /></template>
+            </q-select>
+          </div>
+          <div v-if="selectedClass" class="col-12 col-md-2 text-right">
+            <q-chip color="blue-grey-2" text-color="blue-grey-9" icon="groups">
+              {{ filteredClassCount }} kelas
+            </q-chip>
+          </div>
         </q-card-section>
-
-        <q-card-section>
-          <div class="text-body2 q-mb-md">Pilih format template yang ingin didownload:</div>
-
-          <q-list bordered separator>
-            <q-item clickable @click="downloadTemplate('csv')" v-ripple>
-              <q-item-section avatar>
-                <q-icon name="table_chart" color="green" size="32px" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>CSV (Comma Separated Values)</q-item-label>
-                <q-item-label caption
-                  >Bisa dibuka di Excel, Google Sheets, atau text editor</q-item-label
-                >
-              </q-item-section>
-            </q-item>
-
-            <q-item clickable @click="downloadTemplate('xlsx')" v-ripple>
-              <q-item-section avatar>
-                <q-icon name="description" color="blue" size="32px" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>Excel (.xlsx)</q-item-label>
-                <q-item-label caption>Format Excel native, lebih mudah diisi</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Tutup" color="grey" v-close-popup />
-        </q-card-actions>
       </q-card>
-    </q-dialog>
+
+      <!-- STATE 2a: Belum pilih kelas -->
+      <q-card v-if="!classId" flat bordered class="bg-white">
+        <q-card-section class="text-center q-pa-xl text-grey-6">
+          <q-icon name="class" size="60px" color="grey-4" />
+          <div class="text-h6 q-mt-md">Pilih Kelas</div>
+          <div class="text-caption q-mt-sm">
+            Setelah memilih kelas, daftar mata pelajaran akan muncul.
+          </div>
+        </q-card-section>
+      </q-card>
+
+      <!-- STATE 2b: Kelas sudah dipilih -->
+      <SubjectQuestionTable v-else :rows="subjectTable" :loading="loading" :stats="stats" @edit="onEdit"
+        @preview="onPreview" @delete="onDelete" />
+    </template>
+
+    <!-- Exam Type Picker Dialog -->
+    <ExamTypePickerDialog v-model="examTypePickerOpen" :exam-types="examTypes" :selected-id="examTypeId"
+      @select="selectExamType" />
   </q-page>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useQuasar } from 'quasar'
-import { useQuestionsStore } from '@/stores/exam/questions'
-import QuestionUpload from '@/components/admin/QuestionUpload.vue'
-import QuestionPaste from '@/components/admin/QuestionPaste.vue'
-import QuestionPreview from '@/components/admin/QuestionPreview.vue'
-
+import { useQuestionsV2 } from '@/composables/admin/useQuestionsV2'
+import ExamTypePickerDialog from '@/components/admin/ExamTypePickerDialog.vue'
+import SubjectQuestionTable from '@/components/admin/SubjectQuestionTable.vue'
+import { useRouter } from 'vue-router'
+import { ExamService } from '@/services/admin/ExamService'
+// ...
+const router = useRouter()
 const $q = useQuasar()
-const questionsStore = useQuestionsStore()
 
-const tab = ref('upload')
-const selectedExamId = ref('')
-const showTemplateDialog = ref(false)
+const {
+  loading,
+  errorState,
+  examTypes,
+  examTypeId,
+  tingkat,
+  classId,
+  examTypePickerOpen,
+  selectedExamType,
+  tingkatOptions,
+  classOptions,
+  selectedClass,
+  subjectTable,
+  stats,
+  selectExamType,
+  changeExamType,
+  onTingkatChange,
+  onClassChange,
+} = useQuestionsV2()
 
-const examOptions = computed(() =>
-  questionsStore.exams.map((e) => ({ label: e.name, value: e.id })),
-)
+const filteredClassCount = computed(() => {
+  if (!tingkat.value) return 0
+  return classOptions.value.length
+})
 
-const downloadTemplate = async (format) => {
+// ── Aksi (placeholder — Fase 2b)
+const onEdit = async (row) => {
+  // Find-or-create exam untuk mapel ini
+  if (row.exam_id) {
+    router.push({ name: 'admin-question-editor', params: { examId: row.exam_id } })
+    return
+  }
+  // Belum ada exam → create dulu
   try {
-    await questionsStore.downloadTemplate(format)
-    $q.notify({
-      type: 'positive',
-      message: `Template ${format.toUpperCase()} berhasil didownload`,
+    const res = await ExamService.findOrCreate({
+      jenis_ujian_id: examTypeId.value,
+      subject_id: row.id,
+      class_id: classId.value,
+      academic_year: '2025/2026',
+      semester: 'GANJIL',
     })
-    showTemplateDialog.value = false
-  } catch {
-    $q.notify({
-      type: 'negative',
-      message: 'Gagal mendownload template',
-    })
+    const exam = res?.data?.data
+    if (exam?.id) {
+      router.push({ name: 'admin-question-editor', params: { examId: exam.id } })
+    }
+  } catch (err) {
+    $q.notify({ type: 'negative', message: `Gagal membuka editor. \n ${err}` })
   }
 }
 
-const onQuestionsParsed = () => {
-  // Scroll ke preview
-  setTimeout(() => {
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
-  }, 100)
-}
-
-const onSubmitSuccess = (data) => {
+const onPreview = (row) => {
   $q.notify({
-    type: 'positive',
-    message: `${data.imported_count} soal berhasil diimport!`,
-    timeout: 3000,
+    type: 'info',
+    icon: 'construction',
+    message: `Preview soal "${row.nama}" akan tersedia di Fase 2b.`,
   })
 }
 
-onMounted(async () => {
-  await questionsStore.fetchExams()
-})
+const onDelete = (row) => {
+  $q.dialog({
+    title: 'Hapus Soal',
+    message: `Hapus semua soal untuk <b>${row.nama}</b>?`,
+    html: true,
+    cancel: { label: 'Batal', flat: true },
+    ok: { label: 'Hapus', color: 'negative', flat: true },
+    persistent: true,
+  }).onOk(() => {
+    $q.notify({
+      type: 'info',
+      message: 'Fitur hapus soal akan tersedia di Fase 2b.',
+    })
+  })
+}
 </script>

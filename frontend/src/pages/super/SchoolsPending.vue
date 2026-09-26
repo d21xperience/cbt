@@ -45,17 +45,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useQuasar } from 'quasar'
-import { TenantService } from '@/services/super/TenantService'
-import ApprovalResultDialog from '@/components/superadmin/ApprovalResultDialog.vue'
+import { useSchoolsPending } from '@/composables/super/useSchoolsPending'
 
-const $q = useQuasar()
+const {
+  loading,
+  approving,
+  pendingList,
+  loadPending,
+  onApprove,
+  onReject,
+} = useSchoolsPending()
 
-const loading = ref(false)
-const approving = ref(null)
-const pendingList = ref([])
-
+// ── Presentation-only helpers (tetap di Vue)
 const columns = [
   { name: 'school_name', label: 'Nama Sekolah', field: 'school_name', align: 'left', sortable: true, style: 'min-width: 200px' },
   { name: 'npsn', label: 'NPSN', field: 'npsn', align: 'left', style: 'width: 110px' },
@@ -73,82 +74,4 @@ const formatDate = (val) => {
     return val
   }
 }
-
-const loadPending = async () => {
-  loading.value = true
-  try {
-    const res = await TenantService.getPendingSchools()
-    pendingList.value = res?.data?.data || []
-  } catch (err) {
-    console.error('[SchoolsPending] load error:', err)
-    $q.notify({
-      type: 'negative',
-      message: err.response?.data?.error || 'Gagal memuat antrian sekolah.',
-    })
-    pendingList.value = []
-  } finally {
-    loading.value = false
-  }
-}
-
-const onApprove = (row) => {
-  $q.dialog({
-    title: 'Konfirmasi Persetujuan',
-    message: `Setujui pendaftaran <b>${row.school_name}</b> (${row.npsn})?`,
-    html: true,
-    cancel: true,
-    persistent: true,
-  }).onOk(async () => {
-    approving.value = row.tenant_id
-    try {
-      const res = await TenantService.approveSchool(row.tenant_id)
-      const data = res?.data?.data || {}
-
-      $q.dialog({
-        component: ApprovalResultDialog,
-        componentProps: { data },
-      })
-
-      await loadPending()
-    } catch (err) {
-      console.error('[SchoolsPending] approve error:', err)
-      $q.notify({
-        type: 'negative',
-        message: err.response?.data?.error || 'Gagal menyetujui sekolah.',
-      })
-    } finally {
-      approving.value = null
-    }
-  })
-}
-
-const onReject = (row) => {
-  $q.dialog({
-    title: 'Tolak Pendaftaran',
-    message: `Alasan penolakan untuk <b>${row.school_name}</b>:`,
-    html: true,
-    prompt: {
-      model: '',
-      type: 'textarea',
-      placeholder: 'Minimal 5 karakter',
-      isValid: (val) => val && val.trim().length >= 5,
-    },
-    cancel: true,
-    persistent: true,
-  }).onOk(async (reason) => {
-    try {
-      await TenantService.rejectSchool(row.tenant_id, reason.trim())
-      $q.notify({ type: 'positive', message: 'Pendaftaran ditolak.' })
-      await loadPending()
-    } catch (err) {
-      console.error('[SchoolsPending] reject error:', err)
-      $q.notify({
-        type: 'negative',
-        message: err.response?.data?.error || 'Gagal menolak pendaftaran.',
-      })
-    }
-  })
-}
-
-onMounted(loadPending)
 </script>

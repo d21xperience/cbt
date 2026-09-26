@@ -24,15 +24,25 @@
               emit-value map-options />
           </div>
           <div class="col-12 col-sm-6">
-            <div class="text-caption text-grey-7 q-mb-xs">
-              Maksimal Siswa Aktif Ujian: <strong>{{ config.max_active_students }}</strong>
-            </div>
-            <!-- Slider pengontrol RAM VPS agar presisi -->
-            <q-slider v-model="config.max_active_students" :min="50" :max="1000" :step="50" label color="indigo" />
+            <q-input v-model.number="config.max_active_students" type="number" label="Maksimal Siswa Aktif Ujian"
+              outlined dense :min="50" :max="10000" :step="50" :rules="[
+                (v) => (v >= 50 && v <= 10000) || 'Kuota antara 50-10.000',
+              ]" hint="50 – 10.000 siswa" />
           </div>
         </div>
 
-        <q-separator q-my-sm />
+        <q-separator class="q-my-sm" />
+        <div class="row q-col-gutter-sm">
+          <div class="col-12 col-sm-6">
+            <q-select v-model="config.package_tier" :options="tierOptions" label="Tiering Paket" outlined dense
+              emit-value map-options />
+          </div>
+          <div class="col-12 col-sm-6">
+            <q-input :model-value="config.billing_type === 'PER_EXAM' ? 'Per Ujian' : 'Bulanan'" label="Tipe Billing"
+              outlined dense readonly hint="Ubah tipe billing via form registrasi/edit" />
+          </div>
+        </div>
+        <q-separator class="q-my-sm" />
 
         <!-- Section 2: DNS & Domain Routing -->
         <div class="text-subtitle2 text-weight-bold text-primary row items-center">
@@ -45,20 +55,19 @@
             color="indigo" />
         </div>
 
-        <!-- Tampilan Kondisional Input Domain -->
         <q-input v-if="config.domain_mode === 'SUBDOMAIN'" v-model="config.subdomain" label="Subdomain Aplikasi"
-          outlined dense suffix=".ulangan.co.id" />
+          outlined dense suffix=".ujian.pw" />
 
-        <!-- <q-input v-slot:prepend v-if="config.domain_mode === 'CUSTOM_DOMAIN'" v-model="config.custom_domain"
+        <q-input v-if="config.domain_mode === 'CUSTOM_DOMAIN'" v-model="config.custom_domain"
           label="Custom Domain Sekolah" outlined dense placeholder="contoh: cbt.sekolah.sch.id">
           <template v-slot:prepend>
             <q-icon name="language" />
           </template>
-</q-input> -->
+        </q-input>
 
-        <q-separator q-my-sm />
+        <q-separator class="q-my-sm" />
 
-        <!-- Section 3: Pembatasan Fitur Berat (Hemat RAM) -->
+        <!-- Section 3: Modul Engine -->
         <div class="text-subtitle2 text-weight-bold text-primary row items-center">
           <q-icon name="tune" class="q-mr-xs" size="xs" /> Fitur Tambahan & Modul Engine
         </div>
@@ -67,8 +76,12 @@
           <q-list dense>
             <q-item tag="label" v-ripple>
               <q-item-section>
-                <q-item-label class="text-weight-medium">Modul Proctoring AI (Webcam Audit)</q-item-label>
-                <q-item-label caption>Memakan resource VPS tinggi untuk deteksi kecurangan.</q-item-label>
+                <q-item-label class="text-weight-medium">
+                  Modul Proctoring AI (Webcam Audit)
+                </q-item-label>
+                <q-item-label caption>
+                  Memakan resource VPS tinggi untuk deteksi kecurangan.
+                </q-item-label>
               </q-item-section>
               <q-item-section avatar>
                 <q-toggle v-model="config.allowed_features.proctoring_ai" color="green" />
@@ -77,8 +90,12 @@
 
             <q-item tag="label" v-ripple>
               <q-item-section>
-                <q-item-label class="text-weight-medium">Evaluator Code Linting (Soal Coding)</q-item-label>
-                <q-item-label caption>Mengaktifkan fitur pengetikan skrip kode program interaktif.</q-item-label>
+                <q-item-label class="text-weight-medium">
+                  Evaluator Code Linting (Soal Coding)
+                </q-item-label>
+                <q-item-label caption>
+                  Mengaktifkan fitur pengetikan skrip kode program interaktif.
+                </q-item-label>
               </q-item-section>
               <q-item-section avatar>
                 <q-toggle v-model="config.allowed_features.coding_question" color="green" />
@@ -111,6 +128,7 @@
 import { ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { TenantService } from '@/services/super/TenantService'
+
 const props = defineProps({
   modelValue: Boolean,
   schoolId: String,
@@ -122,23 +140,31 @@ const $q = useQuasar()
 const isOpen = ref(false)
 const saving = ref(false)
 
-const config = ref({
+// ── DEFAULT_CONFIG — baseline supaya field yang tidak dikirim backend
+//    tetap terdefinisi (mencegah undefined di template).
+const DEFAULT_CONFIG = {
   domain_mode: 'SUBDOMAIN',
   custom_domain: '',
   subdomain: '',
-  package_tier: 'BASIC',
-  max_active_students: 200,
+  package_tier: 'BASIC',                // ← BARU
+  billing_type: 'MONTHLY',
+  max_active_students: 500,             // ← GANTI dari 200 → 500
   allowed_features: {
     proctoring_ai: false,
     coding_question: false,
   },
   is_suspended: false,
+}
+
+const config = ref({
+  ...DEFAULT_CONFIG,
+  allowed_features: { ...DEFAULT_CONFIG.allowed_features },
 })
 
 const tierOptions = [
-  { label: 'Paket Reguler / Basic', value: 'BASIC' },
-  { label: 'Paket Menengah / VIP', value: 'VIP' },
-  { label: 'Paket Korporat / PREMIUM', value: 'PREMIUM' },
+  { label: 'Basic', value: 'BASIC' },
+  { label: 'VIP', value: 'VIP' },
+  { label: 'Premium', value: 'PREMIUM' },
 ]
 
 // Sinkronisasi status buka/tutup dialog
@@ -151,24 +177,63 @@ watch(
     }
   },
 )
+
 watch(isOpen, (val) => emit('update:modelValue', val))
 
-// Muat data pengaturan terkini dari server lewat API
+/**
+ * Load config dari backend.
+ * Merge dengan DEFAULT_CONFIG supaya field yang tidak dikirim backend
+ * (mis. allowed_features, domain_mode) tidak jadi undefined.
+ *
+ * BACKEND DEPENDENCY: endpoint saat ini hanya return
+ *   { slug, npsn, school_name, jenjang, program_duration_years,
+ *     logo_url, is_suspended, is_active }
+ * Field SaaS-specific (domain_mode, package_tier, allowed_features)
+ * belum tersedia — perlu VER request.
+ */
 const loadCurrentConfig = async () => {
   try {
     const response = await TenantService.getSaaSConfig(props.schoolId)
-    config.value = response.data
+    const data = response?.data && typeof response.data === 'object' ? response.data : {}
+
+    // Merge dengan DEFAULT + normalisasi field
+    config.value = {
+      ...DEFAULT_CONFIG,
+      ...data,
+      // ── Normalisasi: backend pakai `max_active_students`, kita pakai konsisten
+      max_active_students: Number(data.max_active_students) || DEFAULT_CONFIG.max_active_students,
+      package_tier: data.package_tier || DEFAULT_CONFIG.package_tier,
+      allowed_features: {
+        ...DEFAULT_CONFIG.allowed_features,
+        ...(data.allowed_features || {}),
+      },
+    }
   } catch (error) {
-    console.log(error)
-    $q.notify({ type: 'negative', message: 'Gagal mengambil parameter konfigurasi SaaS.' })
+    console.log('[SaasConfigDialog] load failed:', error)
+    config.value = {
+      ...DEFAULT_CONFIG,
+      allowed_features: { ...DEFAULT_CONFIG.allowed_features },
+    }
+    $q.notify({
+      type: 'negative',
+      message: 'Gagal mengambil parameter konfigurasi SaaS.',
+    })
   }
 }
 
-// Kirim pembaruan menuju server
 const saveSaasConfig = async () => {
   saving.value = true
   try {
-    await TenantService.saveSaaSConfig(props.schoolId, config.value)
+    await TenantService.saveSaaSConfig(props.schoolId, {
+      subdomain: config.value.subdomain,
+      package_tier: config.value.package_tier,
+      billing_type: config.value.billing_type,
+      max_active_students: config.value.max_active_students,
+      domain_mode: config.value.domain_mode,
+      custom_domain: config.value.custom_domain,
+      allowed_features: config.value.allowed_features,
+      is_suspended: config.value.is_suspended,
+    })
     $q.notify({
       type: 'positive',
       message: 'Parameter SaaS berhasil disinkronkan ke server pusat!',
@@ -176,8 +241,11 @@ const saveSaasConfig = async () => {
     emit('success')
     isOpen.value = false
   } catch (error) {
-    console.log(error)
-    $q.notify({ type: 'negative', message: 'Gagal memperbarui data konfigurasi server.' })
+    console.log('[SaasConfigDialog] save failed:', error)
+    $q.notify({
+      type: 'negative',
+      message: 'Gagal memperbarui data konfigurasi server.',
+    })
   } finally {
     saving.value = false
   }
