@@ -180,3 +180,49 @@ NONE / [describe]
 - 2b-3d — Denah Duduk (editor + print)
 - 2b-3e — Aturan Ujian (master baru)
 - 2b-3f — Export + Share
+## [2b-3-jadwal] — 2026-09-27 — Jadwal Ujian (Wizard + Print) + Refactor Arsitektur
+
+### Added
+- **Master Ruang Ujian** di Data Referensi (`/admin/references/rooms`)
+  - CRUD lengkap: nama, gedung, lantai, kapasitas, keterangan, aktif
+  - Soft warning di `ClassFormDialog` saat ruang dipakai kelas lain
+- **Field `ruang_id` + `ruang_nama`** di Kelas/Rombel
+- **Wizard Jadwal Ujian** (4 langkah):
+  - Step 1: Konteks (jenis ujian, TA, semester)
+  - Step 2: Mapel WAJIB — semua tingkat, group by tingkat, "Isi Semua Sama"
+  - Step 3: Mapel KEJURUAN — group by tingkat → sub-group jurusan (SMK/MAK saja)
+  - Step 4: Assign Kelas & Pengawas (auto-generate kelas match + auto-assign pengawas round-robin)
+- **List view** dengan filter (search, jenis ujian, tingkat, tanggal) + kolom Kelas & Pengawas summary
+- **Edit Jadwal** dialog maximized — ubah tanggal/jam + edit assign kelas/pengawas
+- **Print PDF Jadwal** via `pdfmake` — layout per tingkat → per hari → table
+- Service baru: `ExamScheduleService`, `RoomService`
+- Composable: `useExamScheduleWizard`, `useExamSchedulePrint`, `useRoomManagement`
+- Helper murni: `src/utils/exam/scheduleHelpers.js` (calcEndTime, buildTingkatList, buildDetailsForRow, autoAssignPengawas, groupSchedulesByTingkatTanggal)
+- Template PDF: `src/utils/pdf/examScheduleTemplatePdf.js`
+
+### Changed
+- **`ExamManagement.vue` refactor total** — dari prototipe `super/ExamScheduleManagement` → wizard 4 langkah sesuai model per-tingkat × waktu
+- **`useClasses.js`** — tambah `ruang_id` di EMPTY_FORM + `openEditDialog`
+- **`ClassFormDialog.vue`** — tambah field Ruang Ujian + soft warning konflik (props `ruangOptions`, `classList`, `editingId`)
+- **`classesData.js` + `classesHandlers.js`** — field `ruang_id`, `ruang_nama` + derive ruang nama
+
+### Refactor — Arsitektur (Opsi A)
+- **Hapus semua import `@/mocks/*`** dari `pages/`, `composables/`, `components/`
+- Semua data via Service (`StudentService`, `TeacherService`, `ClassService`, `RoomService`, `SubjectService`, `ExamTypeService`, `SchoolProfileService`, `ExamService`, `ProgramKeahlianService`, `ExamScheduleService`)
+- Helper murni dipindah ke `src/utils/exam/scheduleHelpers.js` (tidak lagi di `mocks/data/`)
+
+### Deferred
+- Import/Export CSV jadwal ujian
+- Denah Duduk (2b-3d)
+- Daftar Pengawas (2b-3b) — **data `details` sudah siap**
+- Berita Acara (2b-3c)
+
+## [refactor-arch] — 2026-09-27 — Bersihkan Import Mock dari Layer UI
+
+### Fixed
+- `KartuUjianPrint.vue` — ganti `mockStudents`/`mockSchoolProfiles`/`mockExamsFull` → `StudentService`/`SchoolProfileService`/`ExamService`
+- `ExamManagement.vue` — ganti `mockExamTypes`/`calcEndTime` → `ExamTypeService`/`@/utils/exam/scheduleHelpers`
+- `ExamScheduleAssignStep.vue` — terima `teachers` via props (tidak import mock)
+
+### Verification
+- `grep -rn "@/mocks/" frontend/src/pages frontend/src/composables frontend/src/components` → hanya komentar, 0 import aktif

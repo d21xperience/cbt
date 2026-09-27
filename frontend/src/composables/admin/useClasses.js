@@ -11,6 +11,7 @@ const EMPTY_FORM = {
   jenis_rombel: 'REGULER',
   program_keahlian_id: null,
   wali_kelas_id: null,
+  ruang_id: null,
 }
 
 export function useClasses() {
@@ -94,22 +95,26 @@ export function useClasses() {
   // ── Computed (list)
   const filteredClasses = computed(() => {
     const list = Array.isArray(classes.value) ? classes.value : []
-    const q = String(searchQuery.value || '').trim().toLowerCase()
+    const q = String(searchQuery.value || '')
+      .trim()
+      .toLowerCase()
 
     return list.filter((c) => {
       if (filterTingkat.value && c.tingkat !== filterTingkat.value) return false
       if (filterJenisRombel.value && c.jenis_rombel !== filterJenisRombel.value) return false
       if (!q) return true
       return (
-        String(c.nama || '').toLowerCase().includes(q) ||
-        String(c.wali_kelas_nama || '').toLowerCase().includes(q)
+        String(c.nama || '')
+          .toLowerCase()
+          .includes(q) ||
+        String(c.wali_kelas_nama || '')
+          .toLowerCase()
+          .includes(q)
       )
     })
   })
 
-  const importValidCount = computed(() =>
-    importPreview.value.filter((p) => !p._error).length,
-  )
+  const importValidCount = computed(() => importPreview.value.filter((p) => !p._error).length)
 
   // ── Fetch
   const loadSchoolContext = async () => {
@@ -177,6 +182,7 @@ export function useClasses() {
       jenis_rombel: row.jenis_rombel || 'REGULER',
       program_keahlian_id: row.program_keahlian_id || null,
       wali_kelas_id: row.wali_kelas_id || null,
+      ruang_id: row.ruang_id || null,
     }
     dialogOpen.value = true
   }
@@ -215,9 +221,7 @@ export function useClasses() {
       $q.notify({
         type: 'negative',
         message:
-          err?.response?.data?.message ||
-          err?.response?.data?.error ||
-          'Gagal menyimpan data.',
+          err?.response?.data?.message || err?.response?.data?.error || 'Gagal menyimpan data.',
       })
       return { success: false }
     } finally {
@@ -278,7 +282,10 @@ export function useClasses() {
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
-      $q.notify({ type: 'positive', message: `Template ${format.toUpperCase()} berhasil di-download.` })
+      $q.notify({
+        type: 'positive',
+        message: `Template ${format.toUpperCase()} berhasil di-download.`,
+      })
       return { success: true }
     } catch (err) {
       console.warn('[useClasses] downloadTemplate failed:', err?.message)
@@ -308,7 +315,10 @@ export function useClasses() {
       }
     } catch (err) {
       importErrors.value = [{ row: 0, message: err?.response?.data?.error || 'Gagal parse file.' }]
-      $q.notify({ type: 'negative', message: err?.response?.data?.error || 'Gagal parse file CSV.' })
+      $q.notify({
+        type: 'negative',
+        message: err?.response?.data?.error || 'Gagal parse file CSV.',
+      })
       return { success: false }
     } finally {
       importing.value = false
@@ -324,8 +334,7 @@ export function useClasses() {
     importing.value = true
     try {
       const res = await ClassService.confirmImport(validRows)
-      const count =
-        res?.data?.imported_count ?? res?.data?.data?.imported_count ?? validRows.length
+      const count = res?.data?.imported_count ?? res?.data?.data?.imported_count ?? validRows.length
       $q.notify({ type: 'positive', message: `${count} kelas berhasil diimport.` })
       await loadClasses()
       closeImportDialog()
@@ -366,6 +375,7 @@ export function useClasses() {
     // dialog CRUD
     dialogOpen,
     isEditing,
+    editingId,
     initialForm,
     submitting,
     openCreateDialog,

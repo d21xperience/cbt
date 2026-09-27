@@ -441,15 +441,7 @@ clean-all: clean
 #=============================================================================
 # Daftar file (path relatif dari root sekolah-platform)
 FILES = \
-frontend/src/mocks/data/cardsData.js \
-frontend/src/mocks/handlers/cardsHandlers.js \
-frontend/src/services/admin/ExamCardService.js \
-frontend/src/utils/pdf/cardTemplatePdf.js \
-frontend/src/composables/admin/useExamCardPrint.js \
-frontend/src/pages/admin/CetakDokumenUjian.vue \
-frontend/src/pages/admin/cetak/KartuUjianPrint.vue \
-
-
+frontend/src/utils/exam/scheduleHelpers.js \
 
 # Target utama untuk membuat folder dan file
 .PHONY: create-files

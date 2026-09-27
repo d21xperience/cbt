@@ -281,3 +281,51 @@ created_at
 - CR-CARD-SIGNATURE — endpoint `/verify/card/...`
 - CR-CARD-CRUD — endpoint `/admin/cards/*`
 - VER-CARD — migrasi kartu dari mock → DB
+## CR-SCHEDULE — Jadwal Ujian Backend
+
+**Status:** Draft (deferred — frontend mock dulu)
+**Konteks:** Wizard jadwal ujian + distribusi kelas/pengawas.
+
+### Endpoints dibutuhkan
+
+#### 1. ExamSchedule CRUD
+- `GET    /admin/exam-schedules?search=&jenis_ujian_id=&tingkat=&tanggal=`
+- `POST   /admin/exam-schedules/batch` — { rows: [...] }
+- `PUT    /admin/exam-schedules/{id}` — { tanggal, jam_mulai, durasi_menit, details }
+- `DELETE /admin/exam-schedules/{id}`
+
+#### 2. Room CRUD
+- `GET    /admin/rooms?search=&gedung=`
+- `POST   /admin/rooms`
+- `PUT    /admin/rooms/{id}`
+- `DELETE /admin/rooms/{id}`
+
+#### 3. Class — field tambahan
+- `ruang_id` (string, nullable) — referensi ke master ruang
+- `ruang_nama` (denormalized)
+
+### Skema ExamSchedule
+id, jenis_ujian_id, jenis_ujian_kode,
+academic_year, semester,
+tingkat, // mapel berlaku untuk SEMUA kelas tingkat + jurusan
+tanggal, jam_mulai, durasi_menit,
+subject_id, subject_kode, subject_nama,
+kelompok ('WAJIB' | 'KEJURUAN'),
+jurusan_id (nullable — null = WAJIB semua jurusan),
+details: [ // distribusi per kelas
+{ class_id, class_nama, ruang_id, ruang_nama, pengawas_ids: [], pengawas_namas: [] }
+],
+status ('DRAFT' | 'ACTIVE' | 'DONE'),
+created_at
+
+### Business Rules
+- **Model per-tingkat × waktu**: 1 entry jadwal berlaku untuk N kelas yang match tingkat + jurusan. FE tidak simpan per kelas di header — split di `details`.
+- **Konflik ruang**: pada tanggal + jam yang sama, 1 ruang tidak boleh dipakai 2 kelas (validasi server-side, soft-warning frontend).
+- **Auto-assign pengawas**: round-robin di frontend (bisa dimigrasi ke backend nanti).
+- **Distribusi kelas**: filter `classes WHERE tingkat = X AND (jurusan_id IS NULL OR program_keahlian_id = jurusan_id)`.
+
+### Deferred
+- Import CSV jadwal
+- Export Excel
+- Auto-scheduler (constraint-based)
+- Notifikasi bentrok ke admin

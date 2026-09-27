@@ -1,4 +1,4 @@
-<!-- src/pages/super/ExamScheduleManagement.vue -->
+<!-- src/pages/admin/ExamManagement.vue -->
 <template>
   <q-page padding class="bg-grey-1">
     <!-- Header -->
@@ -6,300 +6,276 @@
       <div>
         <h5 class="q-my-none text-weight-bold text-primary">Manajemen Jadwal Ujian</h5>
         <div class="text-caption text-grey-7">
-          Pemetaan distribusi waktu ujian tengah/akhir semester sekolah.
+          Pemetaan distribusi waktu ujian per tingkat dan mata pelajaran.
         </div>
       </div>
-      <q-btn v-if="viewMode === 'LIST' && schedules.length > 0" color="primary" icon="add" label="Buat Jadwal Baru"
-        @click="startWizard" />
+      <div v-if="viewMode === 'LIST'" class="q-gutter-sm">
+        <q-btn outline color="primary" icon="print" label="Cetak Jadwal" no-caps :loading="printing"
+          :disable="rows.length === 0" @click="onPrint('open')" />
+        <q-btn outline color="primary" icon="picture_as_pdf" label="Unduh PDF" no-caps :loading="printing"
+          :disable="rows.length === 0" @click="onPrint('download')" />
+        <q-btn color="primary" icon="add" label="Buat Jadwal Baru" no-caps @click="startWizard" />
+      </div>
     </div>
 
-    <!-- KONDISI 1: TAMPILKAN JADWAL JIKA ADA -->
-    <q-card v-if="viewMode === 'LIST'" flat bordered class="bg-white shadow-1">
-      <q-table v-if="schedules.length > 0" :rows="schedules" :columns="columns" row-key="id" flat>
-        <template v-slot:body-cell-end_time="props">
-          <q-td :props="props" class="text-indigo text-weight-medium">
-            {{ calculateEndTime(props.row.start_time, props.row.duration_minutes) }}
+    <!-- LIST VIEW -->
+    <q-card v-if="viewMode === 'LIST'" flat bordered class="bg-white">
+      <q-card-section class="row q-col-gutter-md items-center">
+        <div class="col-12 col-md-3">
+          <q-input v-model="filters.search" dense outlined label="Cari mapel" debounce="300"
+            @update:model-value="reload">
+            <template #prepend><q-icon name="search" /></template>
+          </q-input>
+        </div>
+        <div class="col-12 col-md-3">
+          <q-select v-model="filters.jenis_ujian_id" :options="examTypeOptions" dense outlined label="Jenis Ujian"
+            emit-value map-options clearable @update:model-value="reload" />
+        </div>
+        <div class="col-12 col-md-2">
+          <q-select v-model="filters.tingkat" :options="tingkatOptions" dense outlined label="Tingkat" emit-value
+            map-options clearable @update:model-value="reload" />
+        </div>
+        <div class="col-12 col-md-3">
+          <q-input v-model="filters.tanggal" type="date" dense outlined label="Tanggal" clearable
+            @update:model-value="reload" />
+        </div>
+        <div class="col-12 col-md-1 text-right">
+          <q-btn flat round dense icon="refresh" @click="reload">
+            <q-tooltip>Muat ulang</q-tooltip>
+          </q-btn>
+        </div>
+      </q-card-section>
+
+      <q-separator />
+
+      <q-table :rows="rows" :columns="columns" row-key="id" flat :loading="loading" no-data-label="Belum ada jadwal"
+        :pagination="{ rowsPerPage: 20 }">
+        <template #body-cell-tanggal="props">
+          <q-td :props="props">
+            <div>{{ formatTanggal(props.row.tanggal) }}</div>
+            <div class="text-caption text-grey-7">{{ dayName(props.row.tanggal) }}</div>
+          </q-td>
+        </template>
+        <template #body-cell-jam="props">
+          <q-td :props="props">
+            <div>
+              {{ props.row.jam_mulai }} – {{ calcEndTime(props.row.jam_mulai, props.row.durasi_menit) }}
+            </div>
+            <div class="text-caption text-grey-7">{{ props.row.durasi_menit }} menit</div>
+          </q-td>
+        </template>
+        <template #body-cell-tingkat="props">
+          <q-td :props="props" class="text-center">
+            <q-badge color="primary" :label="`Tingkat ${props.row.tingkat}`" />
+          </q-td>
+        </template>
+        <template #body-cell-subject_nama="props">
+          <q-td :props="props">
+            <div class="text-weight-medium">{{ props.row.subject_nama }}</div>
+            <div class="text-caption text-grey-7">{{ props.row.subject_kode }}</div>
+          </q-td>
+        </template>
+        <template #body-cell-kelas_count="props">
+          <q-td :props="props" class="text-center">
+            <q-chip dense outline color="primary" icon="groups" size="sm">
+              {{ (props.row.details || []).length }}
+            </q-chip>
+          </q-td>
+        </template>
+
+        <template #body-cell-pengawas_summary="props">
+          <q-td :props="props">
+            <div v-if="getUniquePengawas(props.row).length === 0" class="text-caption text-grey-6 italic">
+              Belum di-assign
+            </div>
+            <div v-else>
+              <span v-for="(nama, idx) in getUniquePengawas(props.row).slice(0, 3)" :key="idx">
+                <q-chip dense outline color="teal" size="sm" icon="person" class="q-mr-xs q-mb-xs">
+                  {{ nama }}
+                </q-chip>
+              </span>
+              <q-chip v-if="getUniquePengawas(props.row).length > 3" dense color="grey-4" size="sm">
+                +{{ getUniquePengawas(props.row).length - 3 }} lainnya
+              </q-chip>
+            </div>
+          </q-td>
+        </template>
+
+        <template #body-cell-actions="props">
+          <q-td :props="props" class="text-center" style="white-space: nowrap">
+            <q-btn flat round dense icon="visibility" color="primary" size="sm" @click="openDetail(props.row)">
+              <q-tooltip>Lihat detail kelas & pengawas</q-tooltip>
+            </q-btn>
+            <q-btn flat round dense icon="edit" color="primary" size="sm" @click="openEdit(props.row)">
+              <q-tooltip>Edit jadwal</q-tooltip>
+            </q-btn>
+            <q-btn flat round dense icon="delete" color="negative" size="sm" @click="confirmDelete(props.row)">
+              <q-tooltip>Hapus</q-tooltip>
+            </q-btn>
           </q-td>
         </template>
       </q-table>
-
-      <!-- Tampilan jika belum ada jadwal sama sekali -->
-      <div v-else class="q-pa-xl text-center">
-        <q-icon name="event_busy" size="4rem" color="grey-5" />
-        <div class="text-h6 text-grey-7 q-mt-md">Belum Ada Jadwal Ujian yang Dibuat</div>
-        <p class="text-caption text-grey-6 q-mb-md">
-          Silakan buat panduan distribusi jadwal awal untuk tahun pelajaran aktif ini.
-        </p>
-        <q-btn color="primary" icon="edit_calendar" label="Mulai Buat Jadwal Ujian" class="text-weight-bold"
-          @click="startWizard" />
-      </div>
     </q-card>
 
-    <!-- KONDISI 2: ALUR FORM WIZARD (JIKA BELUM ADA / INGIN BUAT BARU) -->
-    <q-card v-if="viewMode === 'WIZARD'" flat bordered class="bg-white q-pa-md shadow-1">
-      <q-card-section class="q-px-none q-pt-none row justify-between items-center">
-        <div class="text-subtitle1 text-weight-bold text-grey-9">
-          Langkah 1: Tentukan Sasaran Kelas & Kurikulum
-        </div>
-        <q-btn flat round dense icon="arrow_back" color="grey-7" @click="viewMode = 'LIST'" />
-      </q-card-section>
+    <!-- WIZARD VIEW -->
+    <ExamScheduleWizard v-if="viewMode === 'WIZARD'" :jenjang="schoolJenjang" :duration-years="programDurationYears"
+      @cancel="viewMode = 'LIST'" @saved="onWizardSaved" />
 
-      <!-- Filter Pilihan Awal -->
-      <div class="row q-col-gutter-md q-mb-lg">
-        <div class="col-12 col-sm-4">
-          <q-select v-model="wizard.grade" :options="gradeOptions" label="Pilih Tingkat Kelas" outlined dense emit-value
-            map-options />
-        </div>
-
-        <!-- Info jenjang dari data sekolah (VER-007) -->
-        <!-- VER-007/008: jenjang dari data sekolah -->
-        <div v-if="schoolJenjang" class="col-12 col-sm-8">
-          <q-banner dense rounded class="bg-blue-1 text-blue-9">
-            <template v-slot:avatar>
-              <q-icon name="school" color="primary" />
-            </template>
-            <div>
-              <b>Jenjang Sekolah:</b> {{ getJenjangLabel(schoolJenjang) }}
-              <span v-if="['SMK', 'MAK'].includes(schoolJenjang)" class="text-caption q-ml-sm">
-                ({{ programDurationYears }} tahun)
-              </span>
-            </div>
-            <div class="text-caption">
-              Data ini otomatis dari profil sekolah. Hubungi super admin jika tidak sesuai.
-            </div>
-          </q-banner>
-        </div>
-        <div v-else class="col-12 col-sm-8">
-          <q-banner dense rounded class="bg-orange-1 text-orange-9">
-            <template v-slot:avatar>
-              <q-icon name="warning" color="orange" />
-            </template>
-            Jenjang sekolah belum tersedia dari server. Hubungi super admin.
-          </q-banner>
-        </div>
-      </div>
-
-      <!-- Tombol Pemicu Load Semua Mata Pelajaran -->
-      <div v-if="!allSubjectsLoaded" class="row justify-end">
-        <q-btn color="indigo" icon="playlist_add_check" label="Tampilkan Semua Mata Pelajaran" @click="loadFormSubjects"
-          :disable="!wizard.grade" />
-      </div>
-
-      <!-- TABEL DAFTAR SEMUA MAPEL UNTUK INPUT MASSAL -->
-      <div v-if="allSubjectsLoaded" class="q-mt-md animate__animated animate__fadeIn">
-        <q-separator class="q-my-md" />
-        <div class="text-subtitle1 text-weight-bold text-primary q-mb-md">
-          Langkah 2: Isi Parameter Waktu Setiap Mata Pelajaran
-        </div>
-
-        <q-list bordered separator class="rounded-borders bg-grey-1">
-          <q-item v-for="mapel in subjectForms" :key="mapel.subject_id"
-            class="q-py-md row items-center bg-white q-mb-sm rounded-borders shadow-1">
-            <!-- Nama Mata Pelajaran -->
-            <div class="col-12 col-md-3">
-              <div class="text-weight-bold text-grey-9 text-subtitle2">
-                {{ mapel.subject_name }}
-              </div>
-              <q-badge color="indigo-2" text-color="indigo-9" class="text-caption">Tingkat {{ wizard.grade }}</q-badge>
-            </div>
-
-            <!-- Input Tanggal, Jam Mulai, Durasi -->
-            <div class="col-12 col-md-9 row q-col-gutter-sm">
-              <div class="col-12 col-sm-4">
-                <q-input v-model="mapel.date" type="date" label="Tanggal Ujian" outlined dense stack-label />
-              </div>
-              <div class="col-12 col-sm-3">
-                <q-input v-model="mapel.start_time" type="time" label="Jam Mulai" outlined dense stack-label />
-              </div>
-              <div class="col-12 col-sm-2">
-                <q-input v-model.number="mapel.duration" type="number" label="Durasi" outlined dense suffix="Mnt" />
-              </div>
-              <!-- Preview Real-time Waktu Selesai -->
-              <div class="col-12 col-sm-3 flex items-center justify-end text-caption text-weight-bold text-indigo">
-                Selesai: {{ calculateEndTime(mapel.start_time, mapel.duration) }}
-              </div>
-            </div>
-          </q-item>
-        </q-list>
-
-        <!-- Aksi Simpan Final Massal -->
-        <div class="row justify-end q-mt-lg q-gutter-sm">
-          <q-btn flat label="Batal" color="grey-7" @click="viewMode = 'LIST'" />
-          <q-btn color="green-9" icon="save" label="Simpan Semua Jadwal" :loading="savingMassal"
-            @click="submitMassalSchedules" />
-        </div>
-      </div>
-    </q-card>
+    <ExamScheduleEditDialog v-model="editOpen" :row="editRow" @saved="onEditSaved" />
   </q-page>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
-import { ScheduleService } from '@/services/admin/ScheduleService'
+import { ExamScheduleService } from '@/services/admin/ExamScheduleService'
+import { ExamTypeService } from '@/services/admin/ExamTypeService'
+import { calcEndTime } from '@/utils/exam/scheduleHelpers'
 import { useTenant } from '@/composables/super/useTenant'
-import {
-  getGradeOptionsForJenjang,
-  hasMajor,
-  getJenjangLabel,
-} from '@/domain/school/jenjang'
+import { getGradeOptionsForJenjang } from '@/domain/school/jenjang'
+import ExamScheduleWizard from '@/components/admin/ExamScheduleWizard.vue'
+import { useExamSchedulePrint } from '@/composables/admin/useExamSchedulePrint'
+import ExamScheduleEditDialog from '@/components/admin/ExamScheduleEditDialog.vue'
 
 const $q = useQuasar()
+const { jenjang: schoolJenjang, programDurationYears, loadTenantConfig } = useTenant()
+const { printing, print } = useExamSchedulePrint()
 
-// ── Tenant context
-const {
-  jenjang: schoolJenjang,
-  programDurationYears,
-  loadTenantConfig,
-} = useTenant()
-
-// ── State
 const viewMode = ref('LIST')
-const allSubjectsLoaded = ref(false)
 const loading = ref(false)
-const savingMassal = ref(false)
-
-const schedules = ref([])
-const majors = ref([])
-const subjectForms = ref([])
-
-// Wizard: jenjang dihapus dari form state (diambil dari sekolah)
-const wizard = ref({
-  grade: '',
-  major_id: '',
+const rows = ref([])
+const filters = ref({
+  search: '',
+  jenis_ujian_id: null,
+  tingkat: null,
+  tanggal: '',
 })
 
-// ── Domain-driven computed
-const gradeOptions = computed(() =>
-  getGradeOptionsForJenjang(schoolJenjang.value, programDurationYears.value),
+const examTypes = ref([])
+const examTypeOptions = computed(() =>
+  examTypes.value.map((t) => ({ label: `${t.kode} — ${t.nama}`, value: t.id })),
 )
-const showMajorField = computed(() => hasMajor(schoolJenjang.value))
 
+const loadExamTypes = async () => {
+  try {
+    const res = await ExamTypeService.list()
+    examTypes.value = res.data?.data || res.data || []
+  } catch (e) {
+    console.warn('[ExamManagement] loadExamTypes failed', e)
+    examTypes.value = []
+  }
+}
+const tingkatOptions = computed(() =>
+  getGradeOptionsForJenjang(schoolJenjang.value, programDurationYears.value).map((o) => ({
+    label: o.label,
+    value: o.value,
+  })),
+)
+const editOpen = ref(false)
+const editRow = ref(null)
 const columns = [
-  { name: 'grade', label: 'Tingkat', field: 'grade_level', align: 'left' },
-  { name: 'subject', label: 'Mata Pelajaran', field: 'subject_name', align: 'left' },
-  { name: 'date', label: 'Tanggal Mulai', field: 'start_date', align: 'left' },
-  { name: 'start_time', label: 'Jam Mulai', field: 'start_time', align: 'left' },
-  { name: 'end_time', label: 'Jam Selesai (Auto)', align: 'left' },
+  { name: 'tanggal', label: 'Tanggal', field: 'tanggal', align: 'left', style: 'min-width: 140px' },
+  { name: 'jam', label: 'Jam', field: 'jam_mulai', align: 'left', style: 'min-width: 160px' },
+  { name: 'tingkat', label: 'Tingkat', field: 'tingkat', align: 'center', style: 'width: 100px' },
+  { name: 'subject_nama', label: 'Mata Pelajaran', field: 'subject_nama', align: 'left' },
+  { name: 'kelas_count', label: 'Kelas', field: 'kelas_count', align: 'center', style: 'width: 90px' },
+  { name: 'pengawas_summary', label: 'Pengawas', field: 'pengawas_summary', align: 'left', style: 'min-width: 200px' },
+  { name: 'actions', label: 'Aksi', align: 'center', style: 'width: 110px' },
 ]
 
-// ── Load schedules
-const loadSchedulesList = async () => {
+const formatTanggal = (dateStr) => {
+  if (!dateStr) return '-'
+  const d = new Date(dateStr)
+  return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+const dayName = (dateStr) => {
+  if (!dateStr) return ''
+  return new Date(dateStr).toLocaleDateString('id-ID', { weekday: 'long' })
+}
+
+const reload = async () => {
   loading.value = true
   try {
-    const response = await ScheduleService.getSchedulesList()
-    // Defensive nil-slice (Known Limitation): pastikan array
-    schedules.value = Array.isArray(response.data?.data)
-      ? response.data.data
-      : Array.isArray(response.data)
-        ? response.data
-        : []
+    const res = await ExamScheduleService.list({
+      search: filters.value.search || undefined,
+      jenis_ujian_id: filters.value.jenis_ujian_id || undefined,
+      tingkat: filters.value.tingkat || undefined,
+      tanggal: filters.value.tanggal || undefined,
+    })
+    rows.value = res.data?.data || []
   } catch (e) {
-    console.error('[ExamManagement] load schedules failed:', e)
-    schedules.value = []
+    console.error('[ExamManagement] load failed', e)
+    rows.value = []
   } finally {
     loading.value = false
   }
 }
 
-// ── Wizard
-const startWizard = async () => {
+const startWizard = () => {
   viewMode.value = 'WIZARD'
-  allSubjectsLoaded.value = false
+}
 
-  // Hanya load programs kalau SMK/MAK
-  if (showMajorField.value) {
+const onWizardSaved = () => {
+  viewMode.value = 'LIST'
+  reload()
+}
+
+const confirmDelete = (row) => {
+  $q.dialog({
+    title: 'Hapus Jadwal',
+    message: `Hapus jadwal <b>${row.subject_nama}</b> tingkat ${row.tingkat}?`,
+    html: true,
+    cancel: true,
+    persistent: true,
+  }).onOk(async () => {
     try {
-      const res = await ScheduleService.getMajors()
-      // VER-008: response {status, data:[...], count} — extract defensively
-      majors.value = Array.isArray(res.data?.data)
-        ? res.data.data
-        : Array.isArray(res.data)
-          ? res.data
-          : []
+      await ExamScheduleService.remove(row.id)
+      $q.notify({ type: 'positive', message: 'Jadwal dihapus' })
+      reload()
     } catch (e) {
-      console.error('[ExamManagement] load programs failed:', e)
-      majors.value = []
+      $q.notify({ type: 'negative', message: `Gagal menghapus \n ${e}` })
     }
-  } else {
-    majors.value = []
+  })
+}
+const onPrint = async (mode) => {
+  const res = await print({
+    filters: {
+      search: filters.value.search || undefined,
+      jenis_ujian_id: filters.value.jenis_ujian_id || undefined,
+      tingkat: filters.value.tingkat || undefined,
+      tanggal: filters.value.tanggal || undefined,
+    },
+    mode,
+  })
+  if (!res.success) {
+    $q.notify({ type: 'warning', message: res.message || 'Gagal cetak' })
+  } else if (mode === 'download') {
+    $q.notify({ type: 'positive', message: `PDF jadwal (${res.count} baris) berhasil diunduh` })
   }
 }
-
-const loadFormSubjects = async () => {
-  try {
-    const response = await ScheduleService.getSubjectsForForm()
-    subjectForms.value = Array.isArray(response.data?.data)
-      ? response.data.data
-      : Array.isArray(response.data)
-        ? response.data
-        : []
-    allSubjectsLoaded.value = true
-  } catch (err) {
-    console.log(err)
-    $q.notify({ type: 'negative', message: 'Gagal memuat form mata pelajaran.' })
-  }
+const getUniquePengawas = (row) => {
+  const details = Array.isArray(row.details) ? row.details : []
+  const set = new Set()
+  details.forEach((d) => {
+    (d.pengawas_namas || []).forEach((nama) => {
+      if (nama) set.add(nama)
+    })
+  })
+  return Array.from(set)
 }
 
-const submitMassalSchedules = async () => {
-  if (!schoolJenjang.value) {
-    $q.notify({
-      type: 'negative',
-      message: 'Jenjang sekolah belum tersedia. Tidak dapat menyimpan jadwal.',
-    })
-    return
-  }
-
-  const checkedSchedules = subjectForms.value.filter((s) => s.date && s.start_time)
-  if (checkedSchedules.length === 0) {
-    $q.notify({
-      type: 'warning',
-      message: 'Harap isi minimal tanggal & jam mulai pada salah satu mata pelajaran.',
-    })
-    return
-  }
-
-  // Kalau SMK/MAK dan program wajib dipilih untuk submit
-  if (showMajorField.value && !wizard.value.major_id) {
-    $q.notify({
-      type: 'warning',
-      message: 'Pilih program keahlian terlebih dahulu.',
-    })
-    return
-  }
-
-  savingMassal.value = true
-  try {
-    await ScheduleService.saveMassalSchedules({
-      grade: wizard.value.grade,
-      major: showMajorField.value ? wizard.value.major_id : null,
-      schedules: checkedSchedules,
-    })
-    $q.notify({
-      type: 'positive',
-      message: 'Seluruh konfig jadwal massal sukses diarsipkan!',
-    })
-    viewMode.value = 'LIST'
-    loadSchedulesList()
-  } catch {
-    $q.notify({ type: 'negative', message: 'Gagal memproses penyimpanan massal.' })
-  } finally {
-    savingMassal.value = false
-  }
+const openEdit = (row) => {
+  editRow.value = row
+  editOpen.value = true
 }
 
-// DOMAIN helper (akan dipindah ke domain/exam/ di Fase 3)
-const calculateEndTime = (startTimeStr, durationMinutes) => {
-  if (!startTimeStr || !durationMinutes) return '--:--'
-  const [hours, minutes] = startTimeStr.split(':').map(Number)
-  const totalMinutes = hours * 60 + minutes + parseInt(durationMinutes)
-  const endHours = Math.floor(totalMinutes / 60) % 24
-  const endMinutes = totalMinutes % 60
-  return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`
+const onEditSaved = () => {
+  editOpen.value = false
+  editRow.value = null
+  reload()
 }
-
 onMounted(async () => {
-  await loadTenantConfig()
-  loadSchedulesList()
+  await Promise.all([loadTenantConfig(), loadExamTypes()])
+  reload()
 })
 </script>

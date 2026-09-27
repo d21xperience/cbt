@@ -268,6 +268,7 @@ const ALL_REFERENSI_NAV = [
   { name: 'school-profile', label: 'Profil Sekolah', icon: 'school', to: { name: 'admin-school-profile' }, roles: ['ADMIN'] },
   { name: 'subjects', label: 'Mata Pelajaran', icon: 'menu_book', to: { name: 'admin-subjects' }, roles: ['ADMIN'] },
   { name: 'classes', label: 'Kelas / Rombel', icon: 'class', to: { name: 'admin-classes' }, roles: ['ADMIN'] },
+  { name: 'rooms', label: 'Ruang Ujian', icon: 'meeting_room', to: { name: 'admin-rooms' }, roles: ['ADMIN'] },
   { name: 'teachers', label: 'Guru & Proctor', icon: 'supervisor_account', to: { name: 'admin-teachers' }, roles: ['ADMIN'] },
   { name: 'students', label: 'Siswa', icon: 'groups', to: { name: 'admin-students' }, roles: ['ADMIN'] },
   { name: 'examTypes', label: 'Jenis Ujian', icon: 'assignment', to: { name: 'admin-exam-types' }, roles: ['ADMIN'] },
@@ -335,6 +336,7 @@ const getBreadcrumbLabel = computed(() => {
     'admin-archive': 'Archive Semester',
     'admin-cetak-dokumen': 'Cetak Dokumen Ujian',
     'admin-cetak-kartu-ujian': 'Kartu Ujian',
+    'admin-rooms': 'Ruang Ujian',
   }
   return nameMap[route.name] || route.name || 'Page'
 })

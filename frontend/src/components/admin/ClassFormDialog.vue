@@ -44,6 +44,27 @@
             Kosongkan jika belum ada wali kelas
           </template>
         </q-select>
+        <q-select v-model="localForm.ruang_id" :options="ruangOptions" label="Ruang Ujian (opsional)" outlined dense
+          emit-value map-options clearable use-input input-debounce="200">
+          <template v-slot:prepend>
+            <q-icon name="meeting_room" />
+          </template>
+          <template v-slot:hint>
+            Ruang default untuk pelaksanaan ujian kelas ini
+          </template>
+        </q-select>
+        <q-banner v-if="ruangConflictInfo" dense rounded class="bg-orange-1 text-orange-9 q-mt-sm">
+          <template v-slot:avatar>
+            <q-icon name="warning" color="orange" />
+          </template>
+          <div class="text-caption">
+            <b>Ruang ini sedang digunakan oleh {{ ruangConflictInfo.count }} kelas lain:</b>
+            {{ ruangConflictInfo.names }}.
+          </div>
+          <div class="text-caption">
+            Pastikan jadwal ujian tidak bentrok. Untuk sekarang boleh dilanjutkan.
+          </div>
+        </q-banner>
       </q-card-section>
 
       <q-card-actions align="right" class="q-pb-md q-pr-md">
@@ -68,6 +89,9 @@ const props = defineProps({
   jenisRombelOptions: { type: Array, default: () => [] },
   teacherOptions: { type: Array, default: () => [] },
   showProgramKeahlian: Boolean,
+  ruangOptions: { type: Array, default: () => [] },
+  classList: { type: Array, default: () => [] },
+  editingId: { type: [String, Number], default: null },
 })
 
 const emit = defineEmits(['update:modelValue', 'submit'])
@@ -79,6 +103,7 @@ const EMPTY = {
   jenis_rombel: 'REGULER',
   program_keahlian_id: null,
   wali_kelas_id: null,
+  ruang_id: null,
 }
 
 const isOpen = ref(false)
@@ -110,6 +135,16 @@ const canSubmitInternal = computed(() => {
   if (props.isEditing && !isDirty.value) return false
   return true
 })
-
+const ruangConflictInfo = computed(() => {
+  if (!localForm.ruang_id) return null
+  const conflicts = props.classList.filter(
+    (c) => c.ruang_id === localForm.ruang_id && c.id !== props.editingId,
+  )
+  if (conflicts.length === 0) return null
+  return {
+    count: conflicts.length,
+    names: conflicts.map((c) => c.nama).join(', '),
+  }
+})
 const onSubmit = () => emit('submit', { ...localForm })
 </script>

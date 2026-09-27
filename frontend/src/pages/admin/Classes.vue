@@ -108,9 +108,11 @@
     </q-card>
 
     <!-- Dialogs -->
-    <ClassFormDialog v-model="dialogOpen" :is-editing="isEditing" :initial-form="initialForm" :submitting="submitting"
-      :tingkat-options="tingkatOptions" :kurikulum-options="kurikulumOptions" :jenis-rombel-options="jenisRombelOptions"
-      :teacher-options="teacherOptions" :show-program-keahlian="showProgramKeahlian" @submit="submitForm" />
+    <ClassFormDialog v-model="dialogOpen" :is-editing="isEditing" :editing-id="editingId" :initial-form="initialForm"
+      :submitting="submitting" :tingkat-options="tingkatOptions" :kurikulum-options="kurikulumOptions"
+      :jenis-rombel-options="jenisRombelOptions" :teacher-options="teacherOptions"
+      :show-program-keahlian="showProgramKeahlian" :ruang-options="ruangOptions" :class-list="filteredClasses"
+      @submit="submitForm" />
 
     <ClassImportDialog v-model="importDialogOpen" :import-step="importStep" :import-preview="importPreview"
       :import-errors="importErrors" :importing="importing" :downloading-template="downloadingTemplate"
@@ -125,6 +127,8 @@ import { useQuasar } from 'quasar'
 import { useClasses } from '@/composables/admin/useClasses'
 import ClassFormDialog from '@/components/admin/ClassFormDialog.vue'
 import ClassImportDialog from '@/components/admin/ClassImportDialog.vue'
+import { onMounted, ref } from 'vue'
+import { RoomService } from '@/services/admin/RoomService'
 
 const $q = useQuasar()
 
@@ -141,7 +145,7 @@ const {
   teacherOptions,
   showProgramKeahlian,
   dialogOpen,
-  isEditing,
+  isEditing, editingId,
   initialForm,
   submitting,
   openCreateDialog,
@@ -165,10 +169,11 @@ const {
 const columns = [
   { name: 'nama', label: 'Nama Kelas', field: 'nama', align: 'left', style: 'min-width: 160px' },
   { name: 'tingkat', label: 'Tingkat', field: 'tingkat', align: 'center', style: 'width: 100px' },
-  { name: 'kurikulum', label: 'Kurikulum', field: 'kurikulum', align: 'center', style: 'width: 110px' },
   { name: 'jenis_rombel', label: 'Jenis', field: 'jenis_rombel', align: 'center', style: 'width: 120px' },
-  { name: 'wali_kelas_nama', label: 'Wali Kelas', field: 'wali_kelas_nama', align: 'left', style: 'min-width: 180px' },
+  { name: 'ruang_nama', label: 'Ruang', field: 'ruang_nama', align: 'center', style: 'width: 100px' },
   { name: 'jumlah_siswa', label: 'Siswa', field: 'jumlah_siswa', align: 'center', style: 'width: 100px' },
+  { name: 'kurikulum', label: 'Kurikulum', field: 'kurikulum', align: 'center', style: 'width: 110px' },
+  { name: 'wali_kelas_nama', label: 'Wali Kelas', field: 'wali_kelas_nama', align: 'left', style: 'min-width: 180px' },
   { name: 'actions', label: 'Aksi', align: 'center', style: 'width: 110px' },
 ]
 
@@ -191,4 +196,18 @@ const confirmDelete = (row) => {
     await deleteClass(row)
   })
 }
+
+const ruangOptions = ref([])
+
+onMounted(async () => {
+  try {
+    const res = await RoomService.list()
+    ruangOptions.value = (res.data?.data || []).map((r) => ({
+      label: `${r.nama} — ${r.gedung || '-'} (Lt.${r.lantai || '-'})`,
+      value: r.id,
+    }))
+  } catch (e) {
+    console.error('[Classes] load rooms failed:', e)
+  }
+})
 </script>

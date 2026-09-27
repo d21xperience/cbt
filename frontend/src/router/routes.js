@@ -128,6 +128,11 @@ const routes = [
         component: () => import('@/pages/admin/Lessons.vue'),
       },
       {
+        path: 'references/rooms',
+        name: 'admin-rooms',
+        component: () => import('@/pages/admin/Rooms.vue'),
+      },
+      {
         path: 'makeup',
         name: 'admin-makeup',
         component: () => import('@/pages/admin/MakeupExams.vue'),

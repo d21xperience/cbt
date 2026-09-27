@@ -30,6 +30,8 @@ import { examsHandlers, resetExamsMockData } from './handlers/examsHandlers'
 import { makeupHandlers, resetMakeupMockData } from './handlers/makeupHandlers'
 import { questionCrudHandlers, resetQuestionCrudMockData } from './handlers/questionCrudHandlers'
 import { cardsHandlers, resetCardsMockData } from './handlers/cardsHandlers'
+import { roomsHandlers, resetRoomsMockData } from './handlers/roomsHandlers'
+import { examSchedulesHandlers, resetExamSchedulesMockData } from './handlers/examSchedulesHandlers'
 
 import {
   infrastructureHandlers,
@@ -58,6 +60,8 @@ if (typeof window !== 'undefined') {
   window.resetMakeupMockData = resetMakeupMockData
   window.resetQuestionCrudMockData = resetQuestionCrudMockData
   window.resetCardsMockData = resetCardsMockData
+  window.resetRoomsMockData = resetRoomsMockData
+  window.resetExamSchedulesMockData = resetExamSchedulesMockData
 }
 
 const mountMockRibbon = () => {
@@ -116,6 +120,8 @@ export const setupMockInterceptor = (api) => {
   makeupHandlers(mock)
   questionCrudHandlers(mock)
   cardsHandlers(mock)
+  roomsHandlers(mock)
+  examSchedulesHandlers(mock)
   // =====================================
   // Pass-through
   mock.onAny().passThrough()

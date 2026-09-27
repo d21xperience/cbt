@@ -12,6 +12,8 @@ export const mockClasses = [
     wali_kelas_id: 'tch-001',
     wali_kelas_nama: 'Mira Surtiningsih',
     jumlah_siswa: 24,
+    ruang_id: 'room-001', // ← TAMBAH
+    ruang_nama: 'R01', // ← TAMBAH
   },
   {
     id: 'cls-002',
@@ -23,6 +25,8 @@ export const mockClasses = [
     wali_kelas_id: 'tch-002',
     wali_kelas_nama: 'Sri Murti',
     jumlah_siswa: 23,
+    ruang_id: 'room-002', // ← TAMBAH
+    ruang_nama: 'R02', // ← TAMBAH
   },
   {
     id: 'cls-003',
@@ -34,6 +38,8 @@ export const mockClasses = [
     wali_kelas_id: 'tch-003',
     wali_kelas_nama: 'Fia Sri Mulyati',
     jumlah_siswa: 22,
+    ruang_id: 'room-003', // ← TAMBAH
+    ruang_nama: 'R03', // ← TAMBAH
   },
   {
     id: 'cls-004',
@@ -45,6 +51,8 @@ export const mockClasses = [
     wali_kelas_id: null,
     wali_kelas_nama: null,
     jumlah_siswa: 26,
+    ruang_id: 'room-004', // ← TAMBAH
+    ruang_nama: 'R04', // ← TAMBAH
   },
   {
     id: 'cls-005',
@@ -56,6 +64,8 @@ export const mockClasses = [
     wali_kelas_id: 'tch-004',
     wali_kelas_nama: 'Ika Prasetya Ningsih',
     jumlah_siswa: 21,
+    ruang_id: 'room-005', // ← TAMBAH
+    ruang_nama: 'R05', // ← TAMBAH
   },
   {
     id: 'cls-006',
@@ -67,6 +77,8 @@ export const mockClasses = [
     wali_kelas_id: null,
     wali_kelas_nama: null,
     jumlah_siswa: 25,
+    ruang_id: 'room-006', // ← TAMBAH
+    ruang_nama: 'R06', // ← TAMBAH
   },
   {
     id: 'cls-007',
@@ -78,6 +90,8 @@ export const mockClasses = [
     wali_kelas_id: 'tch-005',
     wali_kelas_nama: 'Ahmad Yani',
     jumlah_siswa: 32,
+    ruang_id: 'room-007', // ← TAMBAH
+    ruang_nama: 'R07', // ← TAMBAH
   },
   {
     id: 'cls-008',
@@ -89,6 +103,8 @@ export const mockClasses = [
     wali_kelas_id: null,
     wali_kelas_nama: null,
     jumlah_siswa: 30,
+    ruang_id: 'room-008', // ← TAMBAH
+    ruang_nama: 'R08', // ← TAMBAH
   },
   {
     id: 'cls-009',
@@ -100,6 +116,8 @@ export const mockClasses = [
     wali_kelas_id: 'tch-006',
     wali_kelas_nama: 'Siti Aminah',
     jumlah_siswa: 28,
+    ruang_id: 'room-009', // ← TAMBAH
+    ruang_nama: 'R09', // ← TAMBAH
   },
   {
     id: 'cls-010',
@@ -111,6 +129,8 @@ export const mockClasses = [
     wali_kelas_id: null,
     wali_kelas_nama: null,
     jumlah_siswa: 29,
+    ruang_id: 'room-010', // ← TAMBAH
+    ruang_nama: 'R10', // ← TAMBAH
   },
   {
     id: 'cls-011',
@@ -122,6 +142,8 @@ export const mockClasses = [
     wali_kelas_id: null,
     wali_kelas_nama: null,
     jumlah_siswa: 27,
+    ruang_id: 'room-011', // ← TAMBAH
+    ruang_nama: 'R11', // ← TAMBAH
   },
   {
     id: 'cls-012',
@@ -133,6 +155,8 @@ export const mockClasses = [
     wali_kelas_id: null,
     wali_kelas_nama: null,
     jumlah_siswa: 18,
+    ruang_id: 'room-012', // ← TAMBAH
+    ruang_nama: 'R12', // ← TAMBAH
   },
 ]
 

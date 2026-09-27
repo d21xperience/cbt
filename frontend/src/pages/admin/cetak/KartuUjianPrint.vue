@@ -58,9 +58,7 @@
       </template>
       <template #body-cell-device="props">
         <q-td :props="props">
-          <span v-if="props.row.device_fingerprint" class="text-caption text-positive">
-            Terikat
-          </span>
+          <span v-if="props.row.device_fingerprint" class="text-caption text-positive">Terikat</span>
           <span v-else class="text-caption text-grey-6">—</span>
         </q-td>
       </template>
@@ -87,7 +85,7 @@
         <q-card-section class="text-h6">Buat Kartu Baru</q-card-section>
         <q-card-section class="q-gutter-md">
           <q-select v-model="form.student" :options="studentOptions" label="Pilih Siswa" option-label="label" emit-value
-            map-options outlined dense />
+            map-options outlined dense :loading="loadingRefs" />
           <q-select v-model="form.card_type" :options="typeOptions" label="Tipe Kartu" emit-value map-options outlined
             dense />
           <template v-if="form.card_type === 'TEMPORARY'">
@@ -114,19 +112,25 @@
 import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { ExamCardService } from '@/services/admin/ExamCardService'
+import { StudentService } from '@/services/admin/StudentService'
+import { SchoolProfileService } from '@/services/admin/SchoolProfileService'
+import { ExamService } from '@/services/admin/ExamService'
 import { useExamCardPrint } from '@/composables/admin/useExamCardPrint'
-import { mockStudents } from '@/mocks/data/studentsData'
-import { mockSchoolProfiles } from '@/mocks/data/schoolProfileData'
 import { getTenantSlug } from '@/utils/tenant'
-import { mockExamsFull } from '@/mocks/data/examsData'
 
 const $q = useQuasar()
 const { printing, printCards } = useExamCardPrint()
 
+// ── State
 const rows = ref([])
 const selected = ref([])
 const loading = ref(false)
-const examsForPrint = computed(() => mockExamsFull)
+const loadingRefs = ref(false)
+
+// Reference data (via service)
+const students = ref([])
+const schoolProfile = ref({})
+const exams = ref([])
 
 const filters = ref({
   search: '',
@@ -159,23 +163,57 @@ const columns = [
 ]
 
 const studentOptions = computed(() =>
-  mockStudents
+  students.value
     .filter((s) => s.status === 'AKTIF')
     .map((s) => ({ label: `${s.nama} (${s.kelas_nama})`, value: s.id, ...s })),
 )
 
 const classOptions = computed(() => {
   const set = new Map()
-  mockStudents.forEach((s) => set.set(s.kelas_id, s.kelas_nama))
+  students.value.forEach((s) => {
+    if (s.kelas_id) set.set(s.kelas_id, s.kelas_nama)
+  })
   return Array.from(set, ([value, label]) => ({ label, value }))
 })
 
 const statusColor = (s) =>
   s === 'ACTIVE' ? 'positive' : s === 'EXPIRED' ? 'warning' : 'negative'
 
-const tenantSlug = computed(() => getTenantSlug() || 'smkpasja')
-const schoolProfile = computed(() => mockSchoolProfiles[tenantSlug.value] || {})
+const tenantSlug = computed(() => getTenantSlug() || '')
 
+// ── Load reference data
+const loadReferences = async () => {
+  loadingRefs.value = true
+  try {
+    const [stuRes, schoolRes, examRes] = await Promise.allSettled([
+      StudentService.list(),
+      SchoolProfileService.getProfile(),
+      ExamService.list(),
+    ])
+
+    if (stuRes.status === 'fulfilled') {
+      students.value = stuRes.value.data?.data || stuRes.value.data || []
+    } else {
+      console.warn('[KartuUjian] load students failed', stuRes.reason)
+    }
+
+    if (schoolRes.status === 'fulfilled') {
+      schoolProfile.value = schoolRes.value.data?.data || schoolRes.value.data || {}
+    } else {
+      console.warn('[KartuUjian] load school profile failed', schoolRes.reason)
+    }
+
+    if (examRes.status === 'fulfilled') {
+      exams.value = examRes.value.data?.data || examRes.value.data || []
+    } else {
+      console.warn('[KartuUjian] load exams failed', examRes.reason)
+    }
+  } finally {
+    loadingRefs.value = false
+  }
+}
+
+// ── Load cards
 const reload = async () => {
   loading.value = true
   try {
@@ -195,12 +233,13 @@ const reload = async () => {
   }
 }
 
+// ── Print
 const onPrintSingle = async (card) => {
   await printCards({
     cards: [card],
     school: schoolProfile.value,
     tenant: tenantSlug.value,
-    exams: examsForPrint.value,
+    exams: exams.value,
     mode: 'open',
   })
 }
@@ -210,22 +249,22 @@ const onPrintSelected = async () => {
     cards: selected.value,
     school: schoolProfile.value,
     tenant: tenantSlug.value,
-    exams: examsForPrint.value,
+    exams: exams.value,
     mode: 'open',
   })
 }
-
 
 const onDownloadSelected = async () => {
   await printCards({
     cards: selected.value,
     school: schoolProfile.value,
     tenant: tenantSlug.value,
-    exams: examsForPrint.value,
+    exams: exams.value,
     mode: 'download',
   })
 }
 
+// ── Device & Revoke
 const onResetDevice = (card) => {
   $q.dialog({
     title: 'Reset Device Binding',
@@ -275,7 +314,11 @@ const onCreate = async () => {
     $q.notify({ type: 'negative', message: 'Pilih siswa' })
     return
   }
-  const s = mockStudents.find((x) => x.id === form.value.student)
+  const s = students.value.find((x) => x.id === form.value.student)
+  if (!s) {
+    $q.notify({ type: 'negative', message: 'Data siswa tidak ditemukan' })
+    return
+  }
   creating.value = true
   try {
     await ExamCardService.create({
@@ -295,5 +338,8 @@ const onCreate = async () => {
   }
 }
 
-onMounted(reload)
+onMounted(async () => {
+  await loadReferences()
+  reload()
+})
 </script>

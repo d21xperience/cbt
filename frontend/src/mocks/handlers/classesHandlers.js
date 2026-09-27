@@ -2,7 +2,7 @@
 import { mockClasses, mockClassesTemplateCSV } from '../data/classesData'
 import { mockTeachers } from '../data/teachersData' // ← FIX: pakai teachersData
 import { cloneMock } from '../data/keahlianData'
-
+import { mockRooms } from '../data/roomsData'
 const DELAY = 300
 
 let classes = cloneMock(mockClasses)
@@ -17,7 +17,11 @@ const deriveWaliNama = (waliId) => {
   const t = mockTeachers.find((x) => x.id === waliId)
   return t ? t.nama : null
 }
-
+const deriveRuangNama = (ruangId) => {
+  if (!ruangId) return null
+  const r = mockRooms.find((x) => x.id === ruangId)
+  return r ? r.nama : null
+}
 export const classesHandlers = (mock) => {
   // ── Template download
   mock.onGet('/admin/classes/template').reply(() => {
@@ -65,6 +69,8 @@ export const classesHandlers = (mock) => {
       wali_kelas_id: body.wali_kelas_id || null,
       wali_kelas_nama: deriveWaliNama(body.wali_kelas_id),
       jumlah_siswa: 0,
+      ruang_id: body.ruang_id || null, // ← TAMBAH
+      ruang_nama: deriveRuangNama(body.ruang_id),
     }
     classes.unshift(newClass)
     return [201, { status: 'ok', data: newClass }, { delay: DELAY }]
@@ -96,6 +102,7 @@ export const classesHandlers = (mock) => {
       ...body,
       id,
       wali_kelas_nama: deriveWaliNama(body.wali_kelas_id ?? classes[idx].wali_kelas_id),
+      ruang_nama: deriveRuangNama(body.ruang_id ?? classes[idx].ruang_id), // ← TAMBAH
     }
     return [200, { status: 'ok', data: classes[idx] }, { delay: DELAY }]
   })
@@ -194,6 +201,8 @@ export const classesHandlers = (mock) => {
         wali_kelas_id: null,
         wali_kelas_nama: r.wali_kelas_nama || null,
         jumlah_siswa: 0,
+        ruang_id: null, // ← TAMBAH
+        ruang_nama: null,
       })
       imported += 1
     })
