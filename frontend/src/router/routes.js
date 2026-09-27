@@ -223,6 +223,17 @@ const routes = [
         component: () => import('@/pages/admin/cetak/BeritaAcaraPrint.vue'),
         meta: { allowedRoles: ['ADMIN', 'SUPER_ADMIN'] },
       },
+      {
+        path: 'sessions',
+        name: 'admin-sessions',
+        component: () => import('@/pages/admin/Sessions.vue'),
+      },
+      {
+        path: 'sessions/:id',
+        name: 'admin-session-detail',
+        component: () => import('@/pages/admin/SessionDetail.vue'),
+        meta: { allowedRoles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'] },
+      },
     ],
   },
   // STUDENT

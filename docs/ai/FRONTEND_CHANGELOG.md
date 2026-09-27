@@ -301,3 +301,45 @@ NONE / [describe]
 - Nomor BA otomatis (increment per tenant)
 - Export BA terisi (setelah pengawas input digital)
 - Template conditional per jenis ujian
+## [2b-3-C1] — 2026-09-27 — Sesi Ujian (Monitoring Pelaksanaan)
+
+### Added
+
+**C1a — Foundation + List:**
+- Halaman `/admin/sessions` — list sesi dengan filter (search, tanggal, ruang, status, jenis ujian)
+- Stats bar: total, terjadwal, berlangsung, selesai
+- **Auto-generate sesi** dari jadwal × detail kelas (silent on load)
+- **Tombol "Sync Ulang"** — manual trigger generate
+- Service: `SessionService` (list/get/update/sync)
+- Composable: `useSessionsMonitoring`
+- Mock: `sessionsData.js`, `sessionsHandlers.js` (auto-generate + token 6-char)
+- Sesi demo (`mockSessionSeeds`) — 4 status berbeda (SCHEDULED/ACTIVE/PAUSED/COMPLETED) untuk showcase
+
+**C1b — Aksi Control:**
+- Start manual / Pause / Resume / End
+- Extend waktu (preset 5/10/15/30 + custom)
+- Force Submit (semua peserta)
+- Regenerate token per sesi
+- Double confirm untuk End (ketik "AKHIRI") & Force Submit (ketik "FORCE")
+- Pause → Resume otomatis hitung durasi pause → tambah ke `extended_minutes`
+- Tombol conditional by status (hanya aksi valid yang tampil)
+
+**C1c — Monitoring Detail:**
+- Halaman `/admin/sessions/:id` — detail monitoring per sesi
+- 3 tab: **Peserta** (progress bar per siswa), **Pelanggaran** (WARN/BLOCK), **Aktivitas** (timeline)
+- Stats granular: total, belum mulai, aktif, selesai, terblokir, pelanggaran
+- **Auto-refresh** via polling (default 30 detik, toggle on/off)
+- Aksi control reuse C1b di halaman detail
+- Mock generator deterministik (`sessionActivitiesData.js`) — hash + LCG random
+- Composable: `useSessionDetail`
+
+### Changed
+- `Sessions.vue` refactor total — buang dependency `useAdminStore` yang broken (tidak ada `fetchSessions`)
+- Route baru: `admin-session-detail` (`/admin/sessions/:id`)
+
+### Deferred
+- Real-time via WebSocket (masih polling)
+- Aksi granular per peserta (unlock individual, hapus pelanggaran)
+- Export data sesi (Excel)
+- Auto-archive sesi selesai
+- Notifikasi real-time ke proctor saat ada pelanggaran

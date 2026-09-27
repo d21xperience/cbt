@@ -9,6 +9,9 @@ export const resetExamSchedulesMockData = () => {
   schedules = cloneMock(mockExamSchedules)
 }
 
+// ── Expose untuk handler lain (sessionsHandlers)
+export const getSchedules = () => cloneMock(schedules)
+
 export const examSchedulesHandlers = (mock) => {
   // ── LIST
   mock.onGet('/admin/exam-schedules').reply((config) => {

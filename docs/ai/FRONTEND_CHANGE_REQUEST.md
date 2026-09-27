@@ -421,3 +421,60 @@ created_at
 - BA digital (pengawas input langsung di sistem, TTD elektronik)
 - Notifikasi pending BA yang belum di-submit
 - Export Excel data BA terisi
+## CR-SESSION — Sesi Ujian Runtime Monitoring
+
+**Status:** Draft (deferred — frontend mock dulu)
+**Konteks:** Sesi runtime = instance dari jadwal × detail kelas. Auto-generate dari jadwal.
+
+### Endpoints dibutuhkan
+
+#### 1. Sesi CRUD
+- `GET    /admin/sessions?search=&tanggal=&ruang=&status=&jenis_ujian_id=`
+- `GET    /admin/sessions/{id}`
+- `PUT    /admin/sessions/{id}`
+- `POST   /admin/sessions/sync` — generate sesi baru dari jadwal (return `{ created, total }`)
+
+#### 2. Aksi Control
+- `POST   /admin/sessions/{id}/start`
+- `POST   /admin/sessions/{id}/pause`
+- `POST   /admin/sessions/{id}/resume`
+- `POST   /admin/sessions/{id}/end`
+- `POST   /admin/sessions/{id}/extend` — `{ minutes }`
+- `POST   /admin/sessions/{id}/force-submit`
+- `POST   /admin/sessions/{id}/regenerate-token`
+
+#### 3. Detail Monitoring
+- `GET    /admin/sessions/{id}/participants` — list siswa + status + progress
+- `GET    /admin/sessions/{id}/violations` — log pelanggaran
+- `GET    /admin/sessions/{id}/activities` — activity log/timeline
+
+### Skema Session
+{
+id, schedule_id, class_id, class_nama,
+subject_id, subject_kode, subject_nama, tingkat,
+tanggal, jam_mulai, durasi_menit,
+ruang_id, ruang_nama,
+pengawas_ids: [], pengawas_namas: [],
+jenis_ujian_id, jenis_ujian_kode,
+token (6-char uppercase),
+status ('SCHEDULED' | 'ACTIVE' | 'PAUSED' | 'COMPLETED'),
+actual_start, actual_end, paused_at,
+extended_minutes,
+participant_count, active_count, completed_count,
+created_at
+}
+
+### Business Rules
+- Sesi auto-generate dari jadwal × detail kelas (1 detail = 1 sesi)
+- `token` 6-char alfanumerik uppercase, exclude I/O/0/1
+- Status auto-escalate by time (`SCHEDULED → ACTIVE → COMPLETED`), kecuali yang di-override manual (`PAUSED` / manual `COMPLETED`)
+- `extended_minutes` akumulatif (pause duration + manual extend)
+- Force submit → `completed_count = participant_count`, status `COMPLETED`
+- Auto-generate skip sesi yang sudah ada (key: `schedule_id::class_id`)
+
+### Deferred
+- WebSocket untuk real-time monitoring
+- Auto-archive sesi selesai (setelah N hari)
+- Notifikasi push ke proctor saat pelanggaran
+- Unlock individual peserta (per siswa)
+- Export Excel log pelanggaran
