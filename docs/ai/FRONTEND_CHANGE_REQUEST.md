@@ -281,6 +281,7 @@ created_at
 - CR-CARD-SIGNATURE — endpoint `/verify/card/...`
 - CR-CARD-CRUD — endpoint `/admin/cards/*`
 - VER-CARD — migrasi kartu dari mock → DB
+
 ## CR-SCHEDULE — Jadwal Ujian Backend
 
 **Status:** Draft (deferred — frontend mock dulu)
@@ -289,22 +290,26 @@ created_at
 ### Endpoints dibutuhkan
 
 #### 1. ExamSchedule CRUD
+
 - `GET    /admin/exam-schedules?search=&jenis_ujian_id=&tingkat=&tanggal=`
 - `POST   /admin/exam-schedules/batch` — { rows: [...] }
 - `PUT    /admin/exam-schedules/{id}` — { tanggal, jam_mulai, durasi_menit, details }
 - `DELETE /admin/exam-schedules/{id}`
 
 #### 2. Room CRUD
+
 - `GET    /admin/rooms?search=&gedung=`
 - `POST   /admin/rooms`
 - `PUT    /admin/rooms/{id}`
 - `DELETE /admin/rooms/{id}`
 
 #### 3. Class — field tambahan
+
 - `ruang_id` (string, nullable) — referensi ke master ruang
 - `ruang_nama` (denormalized)
 
 ### Skema ExamSchedule
+
 id, jenis_ujian_id, jenis_ujian_kode,
 academic_year, semester,
 tingkat, // mapel berlaku untuk SEMUA kelas tingkat + jurusan
@@ -319,13 +324,37 @@ status ('DRAFT' | 'ACTIVE' | 'DONE'),
 created_at
 
 ### Business Rules
+
 - **Model per-tingkat × waktu**: 1 entry jadwal berlaku untuk N kelas yang match tingkat + jurusan. FE tidak simpan per kelas di header — split di `details`.
 - **Konflik ruang**: pada tanggal + jam yang sama, 1 ruang tidak boleh dipakai 2 kelas (validasi server-side, soft-warning frontend).
 - **Auto-assign pengawas**: round-robin di frontend (bisa dimigrasi ke backend nanti).
 - **Distribusi kelas**: filter `classes WHERE tingkat = X AND (jurusan_id IS NULL OR program_keahlian_id = jurusan_id)`.
 
 ### Deferred
+
 - Import CSV jadwal
 - Export Excel
 - Auto-scheduler (constraint-based)
 - Notifikasi bentrok ke admin
+
+## CR-PROCTOR-LIST — Daftar Pengawas (Backend)
+
+**Status:** Draft (deferred — frontend mock dulu)
+**Konteks:** Dokumen cetak Daftar Pengawas per hari/ruang — kelengkapan administrasi ujian.
+
+### Endpoint dibutuhkan
+
+- `GET /admin/proctor-list?tanggal=&ruang=&jenis_ujian_id=`
+  - Response: array flat `{ no, ruang_nama, class_nama, subject_nama, jam_mulai, durasi_menit, pengawas_namas: [..] }`
+  - **Atau** frontend flatten sendiri dari `GET /admin/exam-schedules` (current approach — cukup)
+
+### Field school profile tambahan (opsional)
+
+- `ketua_panitia_nama` — untuk tanda tangan kolom kanan di PDF
+- `ketua_panitia_nip`
+
+### Business Rules
+
+- Dokumen **tidak default filter tanggal** — tampil semua jadwal sebagai kelengkapan administrasi
+- Tanda tangan 2 kolom: **Kepala Sekolah** + **Ketua Panitia**
+- Pengawas kosong → label "Belum di-assign" (italic abu)

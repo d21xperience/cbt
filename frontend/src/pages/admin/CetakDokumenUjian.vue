@@ -46,10 +46,11 @@ const docs = [
   {
     key: 'daftar-pengawas',
     label: 'Daftar Pengawas',
-    desc: 'Daftar pengawas per hari (2b-3b)',
+    desc: 'Daftar pengawas per hari & ruang (landscape)',
     icon: 'supervisor_account',
     color: 'deep-purple',
-    ready: false,
+    ready: true,
+    to: { name: 'admin-cetak-daftar-pengawas' },
   },
   {
     key: 'berita-acara',

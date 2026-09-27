@@ -205,6 +205,12 @@ const routes = [
         component: () => import('@/pages/admin/cetak/KartuUjianPrint.vue'),
         meta: { allowedRoles: ['ADMIN', 'SUPER_ADMIN'] },
       },
+      {
+        path: 'cetak-dokumen/daftar-pengawas',
+        name: 'admin-cetak-daftar-pengawas',
+        component: () => import('@/pages/admin/cetak/DaftarPengawasPrint.vue'),
+        meta: { allowedRoles: ['ADMIN', 'SUPER_ADMIN'] },
+      },
     ],
   },
   // STUDENT

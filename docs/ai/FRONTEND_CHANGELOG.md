@@ -139,9 +139,11 @@ NONE / [describe]
 - Denah Duduk (2b-3d)
 - Aturan Ujian (2b-3e)
 - Export + Share (2b-3f)
+
 ## [2b-3a + 2b-3a-1] — 2026-09-27 — Kartu Ujian + Menu Cetak Dokumen Ujian
 
 ### Added
+
 - **Menu baru "Cetak Dokumen Ujian"** di section Manajemen Ujian
 - Halaman hub `/admin/cetak-dokumen` (5 dokumen: Kartu Ujian, Daftar Pengawas, Berita Acara, Denah Duduk, Aturan Ujian)
 - Halaman `/admin/cetak-dokumen/kartu-ujian` — Kartu Ujian (list, filter, create, print, revoke, reset-device)
@@ -151,6 +153,7 @@ NONE / [describe]
 - Template PDF: `cardTemplatePdf.js` (pdfmake, CR80, 10/A4)
 
 ### Security — QR Login (P1–P4 locked)
+
 - QR opaque token 32-hex-char — mengganti `SERIAL:xxx` lama
 - Format URL: `{origin}/qr/{token}` (bukan NIS + password)
 - Device binding hybrid (bind di login pertama, admin reset via tombol)
@@ -160,6 +163,7 @@ NONE / [describe]
 - Signature QR (kecil, di footer) = verifikasi keaslian kartu
 
 ### Changed
+
 - Kartu Ujian: buang `localStorage` (`exam_cards`, `appData`, `exam_data`) → pakai Service + Mock
 - Print engine: `window.open` → **pdfmake** (PDF native, tajam)
 - Layout: blok 350px → CR80 grid 2×5 = 10 kartu/A4
@@ -169,20 +173,24 @@ NONE / [describe]
 - Duplex flip long-edge: kolom belakang di-mirror
 
 ### Deferred (Backend)
+
 - Endpoint QR login: `POST /qr/login`, `POST /admin/cards/{id}/qr/regenerate`
 - Halaman `/qr/:token` di frontend (2b-3a-2)
 - Halaman `/verify/card/:cardNumber` untuk signature QR
 - Migrasi kartu dari mock → API backend (VER-CARD)
 
 ### Next
+
 - 2b-3b — Daftar Pengawas (per hari)
 - 2b-3c — Berita Acara (editable template)
 - 2b-3d — Denah Duduk (editor + print)
 - 2b-3e — Aturan Ujian (master baru)
 - 2b-3f — Export + Share
+
 ## [2b-3-jadwal] — 2026-09-27 — Jadwal Ujian (Wizard + Print) + Refactor Arsitektur
 
 ### Added
+
 - **Master Ruang Ujian** di Data Referensi (`/admin/references/rooms`)
   - CRUD lengkap: nama, gedung, lantai, kapasitas, keterangan, aktif
   - Soft warning di `ClassFormDialog` saat ruang dipakai kelas lain
@@ -201,17 +209,20 @@ NONE / [describe]
 - Template PDF: `src/utils/pdf/examScheduleTemplatePdf.js`
 
 ### Changed
+
 - **`ExamManagement.vue` refactor total** — dari prototipe `super/ExamScheduleManagement` → wizard 4 langkah sesuai model per-tingkat × waktu
 - **`useClasses.js`** — tambah `ruang_id` di EMPTY_FORM + `openEditDialog`
 - **`ClassFormDialog.vue`** — tambah field Ruang Ujian + soft warning konflik (props `ruangOptions`, `classList`, `editingId`)
 - **`classesData.js` + `classesHandlers.js`** — field `ruang_id`, `ruang_nama` + derive ruang nama
 
 ### Refactor — Arsitektur (Opsi A)
+
 - **Hapus semua import `@/mocks/*`** dari `pages/`, `composables/`, `components/`
 - Semua data via Service (`StudentService`, `TeacherService`, `ClassService`, `RoomService`, `SubjectService`, `ExamTypeService`, `SchoolProfileService`, `ExamService`, `ProgramKeahlianService`, `ExamScheduleService`)
 - Helper murni dipindah ke `src/utils/exam/scheduleHelpers.js` (tidak lagi di `mocks/data/`)
 
 ### Deferred
+
 - Import/Export CSV jadwal ujian
 - Denah Duduk (2b-3d)
 - Daftar Pengawas (2b-3b) — **data `details` sudah siap**
@@ -220,9 +231,38 @@ NONE / [describe]
 ## [refactor-arch] — 2026-09-27 — Bersihkan Import Mock dari Layer UI
 
 ### Fixed
+
 - `KartuUjianPrint.vue` — ganti `mockStudents`/`mockSchoolProfiles`/`mockExamsFull` → `StudentService`/`SchoolProfileService`/`ExamService`
 - `ExamManagement.vue` — ganti `mockExamTypes`/`calcEndTime` → `ExamTypeService`/`@/utils/exam/scheduleHelpers`
 - `ExamScheduleAssignStep.vue` — terima `teachers` via props (tidak import mock)
 
 ### Verification
+
 - `grep -rn "@/mocks/" frontend/src/pages frontend/src/composables frontend/src/components` → hanya komentar, 0 import aktif
+
+## [2b-3b] — 2026-09-27 — Daftar Pengawas Ujian
+
+### Added
+
+- **Halaman Cetak Daftar Pengawas** (`/admin/cetak-dokumen/daftar-pengawas`)
+- **Template PDF landscape** via pdfmake — 8 kolom (No, Ruang, Kelas, Mapel, Jam, Pengawas 1, Pengawas 2, TTD)
+- **TTD 2 kolom**: Kepala Sekolah + Ketua Panitia
+- **Filter opsional**: tanggal, ruang, jenis ujian (default kosong — tampil semua)
+- **Stats bar**: total jadwal, ruang terpakai, pengawas bertugas, belum di-assign
+- Composable `useProctorListPrint`
+- Service auto-load via `SchoolProfileService`, `ExamTypeService`, `ExamScheduleService`
+- **Flatten view**: setiap (jadwal × detail kelas) = 1 baris, sort by jam lalu ruang
+
+### Changed
+
+- Hub `CetakDokumenUjian.vue` — kartu "Daftar Pengawas" **aktif** (dari disabled)
+
+### Edge Case
+
+- Baris tanpa pengawas → italic abu **"Belum di-assign"** (di UI & PDF)
+
+### Deferred
+
+- Ketua Panitia otomatis dari setting (belum ada field)
+- Export Excel
+- Group by ruang (opsi alternatif)
