@@ -211,6 +211,18 @@ const routes = [
         component: () => import('@/pages/admin/cetak/DaftarPengawasPrint.vue'),
         meta: { allowedRoles: ['ADMIN', 'SUPER_ADMIN'] },
       },
+      {
+        path: 'cetak-dokumen/berita-acara-template',
+        name: 'admin-cetak-berita-acara-template',
+        component: () => import('@/pages/admin/cetak/BeritaAcaraTemplateEditor.vue'),
+        meta: { allowedRoles: ['ADMIN'] },
+      },
+      {
+        path: 'cetak-dokumen/berita-acara',
+        name: 'admin-cetak-berita-acara',
+        component: () => import('@/pages/admin/cetak/BeritaAcaraPrint.vue'),
+        meta: { allowedRoles: ['ADMIN', 'SUPER_ADMIN'] },
+      },
     ],
   },
   // STUDENT

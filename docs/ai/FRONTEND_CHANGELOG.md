@@ -266,3 +266,38 @@ NONE / [describe]
 - Ketua Panitia otomatis dari setting (belum ada field)
 - Export Excel
 - Group by ruang (opsi alternatif)
+
+## [2b-3c] — 2026-09-27 — Berita Acara (Master Template + Generate Lembar Isian)
+
+### Added
+
+- **2b-3c-1: Master Template Editor** (`/admin/cetak-dokumen/berita-acara-template`)
+  - Editor rich text (QEditor) untuk paragraf pembuka, sampul, kondisi
+  - Header (judul + 2 sub-judul)
+  - Konfigurasi statistik peserta (label + toggle)
+  - Checklist kejadian dinamis (tambah/hapus/toggle enable)
+  - Toggle tampilkan: daftar siswa, TTD pengawas, TTD kepala, TTD panitia
+  - Simpan per tenant via `X-Tenant-Slug`
+- **2b-3c-2: Generate Lembar Isian** (`/admin/cetak-dokumen/berita-acara`)
+  - Flatten jadwal × detail kelas → 1 baris per BA
+  - Filter: tanggal, ruang, jenis ujian
+  - Cetak single (ikon per baris) / bulk (checkbox + Cetak Terpilih)
+  - PDF portrait A4 — auto-fill data jadwal (hari/tgl/bulan/tahun, mapel, kelas, ruang, jam, pengawas)
+  - Blank field untuk diisi manual: No BA, jumlah peserta, eksemplar sampul, checklist ☐, catatan, TTD
+  - Opsional: halaman daftar hadir siswa + kolom TTD per siswa
+  - TTD blok: Pengawas 1 & 2, Kepala Sekolah, Ketua Panitia
+- Service: `BeritaAcaraService` (getTemplate/saveTemplate)
+- Composable: `useBeritaAcaraTemplate`, `useBeritaAcaraPrint`
+- Template PDF: `beritaAcaraTemplatePdf.js` (portrait, auto-fill + blank form)
+- Mock: `beritaAcaraTemplateData.js` (multi-tenant), `beritaAcaraTemplateHandlers.js`
+
+### Changed
+
+- Hub `CetakDokumenUjian.vue` — kartu "Berita Acara" aktif → ke halaman generate BA
+
+### Deferred
+
+- Render bold/italic dari QEditor di PDF (saat ini jadi plain text)
+- Nomor BA otomatis (increment per tenant)
+- Export BA terisi (setelah pengawas input digital)
+- Template conditional per jenis ujian

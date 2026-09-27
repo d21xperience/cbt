@@ -55,10 +55,11 @@ const docs = [
   {
     key: 'berita-acara',
     label: 'Berita Acara',
-    desc: 'Berita acara pelaksanaan per ruang (2b-3c)',
+    desc: 'Cetak lembar isian BA per jadwal × kelas',
     icon: 'assignment_turned_in',
     color: 'teal',
-    ready: false,
+    ready: true,
+    to: { name: 'admin-cetak-berita-acara' },
   },
   {
     key: 'denah-duduk',

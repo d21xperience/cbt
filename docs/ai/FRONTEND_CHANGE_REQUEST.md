@@ -358,3 +358,66 @@ created_at
 - Dokumen **tidak default filter tanggal** — tampil semua jadwal sebagai kelengkapan administrasi
 - Tanda tangan 2 kolom: **Kepala Sekolah** + **Ketua Panitia**
 - Pengawas kosong → label "Belum di-assign" (italic abu)
+
+## CR-BERITA-ACARA — Berita Acara Template & Generate
+
+**Status:** Draft (deferred — frontend mock dulu)
+**Konteks:** Template BA editable per tenant + generate lembar isian per jadwal × kelas.
+
+### Endpoints dibutuhkan
+
+#### 1. Master Template
+
+- `GET /admin/berita-acara-template` — lookup by X-Tenant-Slug
+- `PUT /admin/berita-acara-template` — update template tenant
+
+#### 2. Generate / Persist BA (opsional)
+
+- `POST /admin/berita-acara/generate` — bulk create instances (untuk nomor BA otomatis)
+- `GET  /admin/berita-acara?tanggal=&ruang=&jenis_ujian_id=` — list BA ter-generate
+- `GET  /admin/berita-acara/{id}` — detail untuk display/print ulang
+- `POST /admin/berita-acara/{id}/submit` — simpan isian terisi (dari pengawas)
+
+### Skema Template
+
+{
+id, header: { judul, subjudul_1, subjudul_2 },
+paragraf_pembuka (html),
+statistik: { enabled, label_peserta, label_hadir, label_tidak_hadir },
+paragraf_sampul (html),
+paragraf_kondisi (html),
+checklist_kejadian: [{ id, label, enabled }],
+label_catatan,
+tampilkan_daftar_siswa, tampilkan_ttd_pengawas, tampilkan_ttd_kepala, tampilkan_ttd_panitia,
+updated_at
+}
+
+### Skema Instance BA (future)
+
+{
+id, nomor_ba (auto-increment per tenant per TA),
+schedule_id, class_id, ruang_id,
+tanggal, jam_mulai, jam_selesai,
+pengawas_ids: [],
+jumlah_peserta_seharusnya, jumlah_hadir, jumlah_tidak_hadir,
+nomor_tidak_hadir: [],
+checklist_checked: [id...],
+catatan_free_text,
+submitted_at, submitted_by,
+created_at
+}
+
+### Business Rules
+
+- Template BA **per tenant** — multi-tenant aware (X-Tenant-Slug)
+- Hanya **ADMIN** yang bisa edit template (SUPER_ADMIN tidak)
+- Blank field di PDF: No BA, jumlah peserta, eksemplar, catatan, TTD signature
+- Auto-fill di PDF: hari, tanggal (angka + bulan + tahun), mapel, kelas, ruang, jam, pengawas
+- Daftar siswa (opsional) — filter kelas_id + status AKTIF
+
+### Deferred
+
+- Nomor BA auto-increment server-side
+- BA digital (pengawas input langsung di sistem, TTD elektronik)
+- Notifikasi pending BA yang belum di-submit
+- Export Excel data BA terisi
