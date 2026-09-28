@@ -1,96 +1,82 @@
 // src/utils/proctoring.js
-// Utility untuk semua fitur proctoring
+// Utility deteksi kecurangan ujian. Semua event → callback violation.
 
 let proctoringActive = false
 let onViolationCallback = null
 let eventListeners = []
+let lockOverlayActive = false
 
-/**
- * Inisialisasi proctoring
- * @param {Function} onViolation - Callback saat pelanggaran terdeteksi
- * @param {string} eventType - Tipe event (TAB_SWITCH, FULLSCREEN_EXIT, COPY_PASTE, dll)
- */
+// Q4: ignore event < 1 detik
+const MIN_VIOLATION_DURATION_MS = 1000
+// Debounce antar violation biar tidak spam (tab switch + blur sering muncul bareng)
+const VIOLATION_DEBOUNCE_MS = 1500
+let lastViolationAt = 0
+
+const addListener = (target, event, handler, options) => {
+  target.addEventListener(event, handler, options)
+  eventListeners.push({ target, event, handler, options })
+}
+
+const reportViolation = (eventType, reason) => {
+  if (!proctoringActive) return
+  if (lockOverlayActive) return // jangan spam saat locked
+  const now = Date.now()
+  if (now - lastViolationAt < VIOLATION_DEBOUNCE_MS) return
+  lastViolationAt = now
+  if (onViolationCallback) onViolationCallback(eventType, reason)
+}
+
+export const setLockOverlayActive = (val) => {
+  lockOverlayActive = !!val
+}
+
 export const initProctoring = (onViolation) => {
   if (proctoringActive) return
   proctoringActive = true
   onViolationCallback = onViolation
 
   console.log('🛡️ Proctoring initialized')
-
-  // Setup semua listener
   setupFullscreenListener()
+  setupVisibilityListener()
+  setupBlurListener()
+  setupBeforeUnloadListener()
   setupCopyPasteListener()
   setupRightClickListener()
   setupKeyboardListener()
   setupDragListener()
+  setupSwipeBackListener()
 }
 
-/**
- * Cleanup semua listener proctoring
- */
 export const cleanupProctoring = () => {
   if (!proctoringActive) return
   proctoringActive = false
   onViolationCallback = null
-
-  // Remove semua event listener
   eventListeners.forEach(({ target, event, handler, options }) => {
     target.removeEventListener(event, handler, options)
   })
   eventListeners = []
-
   console.log('🧹 Proctoring cleaned up')
 }
 
-/**
- * Helper untuk register event listener (agar mudah di-cleanup)
- */
-const addListener = (target, event, handler, options) => {
-  target.addEventListener(event, handler, options)
-  eventListeners.push({ target, event, handler, options })
-}
-
-/**
- * Helper untuk report violation
- */
-const reportViolation = (eventType, reason) => {
-  if (onViolationCallback) {
-    onViolationCallback(eventType, reason)
-  }
-}
-
-// ========================================
-// FULLSCREEN ENFORCEMENT
-// ========================================
-
+// ── FULLSCREEN
 const setupFullscreenListener = () => {
-  // Deteksi exit fullscreen
-  const handleFullscreenChange = () => {
+  const handler = () => {
     if (!document.fullscreenElement && proctoringActive) {
       console.warn('⚠️ Fullscreen exited')
-      reportViolation('FULLSCREEN_EXIT', 'User keluar dari mode fullscreen')
+      reportViolation('FULLSCREEN_EXIT', 'Keluar dari mode fullscreen')
     }
   }
-
-  addListener(document, 'fullscreenchange', handleFullscreenChange)
-  addListener(document, 'webkitfullscreenchange', handleFullscreenChange)
-  addListener(document, 'mozfullscreenchange', handleFullscreenChange)
-  addListener(document, 'MSFullscreenChange', handleFullscreenChange)
+  addListener(document, 'fullscreenchange', handler)
+  addListener(document, 'webkitfullscreenchange', handler)
+  addListener(document, 'mozfullscreenchange', handler)
+  addListener(document, 'MSFullscreenChange', handler)
 }
 
-/**
- * Enter fullscreen mode
- * @param {Element} element - Element yang akan di-fullscreen (default: document.documentElement)
- */
-export const enterFullscreen = async (element = document.documentElement) => {
+export const enterFullscreen = async (el = document.documentElement) => {
   try {
-    if (element.requestFullscreen) {
-      await element.requestFullscreen()
-    } else if (element.webkitRequestFullscreen) {
-      await element.webkitRequestFullscreen()
-    } else if (element.msRequestFullscreen) {
-      await element.msRequestFullscreen()
-    }
+    if (el.requestFullscreen) await el.requestFullscreen()
+    else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen()
+    else if (el.msRequestFullscreen) await el.msRequestFullscreen()
     console.log('✅ Fullscreen entered')
     return true
   } catch (error) {
@@ -99,134 +85,178 @@ export const enterFullscreen = async (element = document.documentElement) => {
   }
 }
 
-/**
- * Exit fullscreen mode
- */
 export const exitFullscreen = async () => {
   try {
-    if (document.exitFullscreen) {
-      await document.exitFullscreen()
-    } else if (document.webkitExitFullscreen) {
-      await document.webkitExitFullscreen()
-    } else if (document.msExitFullscreen) {
-      await document.msExitFullscreen()
-    }
-    console.log('✅ Fullscreen exited')
+    if (document.exitFullscreen) await document.exitFullscreen()
+    else if (document.webkitExitFullscreen) await document.webkitExitFullscreen()
+    else if (document.msExitFullscreen) await document.msExitFullscreen()
   } catch (error) {
     console.error('❌ Exit fullscreen failed:', error)
   }
 }
 
-/**
- * Cek apakah sedang fullscreen
- */
-export const isFullscreen = () => {
-  return !!(
-    document.fullscreenElement ||
-    document.webkitFullscreenElement ||
-    document.msFullscreenElement
-  )
-}
+export const isFullscreen = () =>
+  !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement)
 
-// ========================================
-// COPY-PASTE PREVENTION
-// ========================================
-
-const setupCopyPasteListener = () => {
-  const handleCopyPaste = (e) => {
+// ── TAB SWITCH (visibilitychange) — dengan durasi check
+const setupVisibilityListener = () => {
+  let hiddenAt = null
+  const handler = () => {
     if (!proctoringActive) return
-
-    const blockedActions = ['copy', 'cut', 'paste']
-    if (blockedActions.includes(e.type)) {
-      e.preventDefault()
-      console.warn(`⚠️ ${e.type} blocked`)
-      reportViolation('COPY_PASTE', `User mencoba ${e.type}`)
+    if (document.visibilityState === 'hidden') {
+      hiddenAt = Date.now()
+    } else if (hiddenAt) {
+      const duration = Date.now() - hiddenAt
+      hiddenAt = null
+      if (duration >= MIN_VIOLATION_DURATION_MS) {
+        reportViolation(
+          'TAB_SWITCH',
+          `Pindah tab / minimize selama ${Math.round(duration / 1000)} detik`,
+        )
+      }
     }
   }
-
-  addListener(document, 'copy', handleCopyPaste)
-  addListener(document, 'cut', handleCopyPaste)
-  addListener(document, 'paste', handleCopyPaste)
+  addListener(document, 'visibilitychange', handler)
 }
 
-// ========================================
-// RIGHT-CLICK BLOCK
-// ========================================
+// ── WINDOW BLUR — dengan durasi check
+const setupBlurListener = () => {
+  let blurAt = null
+  const onBlur = () => {
+    if (!proctoringActive) return
+    blurAt = Date.now()
+  }
+  const onFocus = () => {
+    if (!proctoringActive) return
+    if (!blurAt) return
+    const duration = Date.now() - blurAt
+    blurAt = null
+    // Skip kalau tab juga hidden (sudah di-handle visibilitychange)
+    if (document.visibilityState !== 'visible') return
+    if (duration >= MIN_VIOLATION_DURATION_MS) {
+      reportViolation(
+        'WINDOW_BLUR',
+        `Jendela kehilangan fokus selama ${Math.round(duration / 1000)} detik`,
+      )
+    }
+  }
+  addListener(window, 'blur', onBlur)
+  addListener(window, 'focus', onFocus)
+}
 
-const setupRightClickListener = () => {
-  const handleContextMenu = (e) => {
+// ── BEFORE UNLOAD (Q2)
+const setupBeforeUnloadListener = () => {
+  const handler = (e) => {
     if (!proctoringActive) return
     e.preventDefault()
-    console.warn('⚠️ Right-click blocked')
+    e.returnValue = 'Ujian sedang berlangsung. Yakin ingin keluar?'
+    return e.returnValue
   }
-
-  addListener(document, 'contextmenu', handleContextMenu)
+  addListener(window, 'beforeunload', handler)
 }
 
-// ========================================
-// KEYBOARD SHORTCUT BLOCK
-// ========================================
+// ── COPY-PASTE
+const setupCopyPasteListener = () => {
+  const handler = (e) => {
+    if (!proctoringActive) return
+    if (['copy', 'cut', 'paste'].includes(e.type)) {
+      e.preventDefault()
+      reportViolation('COPY_PASTE', `Percobaan ${e.type}`)
+    }
+  }
+  addListener(document, 'copy', handler)
+  addListener(document, 'cut', handler)
+  addListener(document, 'paste', handler)
+}
 
+// ── RIGHT CLICK
+const setupRightClickListener = () => {
+  const handler = (e) => {
+    if (!proctoringActive) return
+    e.preventDefault()
+  }
+  addListener(document, 'contextmenu', handler)
+}
+
+// ── KEYBOARD SHORTCUTS
 const setupKeyboardListener = () => {
-  const handleKeyDown = (e) => {
+  const handler = (e) => {
     if (!proctoringActive) return
 
-    // Block DevTools shortcuts
+    // DevTools
     const isDevTools =
-      e.key === 'F12' || // F12
-      (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) || // Ctrl+Shift+I
-      (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) || // Ctrl+Shift+J
-      (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c')) || // Ctrl+Shift+C
-      (e.ctrlKey && (e.key === 'U' || e.key === 'u')) // Ctrl+U (View Source)
-
+      e.key === 'F12' ||
+      (e.ctrlKey && e.shiftKey && ['I', 'i', 'J', 'j', 'C', 'c'].includes(e.key)) ||
+      (e.ctrlKey && ['U', 'u'].includes(e.key))
     if (isDevTools) {
       e.preventDefault()
-      console.warn('⚠️ DevTools shortcut blocked')
-      reportViolation('DEVTOOLS_ATTEMPT', 'User mencoba membuka DevTools')
+      reportViolation('DEVTOOLS_ATTEMPT', 'Percobaan membuka DevTools')
       return
     }
 
-    // Block copy-paste shortcuts
+    // Copy-paste
     const isCopyPaste =
-      (e.ctrlKey && (e.key === 'c' || e.key === 'C')) ||
-      (e.ctrlKey && (e.key === 'x' || e.key === 'X')) ||
-      (e.ctrlKey && (e.key === 'v' || e.key === 'V')) ||
-      (e.ctrlKey && (e.key === 'a' || e.key === 'A')) ||
-      (e.metaKey && (e.key === 'c' || e.key === 'C')) || // Mac
-      (e.metaKey && (e.key === 'x' || e.key === 'X')) ||
-      (e.metaKey && (e.key === 'v' || e.key === 'V')) ||
-      (e.metaKey && (e.key === 'a' || e.key === 'A'))
-
+      (e.ctrlKey || e.metaKey) && ['c', 'C', 'x', 'X', 'v', 'V', 'a', 'A'].includes(e.key)
     if (isCopyPaste) {
       e.preventDefault()
-      console.warn('⚠️ Copy-paste shortcut blocked')
-      reportViolation('COPY_PASTE', `User mencoba shortcut ${e.key}`)
+      reportViolation('COPY_PASTE', `Shortcut ${e.ctrlKey ? 'Ctrl' : 'Cmd'}+${e.key}`)
       return
     }
 
-    // Block print screen (sebatas mungkin)
+    // PrintScreen
     if (e.key === 'PrintScreen') {
       e.preventDefault()
-      console.warn('⚠️ PrintScreen blocked')
-      reportViolation('PRINT_SCREEN', 'User mencoba screenshot')
-      return
+      reportViolation('PRINT_SCREEN', 'Percobaan screenshot')
     }
   }
-
-  addListener(document, 'keydown', handleKeyDown)
+  addListener(document, 'keydown', handler)
 }
 
-// ========================================
-// DRAG PREVENTION
-// ========================================
-
+// ── DRAG
 const setupDragListener = () => {
-  const handleDrag = (e) => {
+  const handler = (e) => {
     if (!proctoringActive) return
     e.preventDefault()
-    console.warn('⚠️ Drag blocked')
   }
+  addListener(document, 'dragstart', handler)
+  addListener(document, 'drop', handler)
+}
 
-  addListener(document, 'dragstart', handleDrag)
-  addListener(document, 'drop', handleDrag)
+// ── SWIPE BACK (Q3)
+const setupSwipeBackListener = () => {
+  // Intercept back button
+  const onPopState = () => {
+    if (!proctoringActive) return
+    // Push ulang supaya tidak keluar
+    history.pushState(null, '', window.location.href)
+    reportViolation('BACK_BUTTON', 'Menekan tombol back browser')
+  }
+  // Push initial state
+  try {
+    history.pushState(null, '', window.location.href)
+  } catch {
+    // ignore
+  }
+  addListener(window, 'popstate', onPopState)
+
+  // Swipe back gesture dari edge kiri
+  let touchStartX = 0
+  let touchStartTime = 0
+  const onTouchStart = (e) => {
+    if (!proctoringActive) return
+    touchStartX = e.touches[0]?.clientX || 0
+    touchStartTime = Date.now()
+  }
+  const onTouchEnd = (e) => {
+    if (!proctoringActive) return
+    const endX = e.changedTouches[0]?.clientX || 0
+    const delta = endX - touchStartX
+    const duration = Date.now() - touchStartTime
+    // Swipe dari edge kiri (< 30px) → kanan (> 80px) dalam < 500ms
+    if (touchStartX < 30 && delta > 80 && duration < 500) {
+      reportViolation('SWIPE_BACK', 'Gestur swipe-back dari tepi kiri')
+    }
+  }
+  addListener(document, 'touchstart', onTouchStart, { passive: true })
+  addListener(document, 'touchend', onTouchEnd, { passive: true })
 }

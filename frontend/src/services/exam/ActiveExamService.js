@@ -42,8 +42,12 @@ export const ActiveExamService = {
   heartbeat() {
     return api.post('/exam/heartbeat')
   },
-  sendTelemetry(eventType) {
-    return api.post('/exam/telemetry', { event_type: eventType })
+  sendTelemetry(eventType, reason) {
+    return api.post('/exam/telemetry', { event_type: eventType, reason })
+  },
+  // ── Lock status polling
+  getLockStatus() {
+    return api.get('/exam/lock-status')
   },
   // Dashboard peserta 3 section
   getDashboard() {

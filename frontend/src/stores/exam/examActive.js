@@ -4,7 +4,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { Notify } from 'quasar'
 import { ActiveExamService } from '@/services/exam/ActiveExamService'
-import { initProctoring, cleanupProctoring } from '@/utils/proctoring'
+import { initProctoring, cleanupProctoring, setLockOverlayActive } from '@/utils/proctoring'
 
 const STORAGE_KEY = 'cbt_draft_answers'
 const FLUSH_INTERVAL_MS = 15000 // 15 detik
@@ -25,8 +25,13 @@ export const useExamActiveStore = defineStore('examActive', () => {
   const serverStatus = ref(null) // NOT_STARTED | ACTIVE | EXPIRED | SUBMITTED
 
   // Proctoring
+  // Proctoring
   const proctoringActive = ref(false)
-  const totalWarnings = ref(0)
+  const totalWarnings = ref(0) // counter per lock cycle (0–3)
+  const lockLevel = ref(0) // 0 = unlocked, 1 = L1 (proctor/admin), 2 = L2 (admin only)
+  const lockCount = ref(0) // total berapa kali sudah lock sesi ini
+  const violationLog = ref([]) // log pelanggaran
+  const isLocked = computed(() => lockLevel.value > 0)
   // Alias untuk kompatibilitas layout lama
   const timeLeft = computed(() => secondsLeft.value)
 
@@ -42,6 +47,7 @@ export const useExamActiveStore = defineStore('examActive', () => {
   let timerId = null
   let flushId = null
   let heartbeatId = null
+  let lockPollingId = null
 
   // ============ GETTERS ============
   const currentQuestion = computed(() => activeQuestions.value[activeIndex.value] || null)
@@ -186,18 +192,84 @@ export const useExamActiveStore = defineStore('examActive', () => {
   const activateProctoring = () => {
     if (proctoringActive.value) return
     proctoringActive.value = true
-    initProctoring((eventType) => sendTelemetry(eventType))
+    initProctoring((eventType, reason) => registerViolation(eventType, reason))
   }
 
-  const sendTelemetry = async (type) => {
+  const registerViolation = async (type, reason) => {
+    // Log lokal
+    violationLog.value.push({
+      type,
+      reason,
+      at: new Date().toISOString(),
+    })
+
     try {
-      const { data } = await ActiveExamService.sendTelemetry(type)
-      if (data.action === 'FORCE_SUBMIT') await submitExam(true)
-      else if (data.action === 'WARN') totalWarnings.value += 1
+      const { data } = await ActiveExamService.sendTelemetry(type, reason)
+
+      // Update dari server (server = source of truth untuk counter)
+      if (typeof data.warnings === 'number') totalWarnings.value = data.warnings
+
+      if (data.action === 'LOCK') {
+        lockCount.value += 1
+        lockLevel.value = data.lockLevel || Math.min(lockCount.value, 2)
+        setLockOverlayActive(true)
+        startLockPolling()
+        Notify.create({
+          type: 'negative',
+          icon: 'lock',
+          message: `UJIAN TERKUNCI. ${reason}`,
+          position: 'top',
+          timeout: 6000,
+        })
+      } else if (data.action === 'FORCE_SUBMIT') {
+        await submitExam(true)
+      } else if (data.action === 'WARN') {
+        Notify.create({
+          type: 'warning',
+          icon: 'warning',
+          message: `Pelanggaran ${totalWarnings.value}/3: ${reason || type}`,
+          position: 'top',
+          timeout: 4000,
+        })
+      }
     } catch (err) {
-      // ignore telemetry errors — jangan ganggu UX
+      // fail-safe: increment lokal kalau server error
+      totalWarnings.value += 1
       void err
     }
+  }
+
+  // ── Lock polling: cek apakah proctor/admin sudah unlock
+  const checkLockStatus = async () => {
+    try {
+      const { data } = await ActiveExamService.getLockStatus()
+      if (!data.locked && isLocked.value) {
+        // Server sudah unlock
+        lockLevel.value = 0
+        totalWarnings.value = data.warnings ?? 1
+        setLockOverlayActive(false)
+        stopLockPolling()
+        Notify.create({
+          type: 'positive',
+          icon: 'lock_open',
+          message: 'Ujian telah dibuka kembali. Lanjutkan mengerjakan.',
+          position: 'top',
+          timeout: 5000,
+        })
+      }
+    } catch (err) {
+      void err
+    }
+  }
+
+  const startLockPolling = () => {
+    if (lockPollingId) return
+    lockPollingId = setInterval(checkLockStatus, 5000)
+  }
+
+  const stopLockPolling = () => {
+    if (lockPollingId) clearInterval(lockPollingId)
+    lockPollingId = null
   }
 
   const handleBanned = () => {
@@ -211,11 +283,11 @@ export const useExamActiveStore = defineStore('examActive', () => {
     if (timerId) clearInterval(timerId)
     if (flushId) clearInterval(flushId)
     if (heartbeatId) clearInterval(heartbeatId)
+    stopLockPolling()
     timerId = flushId = heartbeatId = null
   }
 
   const submitExam = async () => {
-    alert('helow')
     if (isSubmitting.value || isFinished.value) return
     isSubmitting.value = true
     await flushPending()
@@ -249,6 +321,10 @@ export const useExamActiveStore = defineStore('examActive', () => {
     isFinished.value = false
     isSubmitting.value = false
     totalWarnings.value = 0
+    lockLevel.value = 0
+    lockCount.value = 0
+    violationLog.value = []
+    setLockOverlayActive(false)
     localStorage.removeItem(STORAGE_KEY)
   }
   const enableFullscreen = async () => {
@@ -284,6 +360,9 @@ export const useExamActiveStore = defineStore('examActive', () => {
     serverStatus,
     proctoringActive,
     totalWarnings,
+    lockLevel,
+    lockCount,
+    violationLog,
     // getters
     currentQuestion,
     currentIndex,
@@ -292,6 +371,7 @@ export const useExamActiveStore = defineStore('examActive', () => {
     progressPercentage,
     warnings,
     questions,
+    isLocked,
     // actions
     startExam,
     saveAnswer,
@@ -301,6 +381,8 @@ export const useExamActiveStore = defineStore('examActive', () => {
     flushPending,
     enableFullscreen,
     disableFullscreen,
+    registerViolation,
+    checkLockStatus,
     timerHours,
     timerMinutes,
     timerSeconds,
