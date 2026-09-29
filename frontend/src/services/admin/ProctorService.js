@@ -1,22 +1,17 @@
 // src/services/admin/ProctorService.js
-import { api } from '@/boot/axios'
+// DEPRECATED — alias ke SessionService (C2a Compat Layer).
+// Akan dihapus saat full migrate.
+
+import { SessionService } from './SessionService'
 
 export const ProctorService = {
-  // List sesi ujian
-  listSessions({ examId = '', activeOnly = true } = {}) {
-    const params = new URLSearchParams()
-    if (examId) params.set('exam_id', examId)
-    if (activeOnly) params.set('active_only', 'true')
-    return api.get(`/admin/sessions?${params.toString()}`)
+  listSessions(opts) {
+    return SessionService.listSessions(opts)
   },
-
-  // Token aktif untuk sesi
   getCurrentToken(sessionId) {
-    return api.get(`/admin/sessions/${sessionId}/token`)
+    return SessionService.getCurrentToken(sessionId)
   },
-
-  // Rotate manual
   rotateToken(sessionId) {
-    return api.post(`/admin/sessions/${sessionId}/token/rotate`)
+    return SessionService.rotateToken(sessionId)
   },
 }

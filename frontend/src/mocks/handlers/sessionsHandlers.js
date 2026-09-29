@@ -4,7 +4,15 @@
 import { cloneMock } from '../data/keahlianData'
 import { mockStudents } from '../data/studentsData'
 import { getSchedules } from './examSchedulesHandlers'
-import { genSessionToken, computeSessionStatusByTime, mockSessionSeeds } from '../data/sessionsData'
+import {
+  genSessionToken,
+  computeSessionStatusByTime,
+  mockSessionSeeds,
+  setTokenTtl,
+  computeRemainingSeconds,
+  enrichForExisting,
+  DEFAULT_TOKEN_TTL_SECONDS,
+} from '../data/sessionsData'
 import {
   generateParticipants,
   generateViolations,
@@ -82,12 +90,34 @@ const syncSessionsFromSchedules = () => {
   return created
 }
 
+const refreshWindowStore = () => {
+  if (typeof window !== 'undefined') {
+    window.__sessionsStore = sessionsStore
+  }
+}
+
 export const sessionsHandlers = (mock) => {
+  // ── Expose store ke window untuk handler lain (examHandlers)
+  if (typeof window !== 'undefined') {
+    window.__sessionsStore = sessionsStore
+  }
+
   // ── LIST (silent auto-generate)
   mock.onGet('/admin/sessions').reply((config) => {
     syncSessionsFromSchedules()
-    const { search, tanggal, ruang, status, jenis_ujian_id } = config.params || {}
+    const { search, tanggal, ruang, status, jenis_ujian_id, exam_id, active_only } =
+      config.params || {}
+
     let list = cloneMock(sessionsStore)
+
+    // ── Filter: active_only (untuk TokenDisplay.vue existing)
+    const isActiveOnly = active_only === 'true' || active_only === true
+    if (isActiveOnly) {
+      list = list.filter((s) => s.status === 'ACTIVE' || s.status === 'PAUSED')
+    }
+
+    // ── Filter: exam_id (backward compat — match subject_id)
+    if (exam_id) list = list.filter((s) => s.subject_id === exam_id)
 
     if (tanggal) list = list.filter((s) => s.tanggal === tanggal)
     if (ruang) list = list.filter((s) => s.ruang_id === ruang || s.ruang_nama === ruang)
@@ -109,12 +139,19 @@ export const sessionsHandlers = (mock) => {
       return (a.jam_mulai || '').localeCompare(b.jam_mulai || '')
     })
 
-    return [200, { status: 'ok', data: list, count: list.length }, { delay: DELAY }]
+    // ── Enrich untuk kompat existing (TokenDisplay.vue)
+    const enriched = list.map((s) => ({
+      ...enrichForExisting(s),
+      remaining_seconds: computeRemainingSeconds(s),
+    }))
+
+    return [200, { status: 'ok', data: enriched, count: enriched.length }, { delay: DELAY }]
   })
 
   // ── SYNC ULANG (manual trigger)
   mock.onPost('/admin/sessions/sync').reply(() => {
     const created = syncSessionsFromSchedules()
+    refreshWindowStore()
     return [200, { status: 'ok', created, total: sessionsStore.length }, { delay: DELAY }]
   })
 
@@ -123,7 +160,7 @@ export const sessionsHandlers = (mock) => {
     const id = config.url.match(/\/admin\/sessions\/([^/]+)/)[1]
     const s = sessionsStore.find((x) => x.id === id)
     if (!s) return [404, { error: 'not_found' }, { delay: DELAY }]
-    return [200, { status: 'ok', data: cloneMock(s) }, { delay: DELAY }]
+    return [200, { status: 'ok', data: enrichForExisting(s) }, { delay: DELAY }]
   })
 
   // ── UPDATE (C1b akan extend dengan action control)
@@ -155,6 +192,8 @@ export const sessionsHandlers = (mock) => {
     s.status = 'ACTIVE'
     s.actual_start = new Date().toISOString()
     s.paused_at = null
+    // Auto-set TTL token saat start
+    setTokenTtl(s, DEFAULT_TOKEN_TTL_SECONDS)
     return [200, { status: 'ok', data: cloneMock(s) }, { delay: DELAY }]
   })
 
@@ -195,6 +234,8 @@ export const sessionsHandlers = (mock) => {
     }
     s.status = 'ACTIVE'
     s.paused_at = null
+    // Perpanjang TTL saat resume
+    setTokenTtl(s, DEFAULT_TOKEN_TTL_SECONDS)
     return [200, { status: 'ok', data: cloneMock(s) }, { delay: DELAY }]
   })
 
@@ -264,6 +305,72 @@ export const sessionsHandlers = (mock) => {
     for (let i = 0; i < 6; i++) t += chars[Math.floor(Math.random() * chars.length)]
     s.token = t
     return [200, { status: 'ok', data: cloneMock(s) }, { delay: DELAY }]
+  })
+
+  // ── GET /admin/sessions/:id/token — untuk TokenDisplay.vue
+  mock.onGet(/\/admin\/sessions\/([^/]+)\/token$/).reply((config) => {
+    const id = config.url.match(/\/admin\/sessions\/([^/]+)\/token/)[1]
+    const s = sessionsStore.find((x) => x.id === id)
+    if (!s) return [404, { error: 'not_found' }, { delay: DELAY }]
+
+    // Kalau belum ada TTL, generate TTL default (auto-activate)
+    if (!s.valid_until && s.status !== 'COMPLETED') {
+      setTokenTtl(s, DEFAULT_TOKEN_TTL_SECONDS)
+    }
+
+    const remaining = computeRemainingSeconds(s)
+
+    // Auto-rotate kalau expired
+    if (s.status === 'ACTIVE' && remaining <= 0 && s.valid_until) {
+      s.token = (() => {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+        let t = ''
+        for (let i = 0; i < 6; i++) t += chars[Math.floor(Math.random() * chars.length)]
+        return t
+      })()
+      setTokenTtl(s, DEFAULT_TOKEN_TTL_SECONDS)
+    }
+
+    const payload = {
+      // Existing-compat shape
+      token: s.token,
+      valid_from: s.valid_from,
+      valid_until: s.valid_until,
+      remaining_seconds: computeRemainingSeconds(s),
+      // Extra info
+      session_id: s.id,
+      subject_nama: s.subject_nama,
+      class_nama: s.class_nama,
+      status: s.status,
+    }
+
+    return [200, payload, { delay: DELAY }]
+  })
+
+  // ── POST /admin/sessions/:id/token/rotate — manual rotate
+  mock.onPost(/\/admin\/sessions\/([^/]+)\/token\/rotate$/).reply((config) => {
+    const id = config.url.match(/\/admin\/sessions\/([^/]+)\/token\/rotate/)[1]
+    const s = sessionsStore.find((x) => x.id === id)
+    if (!s) return [404, { error: 'not_found' }, { delay: DELAY }]
+
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+    let t = ''
+    for (let i = 0; i < 6; i++) t += chars[Math.floor(Math.random() * chars.length)]
+    s.token = t
+    setTokenTtl(s, DEFAULT_TOKEN_TTL_SECONDS)
+
+    return [
+      200,
+      {
+        status: 'ok',
+        message: 'Token di-rotate',
+        token: s.token,
+        valid_from: s.valid_from,
+        valid_until: s.valid_until,
+        remaining_seconds: computeRemainingSeconds(s),
+      },
+      { delay: DELAY },
+    ]
   })
   // ── GET /admin/sessions/:id/participants
   mock.onGet(/\/admin\/sessions\/([^/]+)\/participants$/).reply((config) => {

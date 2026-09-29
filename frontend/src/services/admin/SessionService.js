@@ -1,10 +1,11 @@
 // src/services/admin/SessionService.js
 // Adapter HTTP untuk Sesi Ujian.
+// Juga melayani ProctorService (alias).
 
 import { api } from '@/boot/axios'
 
 export const SessionService = {
-  // ── CRUD
+  // ── CRUD + list
   list(params = {}) {
     return api.get('/admin/sessions', { params })
   },
@@ -40,6 +41,15 @@ export const SessionService = {
   regenerateToken(id) {
     return api.post(`/admin/sessions/${id}/regenerate-token`)
   },
+
+  // ── Token (Exam Gate Token)
+  getCurrentToken(id) {
+    return api.get(`/admin/sessions/${id}/token`)
+  },
+  rotateToken(id) {
+    return api.post(`/admin/sessions/${id}/token/rotate`)
+  },
+
   // ── Detail monitoring
   getParticipants(id) {
     return api.get(`/admin/sessions/${id}/participants`)
@@ -49,5 +59,13 @@ export const SessionService = {
   },
   getActivities(id) {
     return api.get(`/admin/sessions/${id}/activities`)
+  },
+
+  // ── Compat dengan ProctorService lama
+  listSessions({ examId = '', activeOnly = true } = {}) {
+    const params = {}
+    if (examId) params.exam_id = examId
+    if (activeOnly) params.active_only = 'true'
+    return api.get('/admin/sessions', { params })
   },
 }

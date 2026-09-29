@@ -36,6 +36,20 @@ api.interceptors.request.use((config) => {
     }
   }
 
+  // ── X-Exam-Token: JWT-B, hanya untuk endpoint /exam/*
+  // Tidak dikirim ke /exam/{id}/verify-token (belum ada JWT-B saat itu)
+  const isExamEndpoint =
+    typeof config.url === 'string' &&
+    config.url.startsWith('/exam/') &&
+    !config.url.includes('/verify-token')
+
+  if (isExamEndpoint) {
+    const examToken = LocalStorage.getItem('cbt_exam_token')
+    if (examToken) {
+      config.headers['X-Exam-Token'] = examToken
+    }
+  }
+
   return config
 })
 
@@ -52,6 +66,7 @@ api.interceptors.response.use(
       LocalStorage.remove('cbt_user')
       LocalStorage.remove('cbt_eligible_exams')
       LocalStorage.remove('cbt_exam_id')
+      LocalStorage.remove('cbt_exam_token') // ← NEW
     }
 
     // ── 403 tenant_mismatch (VER-002)
@@ -62,6 +77,7 @@ api.interceptors.response.use(
       LocalStorage.remove('cbt_user')
       LocalStorage.remove('cbt_eligible_exams')
       LocalStorage.remove('cbt_exam_id')
+      LocalStorage.remove('cbt_exam_token') // ← NEW
       clearTenantSlug()
 
       // Notif + redirect ke landing

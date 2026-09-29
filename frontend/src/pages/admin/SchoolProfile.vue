@@ -89,14 +89,14 @@
     <q-card flat bordered>
       <q-card-section>
         <q-inner-loading :showing="loading" />
-        <q-form @submit.prevent="saveProfile" class="q-gutter-md">
+        <q-form @submit.prevent="saveProfile" >
           <!-- ═══ Section 1: Identitas ═══ -->
           <div class="text-subtitle2 text-weight-bold text-primary row items-center">
             <q-icon name="badge" size="xs" class="q-mr-xs" />
             Identitas Sekolah
           </div>
 
-          <div class="row q-col-gutter-md">
+          <div class="row q-col-gutter-md q-pt-xs">
             <div class="col-12 col-md-8">
               <q-input
                 v-model="form.nama"

@@ -9,7 +9,8 @@ const normalizeRole = (role) => String(role || '').toUpperCase()
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: LocalStorage.getItem('cbt_user') || null,
-    token: LocalStorage.getItem('cbt_token') || null,
+    token: LocalStorage.getItem('cbt_token') || null, // JWT-A
+    cbtExamToken: LocalStorage.getItem('cbt_exam_token') || null, // JWT-B (NEW)
     role: LocalStorage.getItem('cbt_role') || null,
     isAuthenticated: !!LocalStorage.getItem('cbt_token'),
     cbtExamId: LocalStorage.getItem('cbt_exam_id'),
@@ -22,18 +23,19 @@ export const useAuthStore = defineStore('auth', {
         return {
           id: state.user.id || '',
           name: state.user.name || '',
-          nisn: state.user.nisn || '',
-          class: state.user.rombel || '',
+          nisn: state.user.nisn || state.user.nis || '',
+          class: state.user.rombel || state.user.class || '',
           avatar: state.user.avatar || '',
         }
       }
       return {}
     },
     getExamId: (state) => state.cbtExamId,
+    getExamToken: (state) => state.cbtExamToken,
   },
   actions: {
     // ── Persistent helper: single source of truth untuk penulisan LocalStorage
-        _persistAuth({ token, role, user, eligibleExams }) {
+    _persistAuth({ token, role, user, eligibleExams }) {
       const normalizedRole = normalizeRole(role)
       // Defensive: pastikan user selalu object minimal
       const safeUser = user && typeof user === 'object' ? user : { role: normalizedRole }
@@ -83,9 +85,11 @@ export const useAuthStore = defineStore('auth', {
       LocalStorage.remove('cbt_role')
       LocalStorage.remove('cbt_user')
       LocalStorage.remove('cbt_eligible_exams')
-      LocalStorage.remove('cbt_exam_id') // B.2.3 fixed
+      LocalStorage.remove('cbt_exam_id')
+      LocalStorage.remove('cbt_exam_token') // ← NEW
 
       this.token = null
+      this.cbtExamToken = null
       this.role = null
       this.user = null
       this.cbtExamId = null
@@ -99,10 +103,12 @@ export const useAuthStore = defineStore('auth', {
 
     restoreSession() {
       const token = LocalStorage.getItem('cbt_token')
+      const examToken = LocalStorage.getItem('cbt_exam_token')
       const role = LocalStorage.getItem('cbt_role')
       const user = LocalStorage.getItem('cbt_user')
       if (token && role && user) {
         this.token = token
+        this.cbtExamToken = examToken || null
         this.role = normalizeRole(role)
         this.user = user
         this.isAuthenticated = true
@@ -111,11 +117,23 @@ export const useAuthStore = defineStore('auth', {
       return false
     },
 
+    /**
+     * Simpan JWT-B (Exam Gate Token session) — TERPISAH dari JWT-A.
+     * JWT-A tetap di `cbt_token` (Authorization header).
+     * JWT-B masuk ke `cbt_exam_token` (X-Exam-Token header).
+     */
     setExamToken(jwtB, examId) {
-      this.token = jwtB
-      LocalStorage.set('cbt_token', jwtB)
+      this.cbtExamToken = jwtB
+      LocalStorage.set('cbt_exam_token', jwtB)
       LocalStorage.set('cbt_exam_id', examId)
       this.cbtExamId = examId
+    },
+
+    clearExamToken() {
+      this.cbtExamToken = null
+      LocalStorage.remove('cbt_exam_token')
+      LocalStorage.remove('cbt_exam_id')
+      this.cbtExamId = null
     },
   },
 })
