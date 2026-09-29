@@ -126,6 +126,8 @@ import { useExamStore } from '@/stores/exam/examActive'
 import { useAuthStore } from '@/stores/auth'
 import QuestionRenderer from '@/components/questions/QuestionRenderer.vue'
 import ExamLockOverlay from '@/components/exam/ExamLockOverlay.vue'
+import { useExamDeviceGuard } from '@/composables/useExamDeviceGuard'
+
 
 const $q = useQuasar()
 const router = useRouter()
@@ -134,7 +136,9 @@ const examStore = useExamStore()
 const saveDebounce = ref(null)
 
 const isMobile = computed(() => $q.screen.lt.md)
-
+// Device guard: orientation lock portrait + wake lock (prevent screen sleep)
+// Auto cleanup saat keluar ExamRoom
+useExamDeviceGuard()
 onMounted(async () => {
   // ── Guard: butuh JWT-B (cbt_exam_token)
   if (!authStore.cbtExamToken) {

@@ -5,46 +5,25 @@
     <q-header elevated class="bg-dark text-white">
       <q-toolbar :class="isMobile ? 'q-py-xs' : ''">
         <!-- MOBILE: ☰ toggle drawer -->
-        <q-btn
-          v-if="isMobile"
-          flat
-          round
-          dense
-          icon="menu"
-          @click="showNav = !showNav"
-          class="q-mr-sm"
-          aria-label="Menu"
-        />
+        <q-btn v-if="isMobile" flat round dense icon="menu" @click="showNav = !showNav" class="q-mr-sm"
+          aria-label="Menu" />
 
         <!-- Title (truncated on mobile) -->
-        <q-toolbar-title
-          :class="isMobile ? 'text-body2 ellipsis' : 'text-subtitle1'"
-        >
+        <q-toolbar-title :class="isMobile ? 'text-body2 ellipsis' : 'text-subtitle1'">
           <q-icon v-if="!isMobile" name="school" class="q-mr-sm" />
           {{ examStore.currentExamName || 'CBT Engine' }}
         </q-toolbar-title>
 
         <!-- Nomor soal (mobile, compact) -->
-        <q-chip
-          v-if="isMobile && examStore.totalQuestions > 0"
-          dense
-          color="primary"
-          text-color="white"
-          class="q-mr-xs"
-        >
+        <q-chip v-if="isMobile && examStore.totalQuestions > 0" dense color="primary" text-color="white"
+          class="q-mr-xs">
           {{ examStore.currentIndex + 1 }}/{{ examStore.totalQuestions }}
         </q-chip>
 
         <!-- Fullscreen Toggle (desktop only) -->
         <template v-if="!isMobile">
-          <q-btn
-            v-if="!examStore.fullscreenEnabled"
-            flat
-            round
-            dense
-            icon="fullscreen"
-            @click="examStore.enableFullscreen()"
-          >
+          <q-btn v-if="!examStore.fullscreenEnabled" flat round dense icon="fullscreen"
+            @click="examStore.enableFullscreen()">
             <q-tooltip>Aktifkan Fullscreen</q-tooltip>
           </q-btn>
           <q-chip v-else color="positive" text-color="white" icon="fullscreen_exit" dense>
@@ -54,48 +33,26 @@
         </template>
 
         <!-- Timer -->
-        <q-chip
-          color="negative"
-          text-color="white"
-          icon="timer"
-          :dense="isMobile"
-          :class="isMobile ? 'text-caption' : ''"
-        >
+        <q-chip color="negative" text-color="white" icon="timer" :dense="isMobile"
+          :class="isMobile ? 'text-caption' : ''">
           {{ formattedTime }}
         </q-chip>
       </q-toolbar>
     </q-header>
 
     <!-- DRAWER — desktop persistent, mobile overlay dari kiri -->
-    <q-drawer
-      v-model="showNav"
-      show-if-above
-      bordered
-      :width="220"
-      :breakpoint="1023"
-      class="bg-white"
-    >
+    <q-drawer v-model="showNav" show-if-above bordered :width="220" :breakpoint="1023" class="bg-white">
       <div class="q-pa-md">
         <div class="text-caption text-grey-7 q-mb-sm text-uppercase">
           <q-icon name="grid_view" size="xs" class="q-mr-xs" />Navigasi Soal
         </div>
         <div class="grid-navigation">
-          <q-btn
-            v-for="(q, i) in examStore.questions"
-            :key="q.id"
-            :color="
-              examStore.answers[q.id]
-                ? 'positive'
-                : i === examStore.currentIndex
-                  ? 'primary'
-                  : 'grey-4'
-            "
-            text-color="white"
-            unelevated
-            class="nav-btn"
-            :aria-label="`Soal ${i + 1}`"
-            @click="onNavClick(i)"
-          >
+          <q-btn v-for="(q, i) in examStore.questions" :key="q.id" :color="examStore.answers[q.id]
+            ? 'positive'
+            : i === examStore.currentIndex
+              ? 'primary'
+              : 'grey-4'
+            " text-color="white" unelevated class="nav-btn" :aria-label="`Soal ${i + 1}`" @click="onNavClick(i)">
             {{ i + 1 }}
           </q-btn>
         </div>
@@ -116,15 +73,8 @@
       </div>
 
       <div class="q-pa-md" style="position: absolute; bottom: 0; left: 0; right: 0">
-        <q-btn
-          color="negative"
-          label="Kumpulkan Ujian"
-          icon="check_circle"
-          class="full-width"
-          no-caps
-          size="lg"
-          @click="onSubmitClick"
-        />
+        <q-btn color="negative" label="Kumpulkan Ujian" icon="check_circle" class="full-width" no-caps size="lg"
+          @click="onSubmitClick" />
       </div>
     </q-drawer>
 
@@ -135,7 +85,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onUnmounted, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
 import { useExamStore } from '@/stores/exam/examActive'
@@ -147,7 +97,13 @@ const showNav = ref(false)
 
 // Reactive breakpoint
 const isMobile = computed(() => $q.screen.lt.md)
-
+// ── Body class untuk prevent pull-to-refresh di mobile (scope hanya saat exam)
+onMounted(() => {
+  document.body.classList.add('exam-mode')
+})
+onUnmounted(() => {
+  document.body.classList.remove('exam-mode')
+})
 const formattedTime = computed(() => {
   const total = examStore.secondsLeft || 0
   const h = Math.floor(total / 3600)
@@ -260,5 +216,12 @@ const handleSubmit = async () => {
 /* ── Drawer padding bawah ekstra biar tidak nutup tombol submit */
 .q-drawer .q-pa-md:last-child {
   padding-bottom: 24px;
+}
+</style>
+<!-- Global — non-scoped, prevent pull-to-refresh saat exam -->
+<style>
+body.exam-mode {
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
 }
 </style>
