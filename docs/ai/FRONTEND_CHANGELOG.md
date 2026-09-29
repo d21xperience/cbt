@@ -343,3 +343,38 @@ NONE / [describe]
 - Export data sesi (Excel)
 - Auto-archive sesi selesai
 - Notifikasi real-time ke proctor saat ada pelanggaran
+## [S2c-b] — 2026-09-29
+
+### Added — 7 Question Renderers (student-facing)
+- `TrueFalseQuestion.vue` — toggle BENAR/SALAH per statement (b1)
+- `ShortAnswerQuestion.vue` — input text bebas (b1)
+- `MatchingQuestion.vue` — dropdown pasangan (scramble) + counter (b2)
+- `PGComplexQuestion.vue` — checkbox multi-select (b2)
+- `CodingQuestion.vue` — monospace editor + test cases visible only (b3)
+- `HotspotQuestion.vue` — tap canvas → marker %, max 10 (b3)
+- `VideoQuestion.vue` — `<video>` player + opsi (b4)
+
+### Changed
+- `QuestionRenderer.vue` — dispatch 10 tipe soal. Sebelumnya hanya PG/ESSAY/AUDIO.
+
+### Coverage
+- Tipe soal didukung: **10 / 10** (PG, PG_COMPLEX, MATCHING, TRUE_FALSE,
+  SHORT_ANSWER, ESSAY, AUDIO, VIDEO, CODING, HOTSPOT)
+
+### Format Jawaban (locked)
+| Tipe | Format |
+|---|---|
+| PG / AUDIO / VIDEO | `optionId` (string) |
+| ESSAY / SHORT_ANSWER | `string` |
+| TRUE_FALSE | `{ [stmtId]: boolean }` |
+| MATCHING | `{ [premisId]: rightId }` |
+| PG_COMPLEX | `[optionId, ...]` |
+| CODING | `{ language, code }` |
+| HOTSPOT | `[{ x, y }, ...]` (persen 0-100) |
+
+### Test Evidence
+- S2c (baseline): T1–T17 PASS
+- S2c-b1 (TF + SA): T1–T14 PASS
+- S2c-b2 (MATCH + PG_COMPLEX): T1–T21 PASS
+- S2c-b3 (CODING + HOTSPOT): T1–T26 PASS
+- S2c-b4 (VIDEO): T1–T15 PASS

@@ -63,3 +63,25 @@ Tunggu konfirmasi user untuk mulai implementasi P0/P1.
 ## BLOCKERS
 
 Tidak ada.
+
+### ✅ S2c — Question Renderer Responsive — DONE (2026-09-29)
+
+**Baseline (S2c):**
+
+- Q8: font `clamp()` responsive — MathText, QuestionRenderer
+- Q10: scroll container untuk tabel/gambar lebar — .qr-media-scroll
+- Q11: lock overlay mobile adjustment — ExamLockOverlay
+- Files: MathText.vue, QuestionRenderer.vue, PGQuestion.vue,
+  EssayQuestion.vue, AudioQuestion.vue, ExamLockOverlay.vue
+
+**S2c-b (renderer baru):**
+
+- 7 file baru di `frontend/src/components/questions/`:
+  TrueFalseQuestion, ShortAnswerQuestion, MatchingQuestion, PGComplexQuestion,
+  CodingQuestion, HotspotQuestion, VideoQuestion
+- `QuestionRenderer.vue` dispatch 10 tipe (sebelumnya 3)
+
+**Coverage:** 10/10 tipe soal ✅
+
+**Test:** S2c T1–T17 PASS · S2c-b1 T1–T14 PASS · S2c-b2 T1–T21 PASS ·
+S2c-b3 T1–T26 PASS · S2c-b4 T1–T15 PASS
