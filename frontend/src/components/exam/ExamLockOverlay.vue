@@ -2,12 +2,12 @@
 <template>
   <div v-if="isLocked" class="lock-overlay">
     <q-card class="lock-card" flat>
-      <q-card-section class="text-center q-pa-xl">
-        <q-icon name="lock" size="6rem" color="negative" class="q-mb-md" />
+      <q-card-section class="lock-content text-center">
+        <q-icon name="lock" :size="iconSize" color="negative" class="q-mb-md" />
 
-        <div class="text-h4 text-weight-bold text-negative q-mb-md">UJIAN TERKUNCI</div>
+        <div class="lock-title text-negative q-mb-md">UJIAN TERKUNCI</div>
 
-        <div class="text-body1 text-grey-8 q-mb-md" style="line-height: 1.6">
+        <div class="lock-message text-grey-8 q-mb-md">
           Terdeteksi melakukan kecurangan.<br />
           Silakan menghubungi <b>pengawas</b> untuk membuka kunci.
         </div>
@@ -19,23 +19,31 @@
         </div>
 
         <div v-if="lockLevel === 1" class="text-caption text-orange-8 q-mt-md">
-          <q-icon name="info" /> Setelah dibuka, sisa kesempatan: <b>2</b>
+          <q-icon name="info" size="xs" /> Setelah dibuka, sisa kesempatan: <b>2</b>
         </div>
         <div v-else-if="lockLevel === 2" class="text-caption text-red-8 q-mt-md">
-          <q-icon name="warning" /> Pelanggaran berulang — hanya <b>ADMIN</b> yang dapat membuka.
+          <q-icon name="warning" size="xs" /> Pelanggaran berulang — hanya <b>ADMIN</b> yang dapat
+          membuka.
         </div>
 
         <q-separator class="q-my-md" />
 
-        <div class="text-caption text-grey-6">
-          <q-spinner-dots size="1em" color="grey-6" class="q-mr-xs" />
+        <div class="lock-waiting text-caption text-grey-6">
+          <q-spinner-dots size="1.2em" color="grey-6" class="q-mr-xs" />
           Menunggu pengawas membuka kunci...
         </div>
 
-        <!-- DEV helper (hidden in production) -->
+        <!-- DEV helper -->
         <div v-if="isDev" class="q-mt-lg">
-          <q-btn flat dense size="sm" color="grey-6" icon="build" label="Simulasi Unlock (dev)"
-            @click="$emit('dev-unlock')" />
+          <q-btn
+            flat
+            dense
+            size="sm"
+            color="grey-6"
+            icon="build"
+            label="Simulasi Unlock (dev)"
+            @click="$emit('dev-unlock')"
+          />
         </div>
       </q-card-section>
     </q-card>
@@ -43,6 +51,9 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useQuasar } from 'quasar'
+
 defineProps({
   isLocked: { type: Boolean, default: false },
   lockLevel: { type: Number, default: 0 },
@@ -51,7 +62,10 @@ defineProps({
 
 defineEmits(['dev-unlock'])
 
+const $q = useQuasar()
 const isDev = import.meta.env.DEV
+
+const iconSize = computed(() => ($q.screen.lt.md ? '4rem' : '6rem'))
 </script>
 
 <style scoped>
@@ -66,6 +80,7 @@ const isDev = import.meta.env.DEV
   padding: 16px;
   user-select: none;
   -webkit-user-select: none;
+  overflow-y: auto;
 }
 
 .lock-card {
@@ -73,11 +88,39 @@ const isDev = import.meta.env.DEV
   width: 100%;
   border-radius: 16px;
   background: #fff;
+  max-height: 96vh;
+  overflow-y: auto;
 }
 
-@media (max-width: 480px) {
+.lock-content {
+  padding: clamp(20px, 5vw, 40px) !important;
+}
+
+.lock-title {
+  font-size: clamp(1.4rem, 6vw, 2rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.5px;
+}
+
+.lock-message {
+  font-size: clamp(0.9rem, 2.6vw, 1rem);
+  line-height: 1.6;
+}
+
+.lock-waiting {
+  font-size: clamp(0.75rem, 2vw, 0.85rem);
+}
+
+@media (max-width: 599px) {
   .lock-overlay {
     padding: 8px;
+    align-items: center;
+  }
+
+  .lock-card {
+    max-height: 94vh;
+    border-radius: 14px;
   }
 }
 </style>
