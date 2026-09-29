@@ -35,15 +35,8 @@
 
         <!-- DEV helper -->
         <div v-if="isDev" class="q-mt-lg">
-          <q-btn
-            flat
-            dense
-            size="sm"
-            color="grey-6"
-            icon="build"
-            label="Simulasi Unlock (dev)"
-            @click="$emit('dev-unlock')"
-          />
+          <q-btn flat dense size="sm" color="grey-6" icon="build" label="Simulasi Unlock (dev)"
+            @click="$emit('dev-unlock')" />
         </div>
       </q-card-section>
     </q-card>
@@ -51,10 +44,11 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useQuasar } from 'quasar'
+import { hapticLockLevel1, hapticLockLevel2, hapticUnlock } from '@/utils/haptics'
 
-defineProps({
+const props = defineProps({
   isLocked: { type: Boolean, default: false },
   lockLevel: { type: Number, default: 0 },
   violationCount: { type: Number, default: 0 },
@@ -66,6 +60,19 @@ const $q = useQuasar()
 const isDev = import.meta.env.DEV
 
 const iconSize = computed(() => ($q.screen.lt.md ? '4rem' : '6rem'))
+
+// Haptic saat lock muncul / unlock — level 1 dan 2 beda pattern
+watch(
+  () => props.isLocked,
+  (val, oldVal) => {
+    if (val && !oldVal) {
+      if (props.lockLevel === 2) hapticLockLevel2()
+      else hapticLockLevel1()
+    } else if (!val && oldVal) {
+      hapticUnlock()
+    }
+  },
+)
 </script>
 
 <style scoped>

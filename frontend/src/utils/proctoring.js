@@ -1,6 +1,6 @@
 // src/utils/proctoring.js
 // Utility deteksi kecurangan ujian. Semua event → callback violation.
-
+import { hapticViolation } from './haptics'
 let proctoringActive = false
 let onViolationCallback = null
 let eventListeners = []
@@ -23,6 +23,7 @@ const reportViolation = (eventType, reason) => {
   const now = Date.now()
   if (now - lastViolationAt < VIOLATION_DEBOUNCE_MS) return
   lastViolationAt = now
+  hapticViolation()
   if (onViolationCallback) onViolationCallback(eventType, reason)
 }
 
