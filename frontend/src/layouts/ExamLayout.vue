@@ -1,43 +1,130 @@
 <!-- src/layouts/ExamLayout.vue -->
 <template>
   <q-layout view="hHh lpr fFf" class="bg-grey-2">
+    <!-- HEADER — sticky, compact di mobile -->
     <q-header elevated class="bg-dark text-white">
-      <q-toolbar>
-        <q-toolbar-title class="text-subtitle1">
-          <q-icon name="school" class="q-mr-sm" /> Ujian:
+      <q-toolbar :class="isMobile ? 'q-py-xs' : ''">
+        <!-- MOBILE: ☰ toggle drawer -->
+        <q-btn
+          v-if="isMobile"
+          flat
+          round
+          dense
+          icon="menu"
+          @click="showNav = !showNav"
+          class="q-mr-sm"
+          aria-label="Menu"
+        />
+
+        <!-- Title (truncated on mobile) -->
+        <q-toolbar-title
+          :class="isMobile ? 'text-body2 ellipsis' : 'text-subtitle1'"
+        >
+          <q-icon v-if="!isMobile" name="school" class="q-mr-sm" />
           {{ examStore.currentExamName || 'CBT Engine' }}
         </q-toolbar-title>
 
-        <!-- Fullscreen Toggle -->
-        <q-btn v-if="!examStore.fullscreenEnabled" flat round icon="fullscreen" @click="examStore.enableFullscreen()">
-          <q-tooltip>Aktifkan Fullscreen</q-tooltip>
-        </q-btn>
-        <q-chip v-else color="positive" text-color="white" icon="fullscreen_exit" dense>
-          Fullscreen
+        <!-- Nomor soal (mobile, compact) -->
+        <q-chip
+          v-if="isMobile && examStore.totalQuestions > 0"
+          dense
+          color="primary"
+          text-color="white"
+          class="q-mr-xs"
+        >
+          {{ examStore.currentIndex + 1 }}/{{ examStore.totalQuestions }}
         </q-chip>
 
-        <q-separator dark vertical class="q-mx-sm" />
+        <!-- Fullscreen Toggle (desktop only) -->
+        <template v-if="!isMobile">
+          <q-btn
+            v-if="!examStore.fullscreenEnabled"
+            flat
+            round
+            dense
+            icon="fullscreen"
+            @click="examStore.enableFullscreen()"
+          >
+            <q-tooltip>Aktifkan Fullscreen</q-tooltip>
+          </q-btn>
+          <q-chip v-else color="positive" text-color="white" icon="fullscreen_exit" dense>
+            Fullscreen
+          </q-chip>
+          <q-separator dark vertical class="q-mx-sm" />
+        </template>
 
         <!-- Timer -->
-        <q-chip color="negative" text-color="white" icon="timer">
+        <q-chip
+          color="negative"
+          text-color="white"
+          icon="timer"
+          :dense="isMobile"
+          :class="isMobile ? 'text-caption' : ''"
+        >
           {{ formattedTime }}
         </q-chip>
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="showNav" show-if-above bordered :width="200" class="bg-white">
-      <div class="q-pa-md grid-navigation">
-        <q-btn v-for="(q, i) in examStore.questions" :key="q.id" :color="examStore.answers[q.id]
-            ? 'positive'
-            : i === examStore.currentIndex
-              ? 'primary'
-              : 'grey-4'
-          " text-color="white" dense class="q-ma-xs" style="width: 35px; height: 35px" @click="goToQuestion(i)">
-          {{ i + 1 }}
-        </q-btn>
-      </div>
+    <!-- DRAWER — desktop persistent, mobile overlay dari kiri -->
+    <q-drawer
+      v-model="showNav"
+      show-if-above
+      bordered
+      :width="220"
+      :breakpoint="1023"
+      class="bg-white"
+    >
       <div class="q-pa-md">
-        <q-btn color="negative" label="Selesai" class="full-width" @click="submitExam" />
+        <div class="text-caption text-grey-7 q-mb-sm text-uppercase">
+          <q-icon name="grid_view" size="xs" class="q-mr-xs" />Navigasi Soal
+        </div>
+        <div class="grid-navigation">
+          <q-btn
+            v-for="(q, i) in examStore.questions"
+            :key="q.id"
+            :color="
+              examStore.answers[q.id]
+                ? 'positive'
+                : i === examStore.currentIndex
+                  ? 'primary'
+                  : 'grey-4'
+            "
+            text-color="white"
+            unelevated
+            class="nav-btn"
+            :aria-label="`Soal ${i + 1}`"
+            @click="onNavClick(i)"
+          >
+            {{ i + 1 }}
+          </q-btn>
+        </div>
+
+        <q-separator class="q-my-md" />
+
+        <div class="text-caption text-grey-7">
+          <div class="row items-center q-mb-xs">
+            <div class="legend-dot bg-positive q-mr-xs" /> Dijawab
+          </div>
+          <div class="row items-center q-mb-xs">
+            <div class="legend-dot bg-primary q-mr-xs" /> Sedang dibuka
+          </div>
+          <div class="row items-center">
+            <div class="legend-dot bg-grey-4 q-mr-xs" /> Belum dijawab
+          </div>
+        </div>
+      </div>
+
+      <div class="q-pa-md" style="position: absolute; bottom: 0; left: 0; right: 0">
+        <q-btn
+          color="negative"
+          label="Kumpulkan Ujian"
+          icon="check_circle"
+          class="full-width"
+          no-caps
+          size="lg"
+          @click="onSubmitClick"
+        />
       </div>
     </q-drawer>
 
@@ -56,7 +143,10 @@ import { useExamStore } from '@/stores/exam/examActive'
 const $q = useQuasar()
 const router = useRouter()
 const examStore = useExamStore()
-const showNav = ref(true)
+const showNav = ref(false)
+
+// Reactive breakpoint
+const isMobile = computed(() => $q.screen.lt.md)
 
 const formattedTime = computed(() => {
   const total = examStore.secondsLeft || 0
@@ -67,14 +157,21 @@ const formattedTime = computed(() => {
   return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`
 })
 
-const goToQuestion = (idx) => {
+const onNavClick = (idx) => {
   if (idx >= 0 && idx < examStore.totalQuestions) {
     examStore.activeIndex = idx
+    // Auto-close drawer di mobile
+    if (isMobile.value) showNav.value = false
   }
 }
 
-// ============ SUBMIT FLOW (FIXED) ============
-const submitExam = () => {
+const onSubmitClick = () => {
+  if (isMobile.value) showNav.value = false
+  emitSubmit()
+}
+
+// ── SUBMIT FLOW
+const emitSubmit = () => {
   const unanswered = examStore.totalQuestions - examStore.answeredCount
   let message = 'Apakah Anda yakin ingin mengumpulkan ujian?'
   if (unanswered > 0) {
@@ -89,14 +186,11 @@ const submitExam = () => {
     ok: { label: 'Ya, Kumpulkan', color: 'positive', flat: true, loading: false },
     persistent: true,
   }).onOk(() => {
-    // ✅ Tidak async — panggil handler terpisah
     handleSubmit()
   })
 }
 
 const handleSubmit = async () => {
- console.log('keluar')
-  // Loading indicator — biar user tahu proses jalan
   $q.loading.show({ message: 'Mengirim jawaban...' })
 
   try {
@@ -110,7 +204,6 @@ const handleSubmit = async () => {
       timeout: 2000,
     })
 
-    // ✅ Redirect EKSPLISIT — path langsung, tidak pakai name
     setTimeout(() => {
       router
         .push('/student/history')
@@ -119,7 +212,6 @@ const handleSubmit = async () => {
         })
         .catch((err) => {
           console.error('[Submit] router.push gagal:', err)
-          // Fallback: hard navigation
           window.location.href = '/#/student/history'
         })
     }, 400)
@@ -142,9 +234,31 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
+/* ── Grid navigasi (Q7: 48px touch target) */
 .grid-navigation {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 5px;
+  gap: 6px;
+}
+
+.nav-btn {
+  width: 100%;
+  aspect-ratio: 1;
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+/* ── Drawer padding bawah ekstra biar tidak nutup tombol submit */
+.q-drawer .q-pa-md:last-child {
+  padding-bottom: 24px;
 }
 </style>
