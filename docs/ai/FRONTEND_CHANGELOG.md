@@ -378,3 +378,25 @@ NONE / [describe]
 - S2c-b2 (MATCH + PG_COMPLEX): T1–T21 PASS
 - S2c-b3 (CODING + HOTSPOT): T1–T26 PASS
 - S2c-b4 (VIDEO): T1–T15 PASS
+## [S2d] — 2026-09-29
+
+### Added
+- `utils/haptics.js` — vibrate patterns: violation, lock L1/L2, unlock, success/error
+- `composables/useExamDeviceGuard.js` — orientation lock portrait + wake lock + retry saat fullscreen
+
+### Changed
+- `utils/proctoring.js` — trigger hapticViolation() saat reportViolation (setelah debounce)
+- `components/exam/ExamLockOverlay.vue` — watch isLocked → haptic lock/unlock
+- `pages/exam/ExamRoom.vue` — panggil useExamDeviceGuard() di setup
+- `layouts/ExamLayout.vue` — toggle body.exam-mode + CSS overscroll-behavior-y: contain
+
+### Test Evidence
+- S2d-1: T1-T7 PASS (desktop log)
+- S2d-2: T1-T6 + T15-T20 PASS (desktop) + regression S1/S2c OK
+
+### Known Limitation
+- Haptic actual vibrate & orientation lock belum diverifikasi di device nyata
+  (Android/iOS) — backlog regression device test
+- iOS Safari tidak support Wake Lock API & overscroll-behavior-y — graceful skip
+
+---

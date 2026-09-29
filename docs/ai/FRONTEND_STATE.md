@@ -85,3 +85,13 @@ Tidak ada.
 
 **Test:** S2c T1–T17 PASS · S2c-b1 T1–T14 PASS · S2c-b2 T1–T21 PASS ·
 S2c-b3 T1–T26 PASS · S2c-b4 T1–T15 PASS
+
+### ✅ S2d — Polish (haptic, orientation lock, wake lock) — DONE (2026-09-29)
+
+- **Haptic** (`utils/haptics.js`): violation, lock L1/L2, unlock — trigger via
+  proctoring + ExamLockOverlay watch
+- **Device Guard** (`composables/useExamDeviceGuard.js`): orientation lock portrait
+  + wake lock (re-acquire saat visible) — auto cleanup
+- **Prevent pull-to-refresh**: body.exam-mode + overscroll-behavior-y: contain
+- Coverage: S2d-1 T1–T7 PASS · S2d-2 T1–T6 + T15–T20 PASS
+- Backlog: verifikasi device nyata (Android/iOS)

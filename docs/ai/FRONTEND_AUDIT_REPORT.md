@@ -165,3 +165,15 @@ Prioritas: perbaiki AUTH + ROUTER sebelum modul lain.
 12. B.5.3 — `/exam` pakai `allowedRoles`
 13. B.9.3 — Review ESLint rule untuk build production
 14. Mapping endpoint lengkap (butuh source store/service admin/exam/super)
+
+## S2d Polish Coverage
+
+| Item | Status | File |
+|---|---|---|
+| Haptic violation | ✅ | utils/haptics.js + proctoring.js |
+| Haptic lock/unlock | ✅ | ExamLockOverlay.vue (watch) |
+| Orientation lock portrait | ✅ | useExamDeviceGuard.js |
+| Wake lock (screen on) | ✅ | useExamDeviceGuard.js |
+| Prevent pull-to-refresh | ✅ | ExamLayout.vue (body.exam-mode) |
+| Prevent double-tap zoom | ✅ | index.html (existing viewport) |
+| Device verification | ⏳ backlog | — |
