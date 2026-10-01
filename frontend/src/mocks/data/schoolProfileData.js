@@ -21,7 +21,7 @@ export const mockSchoolProfiles = {
     website: 'http://smkpasundanjatinangor.sch.id',
     kepala_sekolah_nama: 'Nunung Kurnia S.T, M.Pd',
     kepala_sekolah_nip: '-',
-    logo_url: ' ',
+    logo_url: '',
   },
 
   smknkawali: {

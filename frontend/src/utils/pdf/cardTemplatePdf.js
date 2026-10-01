@@ -81,11 +81,26 @@ export const buildSignatureQrUrl = (tenant, cardNumber, sigToken) => {
 }
 
 // ── Logo cell: image kalau ada, placeholder box kalau kosong
+// ── Helper: validasi URL image sebelum render (hindari blank PDF)
+const isUsableImageUrl = (url) => {
+  if (typeof url !== 'string') return false
+  const trimmed = url.trim()
+  if (trimmed.length === 0) return false
+  return (
+    trimmed.startsWith('data:image/') ||
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('/')
+  )
+}
+
+// ── Logo cell: image kalau valid, placeholder box kalau kosong/invalid
 const buildLogoCell = (school) => {
-  if (school.logo_url) {
+  const url = (school.logo_url || '').trim()
+  if (isUsableImageUrl(url)) {
     return {
       width: 26,
-      image: school.logo_url,
+      image: url,
       fit: [24, 24],
       alignment: 'center',
     }
@@ -251,7 +266,7 @@ const buildFooterRow = (card, school) => {
       paddingLeft: () => 3,
       paddingRight: () => 3,
       paddingTop: () => 19,
-      paddingBottom: () =>0, // jarak konten dengan tepi bawah kartu
+      paddingBottom: () => 0, // jarak konten dengan tepi bawah kartu
     },
   }
 }
