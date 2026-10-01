@@ -30,3 +30,5 @@ backend/data/
 *.db-shm
 *.db-wal
 /tmp
+*.txt
+Makefile
