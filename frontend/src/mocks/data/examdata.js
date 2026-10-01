@@ -99,6 +99,29 @@ export const mockUsersByTenant = {
       },
     ],
   },
+  mtsmaarifjtr: {
+    admins: [
+      {
+        username: 'admin',
+        email: 'admin@smkn-pasja.com',
+        password: 'admin123',
+        name: 'Bu Nuri',
+        role: 'ADMIN',
+      },
+    ],
+    teachers: [],
+    participants: [
+      {
+        id: 'P101',
+        username: 'P101',
+        password: 'pass789',
+        exam_identifier: 'pass789',
+        role: 'PARTICIPANT',
+        user: { name: 'Agus Wijaya', class: '11 RPL 1', nis: '11111' },
+        token: 'mock_participant_token_' + Date.now(),
+      },
+    ],
+  },
   default: {
     admins: [],
     teachers: [],
