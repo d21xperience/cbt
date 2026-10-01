@@ -400,3 +400,41 @@ NONE / [describe]
 - iOS Safari tidak support Wake Lock API & overscroll-behavior-y — graceful skip
 
 ---
+## [F0.5] — 2026-10-01
+
+### Multi-Tenant Foundation — Referential Integrity
+
+**F0.5a — Data layer grouped**
+- `tenantHelpers.js` (baru): TENANT_SLUGS (5), resolveTenant, filterByTenant, groupByTenant, flattenTenants
+- `studentsData.js` → `mockStudentsByTenant` (27 siswa: 15+3+3+3+3)
+- `classesData.js` → `mockClassesByTenant` (20 kelas: 12+2+2+2+2)
+- `exam_password` auto-derive dari NIS
+
+**F0.5a2 — Data referensi tambahan grouped**
+- `teachersData.js` → `mockTeachersByTenant` (19 guru)
+- `roomsData.js` → `mockRoomsByTenant` (23 ruang)
+- `subjectsData.js` → pattern BASE + TENANT_EXTRAS (runtime grouped)
+
+**F0.5b — Handler tenant-aware**
+- 5 handlers patched: students, classes, teachers, rooms, subjects
+- Semua baca `X-Tenant-Slug` → per-tenant in-memory store
+- Cross-entity resolve via `getXByTenant()` — bukan flat mock
+- Fix: `store.find` (bukan object), `body.kelas_id`, `cls.nama` langsung
+
+### Prinsip
+- Single source of truth per tenant (grouped by `tenant_slug`)
+- Isolasi tenant — query di 1 tenant tidak bocor ke tenant lain
+- Backward-compat flat exports dipertahankan sampai F0.5d
+
+### Test Evidence
+- F0.5a: T1–T8 PASS
+- F0.5a2: T1–T10 PASS
+- F0.5b-1: T11–T15 PASS
+- F0.5b-2: T16–T22 PASS
+
+### Backlog
+- **F0.5c** — patch downstream consumers (sessionsHandlers, lessonsHandlers, cardsData)
+- **F0.5d** — hapus flat compat (mockStudents, mockClasses, dll)
+- **F1a–c** — Data Peserta derived dari Siswa (login refactor, UI, reset password)
+
+

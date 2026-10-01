@@ -177,3 +177,14 @@ Prioritas: perbaiki AUTH + ROUTER sebelum modul lain.
 | Prevent pull-to-refresh | ✅ | ExamLayout.vue (body.exam-mode) |
 | Prevent double-tap zoom | ✅ | index.html (existing viewport) |
 | Device verification | ⏳ backlog | — |
+## Multi-Tenant Coverage — 5/5 Tenant (updated 2026-10-01)
+
+| Entitas | smknkawali | smkpasja | mtsmaarifjtr | smpn1jatinangor | sman1cirebon | Total |
+|---|---|---|---|---|---|---|
+| Siswa | 15 | 3 | 3 | 3 | 3 | 27 |
+| Kelas | 12 | 2 | 2 | 2 | 2 | 20 |
+| Guru | 10 | 3 | 2 | 2 | 2 | 19 |
+| Ruang | 15 | 2 | 2 | 2 | 2 | 23 |
+| Mapel | 20 | 20 | 22 | 20 | 20 | — |
+
+**Isolasi terverifikasi:** T11–T22 (CRUD, cross-entity, fallback, konsistensi).

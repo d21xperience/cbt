@@ -95,3 +95,22 @@ S2c-b3 T1–T26 PASS · S2c-b4 T1–T15 PASS
 - **Prevent pull-to-refresh**: body.exam-mode + overscroll-behavior-y: contain
 - Coverage: S2d-1 T1–T7 PASS · S2d-2 T1–T6 + T15–T20 PASS
 - Backlog: verifikasi device nyata (Android/iOS)
+### ✅ F0.5 — Multi-Tenant Foundation (2026-10-01)
+
+**Tujuan:** referential integrity — semua mock data derive dari sumber kanonik per tenant.
+
+**Data grouped (5 tenant):**
+- Siswa: 27 (kawali 15, pasja 3, maarif 3, jatinangor 3, cirebon 3)
+- Kelas: 20 (12+2+2+2+2)
+- Guru: 19 (10+3+2+2+2)
+- Ruang: 23 (15+2+2+2+2)
+- Mapel: 22 base + extras per tenant
+
+**Handler tenant-aware (5 file):**
+- Semua baca `X-Tenant-Slug` via `resolveTenant(config)`
+- Per-tenant store terpisah
+- Cross-entity resolve: `getTeachersByTenant`, `getRoomsByTenant`, `getClassesByTenant`
+
+**Test:** 22/22 PASS
+
+**Next:** F0.5c (downstream), F0.5d (hapus flat), F1 (Data Peserta derive)
