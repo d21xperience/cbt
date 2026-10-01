@@ -1,19 +1,34 @@
 // src/mocks/handlers/cardsHandlers.js
-// Handler Kartu Ujian — 2b-3a
+// Handler Kartu Ujian — 2b-3a — tenant-aware
 
 import {
-  mockCards,
+  getCardsByTenant,
   makeCardNumber,
   makeQrToken,
   makePin,
-  resetCardsMockData,
 } from '../data/cardsData'
+import { resolveTenant } from '../data/tenantHelpers'
+import { cloneMock } from '../data/keahlianData'
+
+const cardsStore = {} // { tenant: [...] }
+
+const ensureStore = (tenant) => {
+  if (!cardsStore[tenant]) {
+    cardsStore[tenant] = cloneMock(getCardsByTenant(tenant))
+  }
+  return cardsStore[tenant]
+}
+
+export const resetCardsMockData = () => {
+  Object.keys(cardsStore).forEach((k) => delete cardsStore[k])
+}
 
 export const cardsHandlers = (mock) => {
   // ── LIST
   mock.onGet('/admin/cards').reply((config) => {
+    const tenant = resolveTenant(config)
     const { search, card_type, status } = config.params || {}
-    let rows = [...mockCards]
+    let rows = [...ensureStore(tenant)]
 
     if (search) {
       const q = String(search).toLowerCase()
@@ -32,17 +47,19 @@ export const cardsHandlers = (mock) => {
 
   // ── CREATE
   mock.onPost('/admin/cards').reply((config) => {
+    const tenant = resolveTenant(config)
+    const store = ensureStore(tenant)
     const body = JSON.parse(config.data || '{}')
     const student = body.student || {}
     const cardType = body.card_type || 'PERMANENT'
-    const seq = mockCards.length + 1
+    const seq = store.length + 1
 
     const chars = 'abcdefghjkmnpqrstuvwxyz23456789'
     let pwd = ''
     for (let i = 0; i < 8; i++) pwd += chars[Math.floor(Math.random() * chars.length)]
 
     const newCard = {
-      id: `card-${Date.now()}`,
+      id: `card-${tenant}-${Date.now()}`,
       card_number: makeCardNumber(seq),
       student_id: student.id,
       student_name: student.nama,
@@ -65,15 +82,18 @@ export const cardsHandlers = (mock) => {
       printed_at: null,
       printed_by: null,
       created_at: new Date().toISOString(),
+      tenant_slug: tenant,
     }
-    mockCards.unshift(newCard)
+    store.unshift(newCard)
     return [201, { success: true, data: newCard }]
   })
 
   // ── REVOKE
   mock.onPost(/\/admin\/cards\/[^/]+\/revoke$/).reply((config) => {
+    const tenant = resolveTenant(config)
+    const store = ensureStore(tenant)
     const id = config.url.split('/')[3]
-    const card = mockCards.find((c) => c.id === id)
+    const card = store.find((c) => c.id === id)
     if (!card) return [404, { success: false, message: 'Kartu tidak ditemukan' }]
     card.status = 'REVOKED'
     return [200, { success: true, data: card }]
@@ -81,8 +101,10 @@ export const cardsHandlers = (mock) => {
 
   // ── RESET DEVICE BINDING (Q-E)
   mock.onPost(/\/admin\/cards\/[^/]+\/reset-device$/).reply((config) => {
+    const tenant = resolveTenant(config)
+    const store = ensureStore(tenant)
     const id = config.url.split('/')[3]
-    const card = mockCards.find((c) => c.id === id)
+    const card = store.find((c) => c.id === id)
     if (!card) return [404, { success: false, message: 'Kartu tidak ditemukan' }]
     card.device_fingerprint = null
     card.device_bound_at = null
@@ -91,13 +113,13 @@ export const cardsHandlers = (mock) => {
 
   // ── MARK PRINTED
   mock.onPost(/\/admin\/cards\/[^/]+\/mark-printed$/).reply((config) => {
+    const tenant = resolveTenant(config)
+    const store = ensureStore(tenant)
     const id = config.url.split('/')[3]
-    const card = mockCards.find((c) => c.id === id)
+    const card = store.find((c) => c.id === id)
     if (!card) return [404, { success: false, message: 'Kartu tidak ditemukan' }]
     card.printed_at = new Date().toISOString()
     card.printed_by = 'Admin'
     return [200, { success: true, data: card }]
   })
 }
-
-export { resetCardsMockData }
