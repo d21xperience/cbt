@@ -1,18 +1,28 @@
 // src/mocks/handlers/teachersHandlers.js
-import { mockTeachers, mockTeachersTemplateCSV } from '../data/teachersData'
-import { mockClasses } from '../data/classesData'
+// Handler CRUD guru — tenant-aware.
+import { getTeachersByTenant, mockTeachersTemplateCSV } from '../data/teachersData'
+import { getClassesByTenant } from '../data/classesData'
+import { resolveTenant } from '../data/tenantHelpers'
 import { cloneMock } from '../data/keahlianData'
 
 const DELAY = 300
 
-let teachers = cloneMock(mockTeachers)
+const teachersStore = {}
 
-export const resetTeachersMockData = () => {
-  teachers = cloneMock(mockTeachers)
+const ensureStore = (tenant) => {
+  if (!teachersStore[tenant]) {
+    teachersStore[tenant] = cloneMock(getTeachersByTenant(tenant))
+  }
+  return teachersStore[tenant]
 }
 
-const deriveHomeroomClassName = (classId) => {
-  const c = mockClasses.find((x) => x.id === classId)
+export const resetTeachersMockData = () => {
+  Object.keys(teachersStore).forEach((k) => delete teachersStore[k])
+}
+
+const deriveHomeroomClassName = (tenant, classId) => {
+  if (!classId) return null
+  const c = getClassesByTenant(tenant).find((x) => x.id === classId)
   return c ? c.nama : null
 }
 
@@ -24,18 +34,18 @@ export const teachersHandlers = (mock) => {
   })
 
   // List
-  mock.onGet('/admin/teachers').reply(() => {
-    return [
-      200,
-      { status: 'ok', data: cloneMock(teachers), count: teachers.length },
-      { delay: DELAY },
-    ]
+  mock.onGet('/admin/teachers').reply((config) => {
+    const tenant = resolveTenant(config)
+    const list = ensureStore(tenant)
+    return [200, { status: 'ok', data: cloneMock(list), count: list.length }, { delay: DELAY }]
   })
 
   // Create
   mock.onPost('/admin/teachers').reply((config) => {
+    const tenant = resolveTenant(config)
     const body = JSON.parse(config.data || '{}')
-    console.info('[MOCK] POST /admin/teachers →', body.nama)
+    const store = ensureStore(tenant)
+    console.info(`[MOCK] POST /admin/teachers [${tenant}] →`, body.nama)
 
     if (!body.nama || !body.username) {
       return [
@@ -44,7 +54,7 @@ export const teachersHandlers = (mock) => {
         { delay: DELAY },
       ]
     }
-    if (teachers.find((t) => t.username.toLowerCase() === body.username.toLowerCase())) {
+    if (store.find((t) => t.username.toLowerCase() === body.username.toLowerCase())) {
       return [
         409,
         { error: 'username_taken', message: `Username '${body.username}' sudah dipakai` },
@@ -65,60 +75,63 @@ export const teachersHandlers = (mock) => {
       is_homeroom: !!body.is_homeroom,
       homeroom_class_id: body.is_homeroom ? body.homeroom_class_id || null : null,
       homeroom_class_nama: body.is_homeroom
-        ? deriveHomeroomClassName(body.homeroom_class_id)
+        ? deriveHomeroomClassName(tenant, body.homeroom_class_id)
         : null,
+      tenant_slug: tenant,
     }
-    teachers.unshift(newTeacher)
+    store.unshift(newTeacher)
     return [201, { status: 'ok', data: newTeacher }, { delay: DELAY }]
   })
 
   // Update
   mock.onPut(/\/admin\/teachers\/([^/]+)/).reply((config) => {
+    const tenant = resolveTenant(config)
     const id = config.url.match(/\/admin\/teachers\/([^/]+)/)[1]
     const body = JSON.parse(config.data || '{}')
-    console.info('[MOCK] PUT /admin/teachers/:id →', id)
+    const store = ensureStore(tenant)
+    console.info(`[MOCK] PUT /admin/teachers/:id [${tenant}] →`, id)
 
-    const idx = teachers.findIndex((t) => t.id === id)
+    const idx = store.findIndex((t) => t.id === id)
     if (idx === -1) return [404, { error: 'not_found' }, { delay: DELAY }]
 
     if (body.username) {
-      const dup = teachers.find(
+      const dup = store.find(
         (t) => t.id !== id && t.username.toLowerCase() === body.username.toLowerCase(),
       )
       if (dup) return [409, { error: 'username_taken' }, { delay: DELAY }]
     }
 
     const updated = {
-      ...teachers[idx],
+      ...store[idx],
       ...body,
       id,
-      // password jangan overwrite kalau kosong
-      password: body.password || teachers[idx].password,
+      password: body.password || store[idx].password,
       teaching_subject_ids: Array.isArray(body.teaching_subject_ids)
         ? body.teaching_subject_ids
-        : teachers[idx].teaching_subject_ids,
-      is_homeroom: body.is_homeroom ?? teachers[idx].is_homeroom,
+        : store[idx].teaching_subject_ids,
+      is_homeroom: body.is_homeroom ?? store[idx].is_homeroom,
       homeroom_class_id: body.is_homeroom
-        ? (body.homeroom_class_id ?? teachers[idx].homeroom_class_id)
+        ? (body.homeroom_class_id ?? store[idx].homeroom_class_id)
         : null,
       homeroom_class_nama: body.is_homeroom
-        ? deriveHomeroomClassName(body.homeroom_class_id ?? teachers[idx].homeroom_class_id)
+        ? deriveHomeroomClassName(tenant, body.homeroom_class_id ?? store[idx].homeroom_class_id)
         : null,
     }
-    teachers[idx] = updated
+    store[idx] = updated
     return [200, { status: 'ok', data: updated }, { delay: DELAY }]
   })
 
   // Delete
   mock.onDelete(/\/admin\/teachers\/([^/]+)/).reply((config) => {
+    const tenant = resolveTenant(config)
     const id = config.url.match(/\/admin\/teachers\/([^/]+)/)[1]
-    console.info('[MOCK] DELETE /admin/teachers/:id →', id)
+    const store = ensureStore(tenant)
+    console.info(`[MOCK] DELETE /admin/teachers/:id [${tenant}] →`, id)
 
-    const idx = teachers.findIndex((t) => t.id === id)
+    const idx = store.findIndex((t) => t.id === id)
     if (idx === -1) return [404, { error: 'not_found' }, { delay: DELAY }]
 
-    // Guard: wali kelas tidak boleh dihapus sembarangan
-    if (teachers[idx].is_homeroom) {
+    if (store[idx].is_homeroom) {
       return [
         409,
         { error: 'teacher_in_use', message: 'Guru masih menjabat sebagai Wali Kelas.' },
@@ -126,15 +139,17 @@ export const teachersHandlers = (mock) => {
       ]
     }
 
-    teachers.splice(idx, 1)
+    store.splice(idx, 1)
     return [200, { status: 'ok' }, { delay: DELAY }]
   })
 
   // Import
   mock.onPost('/admin/teachers/import').reply((config) => {
+    const tenant = resolveTenant(config)
+    const store = ensureStore(tenant)
     const params = config.params || {}
     const isPreview = params.preview === 'true' || params.preview === true
-    console.info('[MOCK] POST /admin/teachers/import preview=', isPreview)
+    console.info(`[MOCK] POST /admin/teachers/import [${tenant}] preview=`, isPreview)
 
     if (isPreview) {
       const preview = [
@@ -142,7 +157,7 @@ export const teachersHandlers = (mock) => {
           _rowNumber: 1,
           nip: '198001012005012011',
           nama: 'Hendra Gunawan',
-          email: 'hendra@smkpasja.sch.id',
+          email: `hendra@${tenant}.sch.id`,
           username: 'hendra',
           status: 'AKTIF',
           _error: null,
@@ -151,7 +166,7 @@ export const teachersHandlers = (mock) => {
           _rowNumber: 2,
           nip: '198102022006012012',
           nama: 'Rina Wati',
-          email: 'rina@smkpasja.sch.id',
+          email: `rina@${tenant}.sch.id`,
           username: 'rina',
           status: 'AKTIF',
           _error: null,
@@ -180,8 +195,8 @@ export const teachersHandlers = (mock) => {
     let imported = 0
     rows.forEach((r) => {
       if (!r.nama || !r.username) return
-      if (teachers.find((t) => t.username.toLowerCase() === r.username.toLowerCase())) return
-      teachers.unshift({
+      if (store.find((t) => t.username.toLowerCase() === r.username.toLowerCase())) return
+      store.unshift({
         id: `tch-${Date.now()}-${imported}`,
         nip: r.nip || '',
         nama: r.nama,
@@ -192,6 +207,7 @@ export const teachersHandlers = (mock) => {
         is_homeroom: false,
         homeroom_class_id: null,
         homeroom_class_nama: null,
+        tenant_slug: tenant,
       })
       imported += 1
     })

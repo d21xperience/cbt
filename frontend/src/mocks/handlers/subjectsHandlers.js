@@ -1,25 +1,31 @@
 // src/mocks/handlers/subjectsHandlers.js
-import { mockSubjects, mockSubjectsTemplateCSV } from '../data/subjectsData'
+// Handler CRUD mata pelajaran — tenant-aware.
+// Catatan: base kurikulum nasional di-share, tapi state runtime per tenant.
+import { getSubjectsByTenant, mockSubjectsTemplateCSV } from '../data/subjectsData'
+import { resolveTenant } from '../data/tenantHelpers'
 import { cloneMock } from '../data/keahlianData'
 
 const DELAY = 300
 
-let subjects = cloneMock(mockSubjects)
+const subjectsStore = {}
+
+const ensureStore = (tenant) => {
+  if (!subjectsStore[tenant]) {
+    subjectsStore[tenant] = cloneMock(getSubjectsByTenant(tenant))
+  }
+  return subjectsStore[tenant]
+}
 
 export const resetSubjectsMockData = () => {
-  subjects = cloneMock(mockSubjects)
+  Object.keys(subjectsStore).forEach((k) => delete subjectsStore[k])
 }
 
 const validatePayload = (body) => {
   if (!body.kode || !body.nama || !body.nama_singkat) {
     return { error: 'validation_failed', message: 'kode, nama, nama_singkat wajib' }
   }
-  if (!body.kelompok) {
-    return { error: 'validation_failed', message: 'kelompok wajib' }
-  }
-  if (!body.tingkat) {
-    return { error: 'validation_failed', message: 'tingkat wajib' }
-  }
+  if (!body.kelompok) return { error: 'validation_failed', message: 'kelompok wajib' }
+  if (!body.tingkat) return { error: 'validation_failed', message: 'tingkat wajib' }
   if (body.kelompok === 'KEJURUAN' && !body.jurusan_id) {
     return { error: 'validation_failed', message: 'jurusan wajib untuk kelompok KEJURUAN' }
   }
@@ -27,31 +33,30 @@ const validatePayload = (body) => {
 }
 
 export const subjectsHandlers = (mock) => {
-  // ── Template download
+  // Template download
   mock.onGet('/admin/subjects/template').reply(() => {
-    console.info('[MOCK] GET /admin/subjects/template')
     const blob = new Blob([mockSubjectsTemplateCSV], { type: 'text/csv;charset=utf-8' })
     return [200, blob, { delay: DELAY }]
   })
 
-  // ── List
-  mock.onGet('/admin/subjects').reply(() => {
-    return [
-      200,
-      { status: 'ok', data: cloneMock(subjects), count: subjects.length },
-      { delay: DELAY },
-    ]
+  // List
+  mock.onGet('/admin/subjects').reply((config) => {
+    const tenant = resolveTenant(config)
+    const list = ensureStore(tenant)
+    return [200, { status: 'ok', data: cloneMock(list), count: list.length }, { delay: DELAY }]
   })
 
-  // ── Create
+  // Create
   mock.onPost('/admin/subjects').reply((config) => {
+    const tenant = resolveTenant(config)
     const body = JSON.parse(config.data || '{}')
-    console.info('[MOCK] POST /admin/subjects →', body.kode)
+    const store = ensureStore(tenant)
+    console.info(`[MOCK] POST /admin/subjects [${tenant}] →`, body.kode)
 
     const err = validatePayload(body)
     if (err) return [400, err, { delay: DELAY }]
 
-    if (subjects.find((s) => s.kode.toLowerCase() === body.kode.toLowerCase())) {
+    if (store.find((s) => s.kode.toLowerCase() === body.kode.toLowerCase())) {
       return [
         409,
         { error: 'kode_taken', message: `Kode '${body.kode}' sudah dipakai` },
@@ -67,54 +72,51 @@ export const subjectsHandlers = (mock) => {
       kelompok: body.kelompok,
       tingkat: body.tingkat,
       jurusan_id: body.kelompok === 'KEJURUAN' ? body.jurusan_id : null,
+      tenant_slug: tenant,
     }
-    subjects.push(newSubject)
+    store.push(newSubject)
     return [201, { status: 'ok', data: newSubject }, { delay: DELAY }]
   })
 
-  // ── Update
+  // Update
   mock.onPut(/\/admin\/subjects\/([^/]+)/).reply((config) => {
+    const tenant = resolveTenant(config)
     const id = config.url.match(/\/admin\/subjects\/([^/]+)/)[1]
     const body = JSON.parse(config.data || '{}')
-    console.info('[MOCK] PUT /admin/subjects/:id →', id)
+    const store = ensureStore(tenant)
+    console.info(`[MOCK] PUT /admin/subjects/:id [${tenant}] →`, id)
 
-    const idx = subjects.findIndex((s) => s.id === id)
+    const idx = store.findIndex((s) => s.id === id)
     if (idx === -1) return [404, { error: 'not_found' }, { delay: DELAY }]
 
     const err = validatePayload(body)
     if (err) return [400, err, { delay: DELAY }]
 
     if (body.kode) {
-      const dup = subjects.find(
-        (s) => s.id !== id && s.kode.toLowerCase() === body.kode.toLowerCase(),
-      )
-      if (dup)
-        return [
-          409,
-          { error: 'kode_taken', message: `Kode '${body.kode}' sudah dipakai` },
-          { delay: DELAY },
-        ]
+      const dup = store.find((s) => s.id !== id && s.kode.toLowerCase() === body.kode.toLowerCase())
+      if (dup) return [409, { error: 'kode_taken' }, { delay: DELAY }]
     }
 
-    subjects[idx] = {
-      ...subjects[idx],
+    store[idx] = {
+      ...store[idx],
       ...body,
       id,
       jurusan_id: body.kelompok === 'KEJURUAN' ? body.jurusan_id : null,
     }
-    return [200, { status: 'ok', data: subjects[idx] }, { delay: DELAY }]
+    return [200, { status: 'ok', data: store[idx] }, { delay: DELAY }]
   })
 
-  // ── Delete
+  // Delete
   mock.onDelete(/\/admin\/subjects\/([^/]+)/).reply((config) => {
+    const tenant = resolveTenant(config)
     const id = config.url.match(/\/admin\/subjects\/([^/]+)/)[1]
-    console.info('[MOCK] DELETE /admin/subjects/:id →', id)
+    const store = ensureStore(tenant)
+    console.info(`[MOCK] DELETE /admin/subjects/:id [${tenant}] →`, id)
 
-    const idx = subjects.findIndex((s) => s.id === id)
+    const idx = store.findIndex((s) => s.id === id)
     if (idx === -1) return [404, { error: 'not_found' }, { delay: DELAY }]
 
-    // Guard: KKA-10 dianggap "in use" untuk test negative
-    if (subjects[idx].kode === 'KKA-10') {
+    if (store[idx].kode === 'KKA-10') {
       return [
         409,
         { error: 'subject_in_use', message: 'Mapel masih dipakai di pembelajaran.' },
@@ -122,15 +124,17 @@ export const subjectsHandlers = (mock) => {
       ]
     }
 
-    subjects.splice(idx, 1)
+    store.splice(idx, 1)
     return [200, { status: 'ok' }, { delay: DELAY }]
   })
 
-  // ── Import
+  // Import
   mock.onPost('/admin/subjects/import').reply((config) => {
+    const tenant = resolveTenant(config)
+    const store = ensureStore(tenant)
     const params = config.params || {}
     const isPreview = params.preview === 'true' || params.preview === true
-    console.info('[MOCK] POST /admin/subjects/import preview=', isPreview)
+    console.info(`[MOCK] POST /admin/subjects/import [${tenant}] preview=`, isPreview)
 
     if (isPreview) {
       const preview = [
@@ -179,8 +183,8 @@ export const subjectsHandlers = (mock) => {
     let imported = 0
     rows.forEach((r) => {
       if (!r.kode || !r.nama) return
-      if (subjects.find((s) => s.kode.toLowerCase() === r.kode.toLowerCase())) return
-      subjects.push({
+      if (store.find((s) => s.kode.toLowerCase() === r.kode.toLowerCase())) return
+      store.push({
         id: `sub-${Date.now()}-${imported}`,
         kode: r.kode,
         nama: r.nama,
@@ -188,6 +192,7 @@ export const subjectsHandlers = (mock) => {
         kelompok: r.kelompok || 'WAJIB',
         tingkat: r.tingkat || '10',
         jurusan_id: r.kelompok === 'KEJURUAN' ? r.jurusan_kode || null : null,
+        tenant_slug: tenant,
       })
       imported += 1
     })

@@ -1,19 +1,24 @@
 // src/mocks/handlers/studentsHandlers.js
-import { mockStudents, mockStudentsTemplateCSV } from '../data/studentsData'
-import { mockClasses } from '../data/classesData'
+// Handler CRUD siswa — tenant-aware (baca X-Tenant-Slug).
+import { getClassesByTenant } from '../data/classesData'
 import { cloneMock } from '../data/keahlianData'
+import { getStudentsByTenant, mockStudentsTemplateCSV } from '../data/studentsData'
+import { resolveTenant } from '../data/tenantHelpers'
 
 const DELAY = 300
 
-let students = cloneMock(mockStudents)
+// ── Per-tenant store
+const studentsStore = {} // { tenantA: [...], tenantB: [...] }
 
-export const resetStudentsMockData = () => {
-  students = cloneMock(mockStudents)
+const ensureStore = (tenant) => {
+  if (!studentsStore[tenant]) {
+    studentsStore[tenant] = cloneMock(getStudentsByTenant(tenant))
+  }
+  return studentsStore[tenant]
 }
 
-const deriveKelasNama = (kelasId) => {
-  const c = mockClasses.find((x) => x.id === kelasId)
-  return c ? c.nama : null
+export const resetStudentsMockData = () => {
+  Object.keys(studentsStore).forEach((k) => delete studentsStore[k])
 }
 
 export const studentsHandlers = (mock) => {
@@ -24,18 +29,21 @@ export const studentsHandlers = (mock) => {
   })
 
   // List
-  mock.onGet('/admin/students').reply(() => {
-    return [
-      200,
-      { status: 'ok', data: cloneMock(students), count: students.length },
-      { delay: DELAY },
-    ]
+  mock.onGet('/admin/students').reply((config) => {
+    const tenant = resolveTenant(config)
+    const list = ensureStore(tenant)
+    return [200, { status: 'ok', data: cloneMock(list), count: list.length }, { delay: DELAY }]
   })
 
   // Create
   mock.onPost('/admin/students').reply((config) => {
+    const tenant = resolveTenant(config)
     const body = JSON.parse(config.data || '{}')
-    console.info('[MOCK] POST /admin/students →', body.nama)
+    const store = ensureStore(tenant)
+    const kelasList = getClassesByTenant(tenant)
+    const cls = kelasList.find((c) => c.id === body.kelas_id)
+
+    console.info(`[MOCK] POST /admin/students [${tenant}] →`, body.nama)
 
     if (!body.nisn || !body.nama || !body.kelas_id) {
       return [
@@ -44,7 +52,14 @@ export const studentsHandlers = (mock) => {
         { delay: DELAY },
       ]
     }
-    if (students.find((s) => s.nisn === body.nisn)) {
+    if (!cls) {
+      return [
+        400,
+        { error: 'invalid_kelas', message: 'Kelas tidak ditemukan di tenant ini' },
+        { delay: DELAY },
+      ]
+    }
+    if (store.find((s) => s.nisn === body.nisn)) {
       return [
         409,
         { error: 'nisn_taken', message: `NISN '${body.nisn}' sudah terdaftar` },
@@ -60,62 +75,76 @@ export const studentsHandlers = (mock) => {
       jenis_kelamin: body.jenis_kelamin || 'L',
       tanggal_lahir: body.tanggal_lahir || '',
       kelas_id: body.kelas_id,
-      kelas_nama: deriveKelasNama(body.kelas_id),
+      kelas_nama: cls.nama,
       status: body.status || 'AKTIF',
+      photo_url: null,
+      tenant_slug: tenant,
     }
-    students.unshift(newStudent)
+    store.unshift(newStudent)
     return [201, { status: 'ok', data: newStudent }, { delay: DELAY }]
   })
 
   // Update
   mock.onPut(/\/admin\/students\/([^/]+)/).reply((config) => {
+    const tenant = resolveTenant(config)
     const id = config.url.match(/\/admin\/students\/([^/]+)/)[1]
     const body = JSON.parse(config.data || '{}')
-    console.info('[MOCK] PUT /admin/students/:id →', id)
+    const store = ensureStore(tenant)
+    console.info(`[MOCK] PUT /admin/students/:id [${tenant}] →`, id)
 
-    const idx = students.findIndex((s) => s.id === id)
+    const idx = store.findIndex((s) => s.id === id)
     if (idx === -1) return [404, { error: 'not_found' }, { delay: DELAY }]
 
     if (body.nisn) {
-      const dup = students.find((s) => s.id !== id && s.nisn === body.nisn)
+      const dup = store.find((s) => s.id !== id && s.nisn === body.nisn)
       if (dup) return [409, { error: 'nisn_taken' }, { delay: DELAY }]
     }
 
-    students[idx] = {
-      ...students[idx],
+    const kelasId = body.kelas_id ?? store[idx].kelas_id
+    const cls = getClassesByTenant(tenant).find((c) => c.id === kelasId)
+
+    store[idx] = {
+      ...store[idx],
       ...body,
       id,
-      kelas_nama: deriveKelasNama(body.kelas_id ?? students[idx].kelas_id),
+      kelas_id: kelasId,
+      kelas_nama: cls ? cls.nama : store[idx].kelas_nama,
     }
-    return [200, { status: 'ok', data: students[idx] }, { delay: DELAY }]
+    return [200, { status: 'ok', data: store[idx] }, { delay: DELAY }]
   })
 
   // Delete
   mock.onDelete(/\/admin\/students\/([^/]+)/).reply((config) => {
+    const tenant = resolveTenant(config)
     const id = config.url.match(/\/admin\/students\/([^/]+)/)[1]
-    console.info('[MOCK] DELETE /admin/students/:id →', id)
+    const store = ensureStore(tenant)
+    console.info(`[MOCK] DELETE /admin/students/:id [${tenant}] →`, id)
 
-    const idx = students.findIndex((s) => s.id === id)
+    const idx = store.findIndex((s) => s.id === id)
     if (idx === -1) return [404, { error: 'not_found' }, { delay: DELAY }]
 
-    students.splice(idx, 1)
+    store.splice(idx, 1)
     return [200, { status: 'ok' }, { delay: DELAY }]
   })
 
   // Import
   mock.onPost('/admin/students/import').reply((config) => {
+    const tenant = resolveTenant(config)
+    const store = ensureStore(tenant)
+    const kelasList = getClassesByTenant(tenant)
     const params = config.params || {}
     const isPreview = params.preview === 'true' || params.preview === true
-    console.info('[MOCK] POST /admin/students/import preview=', isPreview)
+    console.info(`[MOCK] POST /admin/students/import [${tenant}] preview=`, isPreview)
 
     if (isPreview) {
+      const sampleKelas = kelasList[0]?.nama || ''
       const preview = [
         {
           _rowNumber: 1,
           nisn: '1234500101',
           nama: 'Rizky Pratama',
           jenis_kelamin: 'L',
-          kelas_nama: '10 IPA 1',
+          kelas_nama: sampleKelas,
           _error: null,
         },
         {
@@ -123,7 +152,7 @@ export const studentsHandlers = (mock) => {
           nisn: '1234500102',
           nama: 'Sari Dewi',
           jenis_kelamin: 'P',
-          kelas_nama: '10 IPA 1',
+          kelas_nama: sampleKelas,
           _error: null,
         },
         {
@@ -149,14 +178,11 @@ export const studentsHandlers = (mock) => {
     let imported = 0
     rows.forEach((r) => {
       if (!r.nisn || !r.nama) return
-      if (students.find((s) => s.nisn === r.nisn)) return
+      if (store.find((s) => s.nisn === r.nisn)) return
 
-      // Cari kelas_id dari kelas_nama
-      const cls = mockClasses.find(
-        (c) => c.nama.toLowerCase() === (r.kelas_nama || '').toLowerCase(),
-      )
+      const cls = kelasList.find((c) => c.nama.toLowerCase() === (r.kelas_nama || '').toLowerCase())
 
-      students.unshift({
+      store.unshift({
         id: `std-${Date.now()}-${imported}`,
         nisn: r.nisn,
         nis: r.nis || '',
@@ -166,6 +192,7 @@ export const studentsHandlers = (mock) => {
         kelas_id: cls?.id || null,
         kelas_nama: cls?.nama || null,
         status: 'AKTIF',
+        tenant_slug: tenant,
       })
       imported += 1
     })
