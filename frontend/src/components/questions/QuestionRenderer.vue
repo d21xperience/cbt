@@ -32,7 +32,26 @@
 
       <AudioQuestion v-else-if="question.question_type === 'AUDIO'" :question="question" :model-value="currentAnswer"
         @update:model-value="(val) => $emit('update:answer', val)" />
+      <TrueFalseQuestion v-else-if="question.question_type === 'TRUE_FALSE'" :question="question"
+        :model-value="currentAnswer || {}" @update:model-value="(val) => $emit('update:answer', val)" />
 
+      <ShortAnswerQuestion v-else-if="question.question_type === 'SHORT_ANSWER'" :question="question"
+        :model-value="currentAnswer || ''" @update:model-value="(val) => $emit('update:answer', val)" />
+
+      <MatchingQuestion v-else-if="question.question_type === 'MATCHING'" :question="question"
+        :model-value="currentAnswer || {}" @update:model-value="(val) => $emit('update:answer', val)" />
+
+      <PGComplexQuestion v-else-if="question.question_type === 'PG_COMPLEX'" :question="question"
+        :model-value="Array.isArray(currentAnswer) ? currentAnswer : []"
+        @update:model-value="(val) => $emit('update:answer', val)" />
+      <CodingQuestion v-else-if="question.question_type === 'CODING'" :question="question" :model-value="currentAnswer"
+        @update:model-value="(val) => $emit('update:answer', val)" />
+
+      <HotspotQuestion v-else-if="question.question_type === 'HOTSPOT'" :question="question"
+        :model-value="Array.isArray(currentAnswer) ? currentAnswer : []"
+        @update:model-value="(val) => $emit('update:answer', val)" />
+      <VideoQuestion v-else-if="question.question_type === 'VIDEO'" :question="question" :model-value="currentAnswer"
+        @update:model-value="(val) => $emit('update:answer', val)" />
       <div v-else class="text-negative text-center q-pa-md">
         Tipe soal "{{ question.question_type }}" belum didukung.
       </div>
@@ -46,6 +65,13 @@ import PGQuestion from './PGQuestion.vue'
 import EssayQuestion from './EssayQuestion.vue'
 import AudioQuestion from './AudioQuestion.vue'
 import MathText from '@/components/ui/MathText.vue'
+import TrueFalseQuestion from './TrueFalseQuestion.vue'
+import ShortAnswerQuestion from './ShortAnswerQuestion.vue'
+import MatchingQuestion from './MatchingQuestion.vue'
+import PGComplexQuestion from './PGComplexQuestion.vue'
+import CodingQuestion from './CodingQuestion.vue'
+import HotspotQuestion from './HotspotQuestion.vue'
+import VideoQuestion from './VideoQuestion.vue'
 
 const props = defineProps({
   question: { type: Object, required: true },

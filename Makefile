@@ -441,8 +441,7 @@ clean-all: clean
 #=============================================================================
 # Daftar file (path relatif dari root sekolah-platform)
 FILES = \
-frontend/src/components/exam/ExamLockOverlay.vue
-
+frontend/src/composables/useExamDeviceGuard.js \
 
 # Target utama untuk membuat folder dan file
 .PHONY: create-files
