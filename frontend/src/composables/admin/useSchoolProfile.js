@@ -58,9 +58,7 @@ export function useSchoolProfile() {
 
   const canSubmit = computed(() => {
     if (!isDirty.value) return false
-    // Validasi minimal
-    if (!form.value.nama?.trim()) return false
-    if (!form.value.jenjang) return false
+    // Nama & jenjang = identity (dikelola superadmin), tidak perlu divalidasi di sini
     return true
   })
 

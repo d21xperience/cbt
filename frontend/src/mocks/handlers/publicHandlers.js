@@ -1,13 +1,13 @@
 // src/mocks/handlers/publicHandlers.js
-import { mockPublicSchools, cloneMock } from '../data/onboardingData'
+import { getPublicSchools, cloneMock } from '../data/onboardingData'
 
 const DELAY = 300
 
 export const publicHandlers = (mock) => {
   // GET /public/schools — TANPA auth, TANPA X-Tenant-Slug
-  // Response: { status, count, data: [{subdomain, school_name, npsn, logo_url}] }
+  // Data derived dari mockSchoolTenant + mockSchoolProfiles — no duplication
   mock.onGet('/public/schools').reply(() => {
-    const data = cloneMock(mockPublicSchools)
+    const data = cloneMock(getPublicSchools())
     return [
       200,
       {
