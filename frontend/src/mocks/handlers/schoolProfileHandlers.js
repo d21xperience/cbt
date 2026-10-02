@@ -51,7 +51,28 @@ export const schoolProfileHandlers = (mock) => {
     // Validasi nama/jenjang dihapus karena bukan wewenang admin
 
     // Ambil hanya extension fields (buang identity kalau ada)
+    // Ambil hanya extension fields (buang identity kalau ada)
     const extensionPatch = pickExtensionFields(body)
+
+    // ── Validasi logo (F0.6c-1)
+    const LOGO_MAX_LENGTH = 2 * 1024 * 1024 // base64 1MB → ~1.37MB text, kasih buffer
+    if (Object.prototype.hasOwnProperty.call(extensionPatch, 'logo_url')) {
+      const logo = String(extensionPatch.logo_url || '')
+      if (logo && !logo.startsWith('data:image/')) {
+        return [
+          400,
+          { error: 'invalid_logo', message: 'Logo harus berupa data URL (base64).' },
+          { delay: DELAY },
+        ]
+      }
+      if (logo.length > LOGO_MAX_LENGTH) {
+        return [
+          400,
+          { error: 'logo_too_large', message: 'Ukuran logo terlalu besar (max 1 MB).' },
+          { delay: DELAY },
+        ]
+      }
+    }
     const current = profilesState[slug] || profilesState[DEFAULT_SLUG] || {}
     profilesState[slug] = { ...current, ...extensionPatch }
 

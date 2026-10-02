@@ -48,6 +48,44 @@
       <q-card-section>
         <q-inner-loading :showing="loading" />
         <q-form @submit.prevent="saveProfile">
+          <!-- ═══ Section 0: Logo Sekolah (F0.6c-1) ═══ -->
+          <div class="text-subtitle2 text-weight-bold text-primary row items-center">
+            <q-icon name="image" size="xs" class="q-mr-xs" />
+            Logo Sekolah
+          </div>
+
+          <div class="row items-center q-col-gutter-md q-pt-xs q-mb-md">
+            <div class="col-auto">
+              <q-avatar v-if="form.logo_url" size="96px" square class="bg-grey-2 rounded-borders">
+                <img :src="form.logo_url" alt="Logo Sekolah" />
+              </q-avatar>
+              <div v-else class="logo-placeholder column flex-center bg-grey-2 rounded-borders">
+                <q-icon name="image" size="40px" color="grey-5" />
+                <div class="text-caption text-grey-6 q-mt-xs">Belum ada logo</div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="text-caption text-grey-7 q-mb-sm">
+                PNG, JPEG, atau WebP · Max 1 MB<br />
+                Akan tampil di kartu ujian dan landing page.
+              </div>
+              <div v-if="isEditing" class="q-gutter-sm">
+                <q-btn color="primary" icon="upload_file" label="Pilih Logo" no-caps dense outline
+                  @click="onPickLogo" />
+                <q-btn v-if="form.logo_url" flat color="negative" icon="delete" label="Hapus Logo" no-caps dense
+                  @click="onClearLogo" />
+              </div>
+              <div v-else class="text-caption text-grey-6" style="font-style: italic">
+                <q-icon name="info" size="xs" class="q-mr-xs" />
+                Klik "Edit Profil" untuk mengubah logo.
+              </div>
+            </div>
+          </div>
+
+          <input ref="logoFileInput" type="file" accept="image/png,image/jpeg,image/webp" hidden
+            @change="onLogoSelected" />
+
+          <q-separator class="q-my-md" />
           <!-- ═══ Section 1: Identitas ═══ -->
           <div class="text-subtitle2 text-weight-bold text-primary row items-center">
             <q-icon name="badge" size="xs" class="q-mr-xs" />
@@ -173,7 +211,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useSchoolProfile } from '@/composables/admin/useSchoolProfile'
 
 const {
@@ -188,8 +226,26 @@ const {
   startEditing,
   cancelEditing,
   saveProfile,
+  setLogoFromFile,
+  clearLogo,
 } = useSchoolProfile()
 
+const logoFileInput = ref(null)
+
+const onPickLogo = () => {
+  logoFileInput.value?.click()
+}
+
+const onLogoSelected = async (e) => {
+  const file = e.target.files?.[0]
+  e.target.value = '' // reset — supaya bisa pilih file yang sama 2x
+  if (!file) return
+  await setLogoFromFile(file)
+}
+
+const onClearLogo = () => {
+  clearLogo()
+}
 const jenjangOptions = [
   { label: 'SMP', value: 'SMP' },
   { label: 'MTs', value: 'MTs' },
@@ -201,3 +257,12 @@ const jenjangOptions = [
 
 onMounted(loadProfile)
 </script>
+
+<style scoped>
+.logo-placeholder {
+  width: 96px;
+  height: 96px;
+  border: 1px dashed #ccc;
+  border-radius: 8px;
+}
+</style>

@@ -145,6 +145,45 @@ export function useSchoolProfile() {
       saving.value = false
     }
   }
+  // ── Logo helpers
+  const LOGO_MAX_SIZE = 1 * 1024 * 1024 // 1 MB
+  const LOGO_ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/webp']
+
+  const setLogoFromFile = async (file) => {
+    if (!file) return { success: false, error: 'no_file' }
+
+    if (file.size > LOGO_MAX_SIZE) {
+      $q.notify({
+        type: 'negative',
+        message: `Ukuran logo max 1 MB. File Anda ${(file.size / 1024 / 1024).toFixed(2)} MB.`,
+      })
+      return { success: false, error: 'size_exceeded' }
+    }
+    if (!LOGO_ACCEPTED_TYPES.includes(file.type)) {
+      $q.notify({
+        type: 'negative',
+        message: 'Format harus PNG, JPEG, atau WebP.',
+      })
+      return { success: false, error: 'invalid_type' }
+    }
+
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        form.value.logo_url = reader.result
+        resolve({ success: true })
+      }
+      reader.onerror = () => {
+        $q.notify({ type: 'negative', message: 'Gagal membaca file.' })
+        resolve({ success: false, error: 'read_error' })
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const clearLogo = () => {
+    form.value.logo_url = ''
+  }
 
   return {
     // state
@@ -163,5 +202,7 @@ export function useSchoolProfile() {
     startEditing,
     cancelEditing,
     saveProfile,
+    setLogoFromFile,
+    clearLogo,
   }
 }
