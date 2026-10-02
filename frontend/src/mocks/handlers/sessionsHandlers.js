@@ -1,13 +1,14 @@
 // src/mocks/handlers/sessionsHandlers.js
-// Handler Sesi Ujian — auto-generate dari ExamSchedule + detail kelas.
+// Handler Sesi Ujian — tenant-aware.
 
 import { cloneMock } from '../data/keahlianData'
-import { mockStudents } from '../data/studentsData'
-import { getSchedules } from './examSchedulesHandlers'
+import { getStudentsByTenant } from '../data/studentsData'
+import { getSchedulesForTenant } from './examSchedulesHandlers'
+import { resolveTenant } from '../data/tenantHelpers'
 import {
   genSessionToken,
   computeSessionStatusByTime,
-  mockSessionSeeds,
+  getSessionSeedsByTenant,
   setTokenTtl,
   computeRemainingSeconds,
   enrichForExisting,
@@ -18,21 +19,36 @@ import {
   generateViolations,
   generateActivities,
 } from '../data/sessionActivitiesData'
+
 const DELAY = 300
 
-let sessionsStore = cloneMock(mockSessionSeeds)
+// ── Per-tenant store
+const sessionsStore = {} // { tenant: [...] }
 
-export const resetSessionsMockData = () => {
-  sessionsStore = cloneMock(mockSessionSeeds)
+const ensureStore = (tenant) => {
+  if (!sessionsStore[tenant]) {
+    sessionsStore[tenant] = cloneMock(getSessionSeedsByTenant(tenant))
+  }
+  return sessionsStore[tenant]
 }
 
-// ── Auto-generate sessions dari jadwal × detail
-const syncSessionsFromSchedules = () => {
-  const schedules = getSchedules() || []
-  const existingKeys = new Set(sessionsStore.map((s) => `${s.schedule_id}::${s.class_id}`))
+export const resetSessionsMockData = () => {
+  Object.keys(sessionsStore).forEach((k) => delete sessionsStore[k])
+}
+
+// ── Expose store ke window untuk handler lain (examHandlers, dsb)
+const refreshWindowStore = () => {
+  if (typeof window !== 'undefined') {
+    window.__sessionsStore = sessionsStore
+  }
+}
+
+// ── Auto-generate sessions dari jadwal × detail (per tenant)
+const syncSessionsFromSchedules = (tenant) => {
+  const store = ensureStore(tenant)
+  const schedules = getSchedulesForTenant(tenant) || []
+  const existingKeys = new Set(store.map((s) => `${s.schedule_id}::${s.class_id}`))
   let created = 0
-  // Sesi demo (is_demo: true) tidak dihitung sebagai konflik
-  // — mereka punya schedule_id yang tidak match jadwal aktual
 
   schedules.forEach((sch) => {
     const details = Array.isArray(sch.details) ? sch.details : []
@@ -40,10 +56,13 @@ const syncSessionsFromSchedules = () => {
       const key = `${sch.id}::${d.class_id}`
       if (existingKeys.has(key)) return
 
-      const students = mockStudents.filter((s) => s.kelas_id === d.class_id && s.status === 'AKTIF')
+      const students = getStudentsByTenant(tenant).filter(
+        (s) => s.kelas_id === d.class_id && s.status === 'AKTIF',
+      )
 
       const newSession = {
-        id: `sesi-${Date.now()}-${created}`,
+        id: `sesi-${tenant}-${Date.now()}-${created}`,
+        tenant_slug: tenant,
         schedule_id: sch.id,
         class_id: d.class_id,
         class_nama: d.class_nama,
@@ -71,17 +90,16 @@ const syncSessionsFromSchedules = () => {
         completed_count: 0,
         created_at: new Date().toISOString(),
       }
-      sessionsStore.push(newSession)
+      store.push(newSession)
       created++
     })
   })
 
-  // Sync status by time untuk existing (kecuali PAUSED/COMPLETED & demo)
-  sessionsStore.forEach((s) => {
-    if (s.is_demo) return // ← skip demo
+  // Sync status by time untuk existing (kecuali demo)
+  store.forEach((s) => {
+    if (s.is_demo) return
     if (s.status === 'SCHEDULED' || s.status === 'ACTIVE') {
       const auto = computeSessionStatusByTime(s)
-      // Hanya escalate (SCHEDULED → ACTIVE → COMPLETED), jangan turun
       if (auto === 'ACTIVE' && s.status === 'SCHEDULED') s.status = 'ACTIVE'
       else if (auto === 'COMPLETED') s.status = 'COMPLETED'
     }
@@ -90,35 +108,24 @@ const syncSessionsFromSchedules = () => {
   return created
 }
 
-const refreshWindowStore = () => {
-  if (typeof window !== 'undefined') {
-    window.__sessionsStore = sessionsStore
-  }
-}
-
 export const sessionsHandlers = (mock) => {
-  // ── Expose store ke window untuk handler lain (examHandlers)
-  if (typeof window !== 'undefined') {
-    window.__sessionsStore = sessionsStore
-  }
+  refreshWindowStore()
 
-  // ── LIST (silent auto-generate)
+  // ── LIST (silent auto-generate per tenant)
   mock.onGet('/admin/sessions').reply((config) => {
-    syncSessionsFromSchedules()
+    const tenant = resolveTenant(config)
+    syncSessionsFromSchedules(tenant)
+    const store = ensureStore(tenant)
     const { search, tanggal, ruang, status, jenis_ujian_id, exam_id, active_only } =
       config.params || {}
 
-    let list = cloneMock(sessionsStore)
+    let list = cloneMock(store)
 
-    // ── Filter: active_only (untuk TokenDisplay.vue existing)
     const isActiveOnly = active_only === 'true' || active_only === true
     if (isActiveOnly) {
       list = list.filter((s) => s.status === 'ACTIVE' || s.status === 'PAUSED')
     }
-
-    // ── Filter: exam_id (backward compat — match subject_id)
     if (exam_id) list = list.filter((s) => s.subject_id === exam_id)
-
     if (tanggal) list = list.filter((s) => s.tanggal === tanggal)
     if (ruang) list = list.filter((s) => s.ruang_id === ruang || s.ruang_nama === ruang)
     if (status) list = list.filter((s) => s.status === status)
@@ -139,7 +146,6 @@ export const sessionsHandlers = (mock) => {
       return (a.jam_mulai || '').localeCompare(b.jam_mulai || '')
     })
 
-    // ── Enrich untuk kompat existing (TokenDisplay.vue)
     const enriched = list.map((s) => ({
       ...enrichForExisting(s),
       remaining_seconds: computeRemainingSeconds(s),
@@ -148,39 +154,41 @@ export const sessionsHandlers = (mock) => {
     return [200, { status: 'ok', data: enriched, count: enriched.length }, { delay: DELAY }]
   })
 
-  // ── SYNC ULANG (manual trigger)
-  mock.onPost('/admin/sessions/sync').reply(() => {
-    const created = syncSessionsFromSchedules()
+  // ── SYNC ULANG (manual)
+  mock.onPost('/admin/sessions/sync').reply((config) => {
+    const tenant = resolveTenant(config)
+    const created = syncSessionsFromSchedules(tenant)
     refreshWindowStore()
-    return [200, { status: 'ok', created, total: sessionsStore.length }, { delay: DELAY }]
+    return [200, { status: 'ok', created, total: ensureStore(tenant).length }, { delay: DELAY }]
   })
 
   // ── GET 1
   mock.onGet(/\/admin\/sessions\/([^/]+)$/).reply((config) => {
+    const tenant = resolveTenant(config)
     const id = config.url.match(/\/admin\/sessions\/([^/]+)/)[1]
-    const s = sessionsStore.find((x) => x.id === id)
+    const s = ensureStore(tenant).find((x) => x.id === id)
     if (!s) return [404, { error: 'not_found' }, { delay: DELAY }]
     return [200, { status: 'ok', data: enrichForExisting(s) }, { delay: DELAY }]
   })
 
-  // ── UPDATE (C1b akan extend dengan action control)
+  // ── UPDATE
   mock.onPut(/\/admin\/sessions\/([^/]+)$/).reply((config) => {
+    const tenant = resolveTenant(config)
+    const store = ensureStore(tenant)
     const id = config.url.match(/\/admin\/sessions\/([^/]+)/)[1]
     const body = JSON.parse(config.data || '{}')
-    const idx = sessionsStore.findIndex((s) => s.id === id)
+    const idx = store.findIndex((s) => s.id === id)
     if (idx === -1) return [404, { error: 'not_found' }, { delay: DELAY }]
-
-    sessionsStore[idx] = {
-      ...sessionsStore[idx],
-      ...body,
-      id,
-    }
-    return [200, { status: 'ok', data: cloneMock(sessionsStore[idx]) }, { delay: DELAY }]
+    store[idx] = { ...store[idx], ...body, id }
+    return [200, { status: 'ok', data: cloneMock(store[idx]) }, { delay: DELAY }]
   })
-  // ── ACTION: Start manual
+
+  // ── ACTION: Start
   mock.onPost(/\/admin\/sessions\/([^/]+)\/start$/).reply((config) => {
+    const tenant = resolveTenant(config)
+    const store = ensureStore(tenant)
     const id = config.url.match(/\/admin\/sessions\/([^/]+)\/start/)[1]
-    const s = sessionsStore.find((x) => x.id === id)
+    const s = store.find((x) => x.id === id)
     if (!s) return [404, { error: 'not_found' }, { delay: DELAY }]
     if (s.status === 'ACTIVE' || s.status === 'COMPLETED') {
       return [
@@ -192,15 +200,16 @@ export const sessionsHandlers = (mock) => {
     s.status = 'ACTIVE'
     s.actual_start = new Date().toISOString()
     s.paused_at = null
-    // Auto-set TTL token saat start
     setTokenTtl(s, DEFAULT_TOKEN_TTL_SECONDS)
     return [200, { status: 'ok', data: cloneMock(s) }, { delay: DELAY }]
   })
 
   // ── ACTION: Pause
   mock.onPost(/\/admin\/sessions\/([^/]+)\/pause$/).reply((config) => {
+    const tenant = resolveTenant(config)
+    const store = ensureStore(tenant)
     const id = config.url.match(/\/admin\/sessions\/([^/]+)\/pause/)[1]
-    const s = sessionsStore.find((x) => x.id === id)
+    const s = store.find((x) => x.id === id)
     if (!s) return [404, { error: 'not_found' }, { delay: DELAY }]
     if (s.status !== 'ACTIVE') {
       return [
@@ -216,8 +225,10 @@ export const sessionsHandlers = (mock) => {
 
   // ── ACTION: Resume
   mock.onPost(/\/admin\/sessions\/([^/]+)\/resume$/).reply((config) => {
+    const tenant = resolveTenant(config)
+    const store = ensureStore(tenant)
     const id = config.url.match(/\/admin\/sessions\/([^/]+)\/resume/)[1]
-    const s = sessionsStore.find((x) => x.id === id)
+    const s = store.find((x) => x.id === id)
     if (!s) return [404, { error: 'not_found' }, { delay: DELAY }]
     if (s.status !== 'PAUSED') {
       return [
@@ -226,7 +237,6 @@ export const sessionsHandlers = (mock) => {
         { delay: DELAY },
       ]
     }
-    // Hitung berapa lama paused → tambah ke extended_minutes
     if (s.paused_at) {
       const pausedMs = Date.now() - new Date(s.paused_at).getTime()
       const pausedMin = Math.round(pausedMs / 60000)
@@ -234,15 +244,16 @@ export const sessionsHandlers = (mock) => {
     }
     s.status = 'ACTIVE'
     s.paused_at = null
-    // Perpanjang TTL saat resume
     setTokenTtl(s, DEFAULT_TOKEN_TTL_SECONDS)
     return [200, { status: 'ok', data: cloneMock(s) }, { delay: DELAY }]
   })
 
-  // ── ACTION: End (manual complete)
+  // ── ACTION: End
   mock.onPost(/\/admin\/sessions\/([^/]+)\/end$/).reply((config) => {
+    const tenant = resolveTenant(config)
+    const store = ensureStore(tenant)
     const id = config.url.match(/\/admin\/sessions\/([^/]+)\/end/)[1]
-    const s = sessionsStore.find((x) => x.id === id)
+    const s = store.find((x) => x.id === id)
     if (!s) return [404, { error: 'not_found' }, { delay: DELAY }]
     if (s.status === 'COMPLETED') {
       return [409, { error: 'invalid_state', message: 'Sesi sudah selesai' }, { delay: DELAY }]
@@ -253,15 +264,17 @@ export const sessionsHandlers = (mock) => {
     return [200, { status: 'ok', data: cloneMock(s) }, { delay: DELAY }]
   })
 
-  // ── ACTION: Extend waktu
+  // ── ACTION: Extend
   mock.onPost(/\/admin\/sessions\/([^/]+)\/extend$/).reply((config) => {
+    const tenant = resolveTenant(config)
+    const store = ensureStore(tenant)
     const id = config.url.match(/\/admin\/sessions\/([^/]+)\/extend/)[1]
     const body = JSON.parse(config.data || '{}')
     const minutes = Number(body.minutes) || 0
     if (minutes <= 0 || minutes > 120) {
       return [400, { error: 'invalid_minutes', message: 'Minutes harus 1-120' }, { delay: DELAY }]
     }
-    const s = sessionsStore.find((x) => x.id === id)
+    const s = store.find((x) => x.id === id)
     if (!s) return [404, { error: 'not_found' }, { delay: DELAY }]
     if (s.status === 'COMPLETED') {
       return [409, { error: 'invalid_state', message: 'Sesi sudah selesai' }, { delay: DELAY }]
@@ -274,10 +287,12 @@ export const sessionsHandlers = (mock) => {
     ]
   })
 
-  // ── ACTION: Force submit (semua peserta)
+  // ── ACTION: Force submit
   mock.onPost(/\/admin\/sessions\/([^/]+)\/force-submit$/).reply((config) => {
+    const tenant = resolveTenant(config)
+    const store = ensureStore(tenant)
     const id = config.url.match(/\/admin\/sessions\/([^/]+)\/force-submit/)[1]
-    const s = sessionsStore.find((x) => x.id === id)
+    const s = store.find((x) => x.id === id)
     if (!s) return [404, { error: 'not_found' }, { delay: DELAY }]
     if (s.status === 'COMPLETED') {
       return [409, { error: 'invalid_state', message: 'Sesi sudah selesai' }, { delay: DELAY }]
@@ -296,67 +311,58 @@ export const sessionsHandlers = (mock) => {
 
   // ── ACTION: Regenerate token
   mock.onPost(/\/admin\/sessions\/([^/]+)\/regenerate-token$/).reply((config) => {
+    const tenant = resolveTenant(config)
+    const store = ensureStore(tenant)
     const id = config.url.match(/\/admin\/sessions\/([^/]+)\/regenerate-token/)[1]
-    const s = sessionsStore.find((x) => x.id === id)
+    const s = store.find((x) => x.id === id)
     if (!s) return [404, { error: 'not_found' }, { delay: DELAY }]
-    // Import di top-level — pakai genSessionToken
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-    let t = ''
-    for (let i = 0; i < 6; i++) t += chars[Math.floor(Math.random() * chars.length)]
-    s.token = t
+    s.token = genSessionToken()
     return [200, { status: 'ok', data: cloneMock(s) }, { delay: DELAY }]
   })
 
-  // ── GET /admin/sessions/:id/token — untuk TokenDisplay.vue
+  // ── GET /admin/sessions/:id/token
   mock.onGet(/\/admin\/sessions\/([^/]+)\/token$/).reply((config) => {
+    const tenant = resolveTenant(config)
+    const store = ensureStore(tenant)
     const id = config.url.match(/\/admin\/sessions\/([^/]+)\/token/)[1]
-    const s = sessionsStore.find((x) => x.id === id)
+    const s = store.find((x) => x.id === id)
     if (!s) return [404, { error: 'not_found' }, { delay: DELAY }]
 
-    // Kalau belum ada TTL, generate TTL default (auto-activate)
     if (!s.valid_until && s.status !== 'COMPLETED') {
       setTokenTtl(s, DEFAULT_TOKEN_TTL_SECONDS)
     }
 
     const remaining = computeRemainingSeconds(s)
-
-    // Auto-rotate kalau expired
     if (s.status === 'ACTIVE' && remaining <= 0 && s.valid_until) {
-      s.token = (() => {
-        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-        let t = ''
-        for (let i = 0; i < 6; i++) t += chars[Math.floor(Math.random() * chars.length)]
-        return t
-      })()
+      s.token = genSessionToken()
       setTokenTtl(s, DEFAULT_TOKEN_TTL_SECONDS)
     }
 
-    const payload = {
-      // Existing-compat shape
-      token: s.token,
-      valid_from: s.valid_from,
-      valid_until: s.valid_until,
-      remaining_seconds: computeRemainingSeconds(s),
-      // Extra info
-      session_id: s.id,
-      subject_nama: s.subject_nama,
-      class_nama: s.class_nama,
-      status: s.status,
-    }
-
-    return [200, payload, { delay: DELAY }]
+    return [
+      200,
+      {
+        token: s.token,
+        valid_from: s.valid_from,
+        valid_until: s.valid_until,
+        remaining_seconds: computeRemainingSeconds(s),
+        session_id: s.id,
+        subject_nama: s.subject_nama,
+        class_nama: s.class_nama,
+        status: s.status,
+      },
+      { delay: DELAY },
+    ]
   })
 
-  // ── POST /admin/sessions/:id/token/rotate — manual rotate
+  // ── POST /admin/sessions/:id/token/rotate
   mock.onPost(/\/admin\/sessions\/([^/]+)\/token\/rotate$/).reply((config) => {
+    const tenant = resolveTenant(config)
+    const store = ensureStore(tenant)
     const id = config.url.match(/\/admin\/sessions\/([^/]+)\/token\/rotate/)[1]
-    const s = sessionsStore.find((x) => x.id === id)
+    const s = store.find((x) => x.id === id)
     if (!s) return [404, { error: 'not_found' }, { delay: DELAY }]
 
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-    let t = ''
-    for (let i = 0; i < 6; i++) t += chars[Math.floor(Math.random() * chars.length)]
-    s.token = t
+    s.token = genSessionToken()
     setTokenTtl(s, DEFAULT_TOKEN_TTL_SECONDS)
 
     return [
@@ -372,10 +378,12 @@ export const sessionsHandlers = (mock) => {
       { delay: DELAY },
     ]
   })
+
   // ── GET /admin/sessions/:id/participants
   mock.onGet(/\/admin\/sessions\/([^/]+)\/participants$/).reply((config) => {
+    const tenant = resolveTenant(config)
     const id = config.url.match(/\/admin\/sessions\/([^/]+)\/participants/)[1]
-    const s = sessionsStore.find((x) => x.id === id)
+    const s = ensureStore(tenant).find((x) => x.id === id)
     if (!s) return [404, { error: 'not_found' }, { delay: DELAY }]
     const list = generateParticipants(s)
     return [200, { status: 'ok', data: list, count: list.length }, { delay: DELAY }]
@@ -383,8 +391,9 @@ export const sessionsHandlers = (mock) => {
 
   // ── GET /admin/sessions/:id/violations
   mock.onGet(/\/admin\/sessions\/([^/]+)\/violations$/).reply((config) => {
+    const tenant = resolveTenant(config)
     const id = config.url.match(/\/admin\/sessions\/([^/]+)\/violations/)[1]
-    const s = sessionsStore.find((x) => x.id === id)
+    const s = ensureStore(tenant).find((x) => x.id === id)
     if (!s) return [404, { error: 'not_found' }, { delay: DELAY }]
     const participants = generateParticipants(s)
     const list = generateViolations(s, participants)
@@ -393,8 +402,9 @@ export const sessionsHandlers = (mock) => {
 
   // ── GET /admin/sessions/:id/activities
   mock.onGet(/\/admin\/sessions\/([^/]+)\/activities$/).reply((config) => {
+    const tenant = resolveTenant(config)
     const id = config.url.match(/\/admin\/sessions\/([^/]+)\/activities/)[1]
-    const s = sessionsStore.find((x) => x.id === id)
+    const s = ensureStore(tenant).find((x) => x.id === id)
     if (!s) return [404, { error: 'not_found' }, { delay: DELAY }]
     const participants = generateParticipants(s)
     const list = generateActivities(s, participants)
