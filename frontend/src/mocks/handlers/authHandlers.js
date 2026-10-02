@@ -1,5 +1,10 @@
 // src/mocks/handlers/authHandlers.js
 import { mockSuperAdminLogin, mockUsersByTenant } from '../data/examdata'
+import { mockStudentsByTenant, getStudentsByTenant } from '../data/studentsData'
+
+// ── Generate mock JWT-B untuk peserta
+const genMockParticipantToken = (studentId, tenant) =>
+  `mock_participant_${tenant}_${studentId}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 
 export const authHandlers = (mock) => {
   // ── 1. SUPER ADMIN LOGIN
@@ -47,38 +52,47 @@ export const authHandlers = (mock) => {
     return [401, { error: 'Username atau password guru salah' }]
   })
 
-  // ── 4. PESERTA / EXAM LOGIN — body: { username, password }
+  // ── 4. PESERTA / EXAM LOGIN — body: { username (NIS), password }
+  // Source of truth: Data Referensi → Siswa (mockStudentsByTenant)
   mock.onPost('/auth/exam/login').reply((config) => {
     const tenant = config.headers['X-Tenant-Slug'] || 'default'
     const body = JSON.parse(config.data || '{}')
 
-    const tenantData = mockUsersByTenant[tenant]
-    if (!tenantData) {
+    // Tenant harus valid (tidak fallback ke default untuk login)
+    if (!mockStudentsByTenant[tenant]) {
       return [404, { error: `Tenant '${tenant}' tidak ditemukan` }]
     }
 
-    const user = tenantData.participants?.find(
-      (u) => u.username === body.username && u.password === body.password,
-    )
+    const inputNis = String(body.username || '').trim()
+    const inputPwd = String(body.password || '').trim()
 
-    if (user) {
-      return [
-        200,
-        {
-          role: user.role || 'PARTICIPANT',
-          token: user.token,
-          user: {
-            id: user.id,
-            name: user.user?.name,
-            nis: user.user?.nis,
-            class: user.user?.class,
-            tenant,
-          },
-          eligible_exams: user.eligible_exams || [],
-        },
-      ]
+    if (!inputNis || !inputPwd) {
+      return [400, { error: 'NIS dan password wajib diisi' }]
     }
 
-    return [401, { error: 'Username atau password salah' }]
+    const student = getStudentsByTenant(tenant).find(
+      (s) => s.nis === inputNis && s.status === 'AKTIF' && s.exam_password === inputPwd,
+    )
+
+    if (!student) {
+      return [401, { error: 'NIS atau password salah' }]
+    }
+
+    return [
+      200,
+      {
+        role: 'PARTICIPANT',
+        token: genMockParticipantToken(student.id, tenant),
+        user: {
+          id: student.id,
+          name: student.nama,
+          nis: student.nis,
+          nisn: student.nisn,
+          class: student.kelas_nama,
+          tenant,
+        },
+        eligible_exams: [], // TODO F1b: derive dari jadwal × kelas
+      },
+    ]
   })
 }
