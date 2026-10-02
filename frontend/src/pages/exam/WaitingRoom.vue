@@ -48,16 +48,20 @@
                       <div class="text-h6 text-primary text-weight-bold">{{ exam.title }}</div>
                       <div class="text-caption text-grey-7">{{ exam.session_type }}</div>
                     </div>
-                    <q-badge :color="statusColor(exam.session_status)" :label="statusLabel(exam.session_status)"
+                    <q-badge :color="statusOf(exam).color" :label="statusOf(exam).label"
                       class="q-px-sm q-py-xs text-weight-bold" />
                   </q-card-section>
 
-                  <q-card-section class="row q-col-gutter-sm text-grey-9">
-                    <div class="col-6 col-sm-3 flex items-center">
-                      <q-icon name="schedule" class="q-mr-xs text-grey-6" />
-                      <span>{{ formatTime(exam.start_time) }} - {{ formatTime(exam.end_time) }}</span>
+                  <div class="col-12 col-sm-6 flex items-start">
+                    <q-icon name="event" class="q-mr-xs text-grey-6 q-mt-xs" />
+                    <div>
+                      <div class="text-weight-medium">{{ formatRelativeExamDate(exam.start_time) }}</div>
+                      <div class="text-caption text-grey-6">
+                        {{ formatTime(exam.start_time) }} - {{ formatTime(exam.end_time) }}
+                        <span v-if="exam.duration_minutes"> · {{ exam.duration_minutes }} menit</span>
+                      </div>
                     </div>
-                  </q-card-section>
+                  </div>
 
                   <!-- Blocked alert -->
                   <q-banner v-if="exam.blocked" class="bg-red-2 text-red-9 q-mx-md q-mb-sm">
@@ -68,9 +72,9 @@
                   <q-separator />
 
                   <q-card-actions align="right" class="q-pa-md">
-                    <q-btn :color="exam.session_status === 'ACTIVE' && !exam.blocked ? 'primary' : 'grey-5'"
-                      :disabled="exam.session_status !== 'ACTIVE' || exam.blocked" :label="buttonLabel(exam)"
-                      icon-right="play_arrow" unelevated @click="openTokenDialog(exam)" />
+                    <q-btn :color="canEnterExam(exam) ? 'primary' : 'grey-5'" :disabled="!canEnterExam(exam)"
+                      :label="buttonLabel(exam)" :icon-right="canEnterExam(exam) ? 'play_arrow' : 'lock_clock'"
+                      unelevated @click="openTokenDialog(exam)" />
                   </q-card-actions>
                 </q-card>
               </div>
@@ -93,7 +97,8 @@
                       <div class="text-caption text-grey-7 q-mt-xs">Alasan: {{ exam.makeup_reason || 'Tidak hadir' }}
                       </div>
                     </div>
-                    <q-badge :color="statusColor(exam.session_status)" :label="statusLabel(exam.session_status)" />
+                    <q-badge :color="statusOf(exam).color" :label="statusOf(exam).label"
+                      class="q-px-sm q-py-xs text-weight-bold" />
                   </q-card-section>
                   <q-card-actions align="right" class="q-pa-md">
                     <q-btn color="orange" :disabled="exam.session_status !== 'ACTIVE' || exam.blocked"
@@ -206,7 +211,11 @@ import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from '@/stores/auth'
 import { useExamList } from '@/composables/exam/useExamList'
-
+import {
+  formatRelativeExamDate,
+  getExamAccessState,
+  getExamStatusLabel,
+} from '@/utils/exam/dateHelpers'
 const router = useRouter()
 const $q = useQuasar()
 const authStore = useAuthStore()
@@ -220,29 +229,41 @@ const tokenVerifying = ref(false)
 
 onMounted(fetchDashboard)
 
-const statusColor = (s) => ({
-  ACTIVE: 'green', NOT_STARTED: 'orange', EXPIRED: 'grey', CLOSED: 'grey',
-}[s] || 'grey')
-
-const statusLabel = (s) => ({
-  ACTIVE: 'Tersedia', NOT_STARTED: 'Belum Dimulai', EXPIRED: 'Kadaluarsa', CLOSED: 'Ditutup',
-}[s] || s)
-
+const statusOf = (exam) => getExamStatusLabel(exam)
+const accessOf = (exam) => getExamAccessState(exam)
+const canEnterExam = (exam) => {
+  if (exam.blocked) return false
+  if (exam.session_status !== 'ACTIVE') return false
+  return accessOf(exam).canEnter
+}
+const buttonLabel = (exam) => {
+  if (exam.blocked) return 'Diblokir'
+  if (exam.session_status !== 'ACTIVE') {
+    return exam.session_status === 'NOT_STARTED' ? 'Belum Dibuka' : 'Kadaluarsa'
+  }
+  const { canEnter, reason } = accessOf(exam)
+  if (canEnter) return 'Masuk Ujian'
+  if (reason === 'too_early') return 'Belum Waktunya'
+  if (reason === 'expired') return 'Kadaluarsa'
+  return 'Tidak Tersedia'
+}
 const formatTime = (iso) => {
   if (!iso) return '-'
   try {
     return new Date(iso).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
   } catch { return iso }
 }
-
-const buttonLabel = (exam) => {
-  if (exam.blocked) return 'Diblokir'
-  if (exam.session_status === 'ACTIVE') return 'Masuk Ujian'
-  if (exam.session_status === 'NOT_STARTED') return 'Belum Dibuka'
-  return 'Kadaluarsa'
-}
-
 function openTokenDialog(exam) {
+  if (!canEnterExam(exam)) {
+    const { reason } = accessOf(exam)
+    const msgs = {
+      too_early: 'Ujian belum dibuka. Tunggu sampai waktu mulai.',
+      expired: 'Waktu ujian sudah lewat.',
+      no_schedule: 'Jadwal tidak valid.',
+    }
+    $q.notify({ type: 'warning', message: msgs[reason] || 'Ujian tidak dapat diakses.' })
+    return
+  }
   tokenDialog.value = { show: true, examId: exam.exam_id, examSubject: exam.title, inputToken: '' }
 }
 
