@@ -1,10 +1,13 @@
 // src/mocks/handlers/schoolProfileHandlers.js
+// Handler Profil Sekolah — extension only (identity dari superadmin).
+
 import { mockSchoolProfiles } from '../data/schoolProfileData'
+import { getMergedSchoolProfile, pickExtensionFields } from '../data/schoolIdentityHelper'
 import { cloneMock } from '../data/keahlianData'
 
 const DELAY = 300
 
-// In-memory state per tenant slug
+// In-memory extension state per tenant (identity tidak disimpan di sini)
 let profilesState = JSON.parse(JSON.stringify(mockSchoolProfiles))
 
 export const resetSchoolProfileMockData = () => {
@@ -13,24 +16,27 @@ export const resetSchoolProfileMockData = () => {
 
 const DEFAULT_SLUG = 'smkpasja'
 
-const resolveProfile = (tenantSlug) => {
-  const slug = String(tenantSlug || DEFAULT_SLUG).toLowerCase()
-  return profilesState[slug] || profilesState[DEFAULT_SLUG]
+const resolveSlug = (tenantSlug) => String(tenantSlug || DEFAULT_SLUG).toLowerCase()
+
+// Merge: identity dari helper + extension dari profilesState (in-memory)
+const resolveMergedProfile = (slug) => {
+  const merged = getMergedSchoolProfile(slug)
+  const extensionState = profilesState[slug] || profilesState[DEFAULT_SLUG] || {}
+  return { ...merged, ...extensionState }
 }
 
 export const schoolProfileHandlers = (mock) => {
-  // GET /admin/school-profile — return based on X-Tenant-Slug
+  // GET /admin/school-profile — return MERGED (identity + extension)
   mock.onGet('/admin/school-profile').reply((config) => {
-    const tenantSlug = config.headers['X-Tenant-Slug'] || DEFAULT_SLUG
-    const profile = resolveProfile(tenantSlug)
-    console.info('[MOCK] GET /admin/school-profile →', tenantSlug, profile.jenjang)
-    return [200, { status: 'ok', data: cloneMock(profile) }, { delay: DELAY }]
+    const slug = resolveSlug(config.headers['X-Tenant-Slug'])
+    const merged = resolveMergedProfile(slug)
+    console.info('[MOCK] GET /admin/school-profile →', slug, merged.jenjang)
+    return [200, { status: 'ok', data: cloneMock(merged) }, { delay: DELAY }]
   })
 
-  // PUT /admin/school-profile
+  // PUT /admin/school-profile — WHITELIST extension fields only
   mock.onPut('/admin/school-profile').reply((config) => {
-    const tenantSlug = config.headers['X-Tenant-Slug'] || DEFAULT_SLUG
-    const slug = String(tenantSlug).toLowerCase()
+    const slug = resolveSlug(config.headers['X-Tenant-Slug'])
 
     let body = {}
     try {
@@ -41,23 +47,23 @@ export const schoolProfileHandlers = (mock) => {
 
     console.info('[MOCK] PUT /admin/school-profile →', slug)
 
-    if (!body.nama || !body.jenjang) {
-      return [
-        400,
-        { error: 'validation_failed', message: 'Nama dan jenjang wajib.' },
-        { delay: DELAY },
-      ]
-    }
+    // Validasi minimal — hanya cek field extension (identity tidak boleh kosong)
+    // Validasi nama/jenjang dihapus karena bukan wewenang admin
 
-    const current = profilesState[slug] || profilesState[DEFAULT_SLUG]
-    profilesState[slug] = { ...current, ...body }
+    // Ambil hanya extension fields (buang identity kalau ada)
+    const extensionPatch = pickExtensionFields(body)
+    const current = profilesState[slug] || profilesState[DEFAULT_SLUG] || {}
+    profilesState[slug] = { ...current, ...extensionPatch }
+
+    // Return MERGED (identity tetap dari tenant)
+    const merged = resolveMergedProfile(slug)
 
     return [
       200,
       {
         status: 'ok',
         message: 'Profil sekolah berhasil disimpan.',
-        data: cloneMock(profilesState[slug]),
+        data: cloneMock(merged),
       },
       { delay: DELAY },
     ]

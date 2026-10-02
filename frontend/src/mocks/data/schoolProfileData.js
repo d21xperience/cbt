@@ -4,12 +4,8 @@
 export const mockSchoolProfiles = {
   // ── SMK (existing)
   smkpasja: {
-    nama: 'SMKS PASUNDAN JATINANGOR',
-    jenjang: 'SMK',
-    npsn: '20254180',
     nss: '402021015029',
     kode_sekolah: 'SMKPASJA',
-    program_duration_years: 3,
     alamat_jalan: 'Jalan Kolonel Ahmad Syam Jatinangor',
     alamat_desa: 'Cikeruh',
     alamat_kecamatan: 'Kec. Jatinangor',
@@ -25,12 +21,8 @@ export const mockSchoolProfiles = {
   },
 
   smknkawali: {
-    nama: 'SMKN KAWALI',
-    jenjang: 'SMK',
-    npsn: '20254181',
     nss: '402021015030',
     kode_sekolah: 'SMKNKAWALI',
-    program_duration_years: 3,
     alamat_jalan: 'Jalan Raya Kawali',
     alamat_desa: 'Kawali',
     alamat_kecamatan: 'Kec. Kawali',
@@ -48,12 +40,8 @@ export const mockSchoolProfiles = {
 
   // ── MTs (existing)
   mtsmaarifjtr: {
-    nama: 'MTs. MAARIF JATINANGOR',
-    jenjang: 'MTs',
-    npsn: '20254182',
     nss: '402021015031',
     kode_sekolah: 'MTSMAARIF',
-    program_duration_years: 3,
     alamat_jalan: 'Jalan Raya Jatinangor',
     alamat_desa: 'Cibeusi',
     alamat_kecamatan: 'Kec. Jatinangor',
@@ -70,12 +58,8 @@ export const mockSchoolProfiles = {
 
   // ── SMP (BARU)
   smpn1jatinangor: {
-    nama: 'SMP NEGERI 1 JATINANGOR',
-    jenjang: 'SMP',
-    npsn: '20254200',
     nss: '402021015040',
     kode_sekolah: 'SMPN1JTR',
-    program_duration_years: 3,
     alamat_jalan: 'Jalan Raya Jatinangor No. 100',
     alamat_desa: 'Sayang',
     alamat_kecamatan: 'Kec. Jatinangor',
@@ -92,12 +76,8 @@ export const mockSchoolProfiles = {
 
   // ── SMA (BARU)
   sman1cirebon: {
-    nama: 'SMA NEGERI 1 CIREBON',
-    jenjang: 'SMA',
-    npsn: '20254201',
     nss: '402021015041',
     kode_sekolah: 'SMAN1CRB',
-    program_duration_years: 3,
     alamat_jalan: 'Jalan Wahidin Sudirohusodo No. 2',
     alamat_desa: 'Kebonbaru',
     alamat_kecamatan: 'Kec. Kejaksan',
