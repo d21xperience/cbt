@@ -2,6 +2,7 @@
 // Mock Master Siswa — multi-tenant (grouped by tenant_slug).
 // Source of truth: Data Referensi → Siswa per tenant.
 import { deriveExamPassword } from './passwordUtils'
+import { applyOverrides } from './passwordOverrides'
 import { DEFAULT_TENANT, flattenTenants } from './tenantHelpers'
 
 // ── Helper lokal: enrich exam_password dari NIS + inject tenant_slug
@@ -375,8 +376,10 @@ export const mockStudentsByTenant = Object.fromEntries(
 )
 
 // ── Getter helpers
-export const getStudentsByTenant = (tenant) =>
-  mockStudentsByTenant[tenant] || mockStudentsByTenant[DEFAULT_TENANT] || []
+export const getStudentsByTenant = (tenant) => {
+  const base = mockStudentsByTenant[tenant] || mockStudentsByTenant[DEFAULT_TENANT] || []
+  return applyOverrides(tenant, base)
+}
 
 export const getAllStudents = () => flattenTenants(mockStudentsByTenant)
 

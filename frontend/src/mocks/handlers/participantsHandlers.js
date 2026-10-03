@@ -1,36 +1,67 @@
 // src/mocks/handlers/participantsHandlers.js
-import { mockParticipants, mockExams } from '../data/participantsData'
+// Handler Data Peserta — derive dari mockStudentsByTenant (source of truth).
+// Peserta = siswa AKTIF (SISWA) + import external (EXTERNAL).
+import { setOverride } from '../data/passwordOverrides'
+import { getStudentsByTenant } from '../data/studentsData'
+import { resolveTenant } from '../data/tenantHelpers'
+import { generateRandomPassword } from '../data/passwordUtils'
 import { cloneMock } from '../data/keahlianData'
 
 const DELAY = 300
 
-let participants = cloneMock(mockParticipants)
+// ── Store khusus peserta EXTERNAL (per tenant)
+const externalStore = {}
+
+const ensureExternalStore = (tenant) => {
+  if (!externalStore[tenant]) externalStore[tenant] = []
+  return externalStore[tenant]
+}
 
 export const resetParticipantsMockData = () => {
-  participants = cloneMock(mockParticipants)
+  Object.keys(externalStore).forEach((k) => delete externalStore[k])
+}
+
+// ── Derived: siswa AKTIF → peserta canonical
+const studentToParticipant = (student) => ({
+  id: student.id,
+  nis: student.nis || '',
+  nisn: student.nisn || '',
+  nama: student.nama,
+  kelas_id: student.kelas_id,
+  kelas_nama: student.kelas_nama,
+  status: student.status,
+  exam_password: student.exam_password || '',
+  source: 'SISWA',
+  tenant_slug: student.tenant_slug,
+})
+
+const buildParticipants = (tenant) => {
+  const students = getStudentsByTenant(tenant)
+    .filter((s) => s.status === 'AKTIF')
+    .map(studentToParticipant)
+  const external = ensureExternalStore(tenant)
+  return [...students, ...external]
 }
 
 export const participantsHandlers = (mock) => {
-  // ══════════════════════════════════════════════════════
-  // GET /admin/participants — list + filter
-  // ══════════════════════════════════════════════════════
+  // ── LIST
   mock.onGet('/admin/participants').reply((config) => {
-    const { exam_id, source, search } = config.params || {}
-    let list = cloneMock(participants)
+    const tenant = resolveTenant(config)
+    const { source, search } = config.params || {}
+    let list = cloneMock(buildParticipants(tenant))
 
-    if (exam_id) list = list.filter((p) => p.exam_id === exam_id)
     if (source) list = list.filter((p) => p.source === source)
     if (search) {
       const q = String(search).toLowerCase()
       list = list.filter(
         (p) =>
-          String(p.name || '')
+          String(p.nama || '')
             .toLowerCase()
             .includes(q) ||
           String(p.nisn || '')
             .toLowerCase()
             .includes(q) ||
-          String(p.participant_id || '')
+          String(p.nis || '')
             .toLowerCase()
             .includes(q),
       )
@@ -39,105 +70,110 @@ export const participantsHandlers = (mock) => {
     return [200, { status: 'ok', data: list, count: list.length }, { delay: DELAY }]
   })
 
-  // ══════════════════════════════════════════════════════
-  // GET /admin/exams — dropdown filter
-  // ══════════════════════════════════════════════════════
-  mock.onGet('/admin/exams').reply(() => {
-    return [200, { status: 'ok', data: mockExams, count: mockExams.length }, { delay: DELAY }]
-  })
+  // ── POST /admin/participants/:id/reset-password
+  mock.onPost(/\/admin\/participants\/([^/]+)\/reset-password$/).reply((config) => {
+    const tenant = resolveTenant(config)
+    const id = config.url.match(/\/admin\/participants\/([^/]+)\/reset-password/)[1]
 
-  // ══════════════════════════════════════════════════════
-  // DELETE /admin/participants/:id
-  // ══════════════════════════════════════════════════════
-  mock.onDelete(/\/admin\/participants\/([^/]+)/).reply((config) => {
-    const id = config.url.match(/\/admin\/participants\/([^/]+)/)[1]
-    console.info('[MOCK] DELETE /admin/participants/:id →', id)
+    const students = getStudentsByTenant(tenant)
+    const student = students.find((s) => s.id === id)
 
-    const idx = participants.findIndex((p) => p.id === id)
-    if (idx === -1) {
-      return [404, { error: 'participant_not_found' }, { delay: DELAY }]
+    if (!student) {
+      return [404, { error: 'student_not_found' }, { delay: DELAY }]
     }
 
-    // Guard: SIAKAD tidak bisa dihapus
-    if (participants[idx].source === 'SIAKAD') {
+    const newPassword = generateRandomPassword()
+    setOverride(tenant, id, newPassword)
+
+    console.info(`🔑 [MOCK] Reset password ${tenant}/${id} → ${newPassword}`)
+
+    return [
+      200,
+      {
+        status: 'ok',
+        message: 'Password berhasil di-reset.',
+        data: { id, exam_password: newPassword },
+      },
+      { delay: DELAY },
+    ]
+  })
+
+  // ── DELETE — hanya EXTERNAL
+  mock.onDelete(/\/admin\/participants\/([^/]+)/).reply((config) => {
+    const tenant = resolveTenant(config)
+    const id = config.url.match(/\/admin\/participants\/([^/]+)/)[1]
+    const store = ensureExternalStore(tenant)
+
+    const idx = store.findIndex((p) => p.id === id)
+    if (idx === -1) {
       return [
         400,
-        {
-          error: 'siakad_locked',
-          message: 'Peserta dari SIAKAD tidak dapat dihapus.',
-        },
+        { error: 'siakad_locked', message: 'Peserta dari SISWA tidak dapat dihapus.' },
         { delay: DELAY },
       ]
     }
 
-    participants.splice(idx, 1)
+    store.splice(idx, 1)
     return [200, { status: 'ok', message: 'Peserta dihapus' }, { delay: DELAY }]
   })
 
-  // ══════════════════════════════════════════════════════
-  // POST /admin/participants/import-external
-  //  - ?preview=true → return preview rows (tidak simpan)
-  //  - default       → commit, return imported_count
-  // ══════════════════════════════════════════════════════
+  // ── POST import-external
   mock.onPost('/admin/participants/import-external').reply((config) => {
+    const tenant = resolveTenant(config)
     const params = config.params || {}
     const isPreview = params.preview === 'true' || params.preview === true
-
-    console.info('[MOCK] POST /admin/participants/import-external preview=', isPreview)
 
     if (isPreview) {
       const preview = [
         {
           _rowNumber: 1,
-          participant_id: 'EXT-101',
           nisn: '99000101',
-          name: 'Gita Sari',
-          class: '11 IPS 1',
+          nama: 'Gita Sari',
+          kelas_nama: '11 IPS 1',
           _error: null,
         },
         {
           _rowNumber: 2,
-          participant_id: 'EXT-102',
           nisn: '99000102',
-          name: 'Hadi Widodo',
-          class: '11 IPS 2',
+          nama: 'Hadi Widodo',
+          kelas_nama: '11 IPS 2',
           _error: null,
         },
         {
           _rowNumber: 3,
-          participant_id: 'EXT-103',
           nisn: '',
-          name: '',
-          class: '',
+          nama: '',
+          kelas_nama: '',
           _error: 'NISN, Nama, Kelas wajib diisi',
         },
       ]
       return [200, { status: 'ok', data: preview, errors: [] }, { delay: DELAY }]
     }
 
-    // ── Commit
     let body = {}
     try {
       body = typeof config.data === 'string' ? JSON.parse(config.data) : config.data || {}
     } catch {
-      body = {}
+      /* ignore */
     }
 
     const importedCount = 2
+    const store = ensureExternalStore(tenant)
     const now = new Date().toISOString()
 
     for (let i = 0; i < importedCount; i += 1) {
-      participants.push({
-        id: `p-import-${Date.now()}-${i}`,
-        participant_id: `EXT-${String(i + 101).padStart(3, '0')}`,
+      store.push({
+        id: `p-ext-${tenant}-${Date.now()}-${i}`,
+        nis: '',
         nisn: `99000${String(i + 101).padStart(3, '0')}`,
-        name: i === 0 ? 'Gita Sari' : 'Hadi Widodo',
-        class: '11 IPS 1',
-        rombel: '11 IPS 1',
+        nama: i === 0 ? 'Gita Sari' : 'Hadi Widodo',
+        kelas_id: null,
+        kelas_nama: '11 IPS 1',
+        status: 'AKTIF',
+        exam_password: generateRandomPassword(),
         source: 'EXTERNAL',
         exam_id: body.exam_id || null,
-        exam_name: '',
-        is_active: true,
+        tenant_slug: tenant,
         created_at: now,
       })
     }
