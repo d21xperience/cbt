@@ -47,16 +47,9 @@
       <!-- Picker Bar: Tingkat + Kelas -->
       <q-card flat bordered class="q-mb-md bg-white">
         <q-card-section class="row q-col-gutter-md">
-          <div class="col-12 col-md-4">
-            <q-select v-model="tingkat" :options="tingkatOptions" label="Pilih Tingkat" outlined dense emit-value
-              map-options @update:model-value="onTingkatChange">
-              <template v-slot:prepend><q-icon name="stairs" /></template>
-            </q-select>
-          </div>
-          <div class="col-12 col-md-6">
+          <div class="col-12 col-md-8">
             <q-select v-model="classId" :options="classOptions" label="Pilih Kelas" outlined dense emit-value
-              map-options :disable="!tingkat" :hint="!tingkat ? 'Pilih tingkat terlebih dahulu' : ''"
-              @update:model-value="onClassChange">
+              map-options @update:model-value="onClassChange">
               <template v-slot:prepend><q-icon name="class" /></template>
             </q-select>
           </div>
@@ -112,14 +105,12 @@ const {
   classId,
   examTypePickerOpen,
   selectedExamType,
-  tingkatOptions,
   classOptions,
   selectedClass,
   subjectTable,
   stats,
   selectExamType,
   changeExamType,
-  onTingkatChange,
   onClassChange,
 } = useQuestionsV2()
 
@@ -140,7 +131,7 @@ const onEdit = async (row) => {
   try {
     const res = await ExamService.findOrCreate({
       jenis_ujian_id: examTypeId.value,
-      subject_id: row.id,
+      subject_id: row.subject_id,
       class_id: classId.value,
       academic_period_id: academicStore.active_period_id,
       
