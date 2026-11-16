@@ -97,9 +97,15 @@ const routes = [
         name: 'admin-school-profile',
         component: () => import('@/pages/admin/SchoolProfile.vue'),
       },
+
+      {
+        path: 'references/academic-periods',
+        name: 'admin-academic-periods',
+        component: () => import('@/pages/admin/AcademicPeriods.vue'),
+      },
       {
         path: 'references/subjects',
-        name: 'admin-subjects', // ← TAMBAH BARIS INI
+        name: 'admin-subjects',
         component: () => import('@/pages/admin/Subjects.vue'),
       },
       {

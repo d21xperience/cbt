@@ -31,4 +31,8 @@ backend/data/
 *.db-wal
 /tmp
 *.txt
-Makefile
+Makefile# Ignore backup, scripts, and db files
+*.bak*
+*.db
+*.sh
+backend/bin/

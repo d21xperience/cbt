@@ -5,8 +5,8 @@
 import { api } from '@/boot/axios'
 
 export const StudentService = {
-  list() {
-    return api.get('/admin/students')
+  list(params = {}) {
+    return api.get('/admin/students', { params })
   },
   create(payload) {
     return api.post('/admin/students', payload)

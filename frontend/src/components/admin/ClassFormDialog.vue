@@ -98,7 +98,7 @@ const emit = defineEmits(['update:modelValue', 'submit'])
 
 const EMPTY = {
   nama: '',
-  tingkat: '',
+  tingkat: null,
   kurikulum: 'K13',
   jenis_rombel: 'REGULER',
   program_keahlian_id: null,

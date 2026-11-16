@@ -6,8 +6,8 @@
 import { api } from '@/boot/axios'
 
 export const ClassService = {
-  list() {
-    return api.get('/admin/classes')
+  list(params = {}) {
+    return api.get('/admin/classes', { params })
   },
   create(payload) {
     return api.post('/admin/classes', payload)

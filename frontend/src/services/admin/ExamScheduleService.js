@@ -1,14 +1,11 @@
-// src/services/admin/ExamScheduleService.js
-// Adapter HTTP untuk Jadwal Ujian (ExamSchedule) — Fase 2b-3-jadwal.
-
 import { api } from '@/boot/axios'
 
 export const ExamScheduleService = {
-  list(params = {}) {
-    return api.get('/admin/exam-schedules', { params })
+  list() {
+    return api.get('/admin/exam-schedules')
   },
-  createBatch(rows) {
-    return api.post('/admin/exam-schedules/batch', { rows })
+  create(payload) {
+    return api.post('/admin/exam-schedules', payload)
   },
   update(id, payload) {
     return api.put(`/admin/exam-schedules/${id}`, payload)

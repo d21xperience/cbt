@@ -1,6 +1,7 @@
 // src/composables/admin/useLessons.js
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
+import { useAcademicStore } from '@/stores/academic'
 import { LessonService } from '@/services/admin/LessonService'
 import { SubjectService } from '@/services/admin/SubjectService'
 import { ClassService } from '@/services/admin/ClassService'
@@ -16,6 +17,7 @@ const EMPTY_FORM = {
 
 export function useLessons() {
   const $q = useQuasar()
+  const academicStore = useAcademicStore()
 
   // ── List + refs
   const lessons = ref([])
@@ -29,7 +31,7 @@ export function useLessons() {
   const searchQuery = ref('')
   const filterClass = ref(null)
   const filterTeacher = ref(null)
-  const filterSemester = ref(null)
+    const filterSemester = ref(null)
 
   // ── Dialog CRUD
   const dialogOpen = ref(false)
@@ -47,14 +49,30 @@ export function useLessons() {
   const downloadingTemplate = ref(false)
 
   // ── Options
+
+  // const dummy_academicYearOptions = computed(() => {
+  //   const years = lessons.value.map((l) => l.academic_year).filter(Boolean)
+  //   return [...new Set(years)].sort().reverse()
+  // })
+
   const semesterOptions = [
     { label: 'Ganjil', value: 'GANJIL' },
     { label: 'Genap', value: 'GENAP' },
   ]
 
-  const subjectOptions = computed(() =>
-    subjects.value.map((s) => ({ label: `${s.kode} — ${s.nama}`, value: s.id })),
-  )
+  const subjectOptions = computed(() => {
+    // 1. Ambil semua subject_id yang sudah dipakai di tabel lessons
+    const usedSubjectIds = lessons.value.map((l) => l.subject_id)
+
+    // 2. Filter subjects: buang yang sudah ada, KECUALI yang sedang diedit
+    const availableSubjects = subjects.value.filter((s) => {
+      if (isEditing.value && initialForm.value.subject_id === s.id) return true
+      return !usedSubjectIds.includes(s.id)
+    })
+
+    // 3. Format untuk dropdown
+    return availableSubjects.map((s) => ({ label: `${s.kode} — ${s.nama}`, value: s.id }))
+  })
   const classOptions = computed(() =>
     classes.value.map((c) => ({ label: `${c.nama} (Tingkat ${c.tingkat})`, value: c.id })),
   )
@@ -72,7 +90,7 @@ export function useLessons() {
     return list.filter((l) => {
       if (filterClass.value && l.class_id !== filterClass.value) return false
       if (filterTeacher.value && l.teacher_id !== filterTeacher.value) return false
-      if (filterSemester.value && l.semester !== filterSemester.value) return false
+      
       if (!q) return true
       return (
         String(l.subject_nama || '')
@@ -94,7 +112,9 @@ export function useLessons() {
   const loadLessons = async () => {
     loading.value = true
     try {
-      const res = await LessonService.list()
+      const res = await LessonService.list({
+        academic_period_id: academicStore.active_period_id,
+      })
       const data = res?.data?.data ?? res?.data
       if (!Array.isArray(data)) {
         errorState.value = 'contract_mismatch'
@@ -113,6 +133,11 @@ export function useLessons() {
       loading.value = false
     }
   }
+  // Auto-refresh saat tahun ajaran di header diganti
+  watch(() => academicStore.active_period_id, () => {
+    loadLessons()
+  })
+
 
   const loadRefs = async () => {
     try {
@@ -159,6 +184,12 @@ export function useLessons() {
 
   const submitForm = async (payload) => {
     if (!payload) return { success: false }
+    
+    // ✅ AUTO-SYNC: Timpa field manual dengan Global Store
+    payload.academic_period_id = academicStore.active_period_id
+    delete payload.academic_year
+    delete payload.semester
+
     submitting.value = true
     try {
       if (isEditing.value && editingId.value) {
@@ -169,23 +200,24 @@ export function useLessons() {
         }
         $q.notify({ type: 'positive', message: 'Pembelajaran diperbarui.' })
       } else {
-        const res = await LessonService.create(payload)
-        const created = res?.data?.data
-        if (created && typeof created === 'object') {
-          lessons.value = [created, ...lessons.value]
-        } else {
-          await loadLessons()
-        }
+        await LessonService.create(payload)
+        // ✅ FIX: Selalu muat ulang data dari server agar hasil JOIN (Nama Mapel, Kelas, Guru) langsung tampil
+        await loadLessons()
         $q.notify({ type: 'positive', message: 'Pembelajaran ditambahkan.' })
       }
       closeDialog()
       return { success: true }
     } catch (err) {
-      $q.notify({
-        type: 'negative',
-        message:
-          err?.response?.data?.message || err?.response?.data?.error || 'Gagal menyimpan data.',
-      })
+      const errCode = err?.response?.data?.error
+      let msg = 'Gagal menyimpan data.'
+      if (errCode === 'duplicate_lesson') {
+        msg = 'Pembelajaran ini (Mapel & Kelas) sudah ada di Tahun Ajaran & Semester yang sama.'
+      } else if (errCode === 'validation_failed') {
+        msg = 'Semua field (Mapel, Kelas, Guru, Tahun, Semester) wajib diisi.'
+      } else if (err?.response?.data?.message) {
+        msg = err.response.data.message
+      }
+      $q.notify({ type: 'negative', message: msg })
       return { success: false }
     } finally {
       submitting.value = false
@@ -293,6 +325,8 @@ export function useLessons() {
       importing.value = false
     }
   }
+
+  watch(() => [academicStore.academic_year, academicStore.semester], () => { loadLessons() })
 
   onMounted(() => {
     loadLessons()

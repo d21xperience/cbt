@@ -1,0 +1,45 @@
+import { defineStore } from 'pinia'
+import { LocalStorage } from 'quasar'
+
+const STORAGE_KEY = 'cbt_academic_context'
+const EXAM_MODE_KEY = 'cbt_exam_mode'
+
+export const useAcademicStore = defineStore('academic', {
+  state: () => {
+    const saved = LocalStorage.getItem(STORAGE_KEY)
+    return {
+      active_period_id: saved?.active_period_id || '20251',
+      academic_year: saved?.academic_year || '2025/2026',
+      semester: saved?.semester || 'GANJIL',
+      exam_mode: LocalStorage.getItem(EXAM_MODE_KEY) || null, // 'UTS' | 'UAS' | 'UH' | 'SURVEI' | null
+      academicYearOptions: ['2025/2026', '2026/2027', '2027/2028'],
+      semesterOptions: [
+        { label: 'Ganjil', value: 'GANJIL' },
+        { label: 'Genap', value: 'GENAP' },
+      ],
+    }
+  },
+  getters: {
+    currentPeriodLabel: (state) => `${state.academic_year} — ${state.semester}`,
+    isExamModeActive: (state) => !!state.exam_mode,
+    isMainExamMode: (state) => ['UTS', 'UAS'].includes(state.exam_mode),
+  },
+  actions: {
+    setPeriod(academic_year, semester, period_id = null) {
+      this.academic_year = academic_year
+      this.semester = semester
+      if (period_id) this.active_period_id = period_id
+      LocalStorage.set(STORAGE_KEY, {
+        academic_year, semester, active_period_id: this.active_period_id
+      })
+    },
+    setExamMode(mode) {
+      this.exam_mode = mode
+      if (mode) {
+        LocalStorage.set(EXAM_MODE_KEY, mode)
+      } else {
+        LocalStorage.remove(EXAM_MODE_KEY)
+      }
+    }
+  },
+})

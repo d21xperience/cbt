@@ -105,9 +105,9 @@ const previewColumns = [
   { name: '_rowNumber', label: 'Baris', field: '_rowNumber', align: 'center', style: 'width: 70px' },
   { name: 'nama', label: 'Nama Kelas', field: 'nama', align: 'left' },
   { name: 'tingkat', label: 'Tingkat', field: 'tingkat', align: 'center' },
-  { name: 'kurikulum', label: 'Kurikulum', field: 'kurikulum', align: 'center' },
+  // { name: 'kurikulum', label: 'Kurikulum', field: 'kurikulum', align: 'center' },
   { name: 'jenis_rombel', label: 'Jenis', field: 'jenis_rombel', align: 'center' },
-  { name: 'wali_kelas_nama', label: 'Wali Kelas', field: 'wali_kelas_nama', align: 'left' },
+  // { name: 'wali_kelas_nama', label: 'Wali Kelas', field: 'wali_kelas_nama', align: 'left' },
   { name: '_error', label: 'Status', field: '_error', align: 'center' },
 ]
 
@@ -120,6 +120,11 @@ watch(() => props.modelValue, (val) => {
 })
 watch(isOpen, (val) => emit('update:modelValue', val))
 watch(step, (val) => emit('update:importStep', val))
+
+// ✅ FIX: Pantau perubahan importStep dari induk (useClasses.js)
+watch(() => props.importStep, (val) => {
+  if (val) step.value = val
+})
 
 const onDownloadTemplate = (format) => emit('download-template', format)
 const onUploadStep = () => emit('parse-import', fileRef.value)

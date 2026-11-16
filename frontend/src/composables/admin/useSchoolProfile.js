@@ -16,7 +16,7 @@ import { useQuasar } from 'quasar'
 import { SchoolProfileService } from '@/services/admin/SchoolProfileService'
 
 const EMPTY_PROFILE = {
-  nama: '',
+  nama_sekolah: '',
   jenjang: 'SMA',
   npsn: '',
   nss: '',

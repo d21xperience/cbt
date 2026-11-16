@@ -1,6 +1,6 @@
 // src/mocks/handlers/examHandlers.js
 // Handler /exam/* (singular, dipakai ActiveExamService) + /exams/* (plural, legacy)
-
+import { getLockState, updateLockState } from '../data/studentLockStore'
 import {
   mockExamStart,
   mockAnswerSave,
@@ -14,13 +14,20 @@ import { incrementWarning, resetWarning } from '../data/stateStore'
 
 const DELAY = 300
 
-// ── Lock state (per ujian) — untuk demo
-const examLockState = {
-  locked: false,
-  lockLevel: 0, // 0 = unlocked, 1 = L1, 2 = L2
-  warnings: 0, // counter 0–3
-  violationCount: 0, // total pelanggaran
-  lockCount: 0, // berapa kali sudah lock
+// ── Helper: parse JWT-A (Authorization) → student_id
+// Format mock: `mock-participant-token-<studentId>-<timestamp>`
+const parseStudentIdFromAuth = (config) => {
+  const auth = config.headers?.Authorization || config.headers?.authorization || ''
+  const m = String(auth).match(/mock-participant-token-([a-zA-Z0-9_-]+)-\d+/)
+  return m ? m[1] : null
+}
+
+// ── Helper: parse JWT-B (X-Exam-Token) → { examId, sessionId }
+// Format mock: `mock_jwtB_<examId>_<sessionId>_<ts>_<rand>`
+const parseJwtB = (config) => {
+  const tok = config.headers?.['X-Exam-Token'] || config.headers?.['x-exam-token'] || ''
+  const m = String(tok).match(/mock_jwtB_([^_]+)_([^_]+)_/)
+  return m ? { examId: m[1], sessionId: m[2] } : { examId: null, sessionId: null }
 }
 
 // ── Rate limit verify-token
@@ -98,23 +105,47 @@ export const examHandlers = (mock) => {
 
   mock.onPost('/exam/heartbeat').reply(() => [200, mockHeartbeat, { delay: DELAY }])
 
+  // ── POST /exam/telemetry — PER-SISWA
   mock.onPost('/exam/telemetry').reply((config) => {
-    const body = JSON.parse(config.data || '{}')
+    let body = {}
+    try {
+      body = JSON.parse(config.data || '{}')
+    } catch {
+      body = {}
+    }
     const eventType = body.event_type
     const reason = body.reason || mockTelemetry(eventType)?.reason || 'Pelanggaran terdeteksi'
 
-    // Increment counters
-    examLockState.violationCount += 1
-    examLockState.warnings += 1
+    const studentId = parseStudentIdFromAuth(config)
+    const { sessionId } = parseJwtB(config)
 
-    // Cek threshold: 3x → LOCK
-    if (examLockState.warnings >= 3 && !examLockState.locked) {
-      examLockState.lockCount += 1
-      examLockState.lockLevel = Math.min(examLockState.lockCount, 2)
-      examLockState.locked = true
+    if (!studentId || !sessionId) {
+      return [
+        400,
+        { status: 'error', error: 'missing_identity', message: 'Auth/session tidak valid' },
+        { delay: DELAY },
+      ]
+    }
+
+    const cur = getLockState(sessionId, studentId)
+    const nextWarnings = cur.warnings + 1
+    const nextViolationCount = cur.violationCount + 1
+
+    // Threshold: 3x → LOCK
+    if (nextWarnings >= 3 && !cur.locked) {
+      const nextLockCount = cur.lockCount + 1
+      const nextLockLevel = Math.min(nextLockCount, 2)
+      updateLockState(sessionId, studentId, {
+        locked: true,
+        lockLevel: nextLockLevel,
+        warnings: 0,
+        violationCount: nextViolationCount,
+        lockCount: nextLockCount,
+        lockedAt: new Date().toISOString(),
+      })
 
       console.warn(
-        `🔒 [MOCK] VIOLATION → LOCK Level ${examLockState.lockLevel} (total: ${examLockState.violationCount})`,
+        `🔒 [MOCK] Student ${studentId}@${sessionId} → LOCK Level ${nextLockLevel} (total: ${nextViolationCount})`,
       )
 
       return [
@@ -122,11 +153,11 @@ export const examHandlers = (mock) => {
         {
           status: 'processed',
           action: 'LOCK',
-          lockLevel: examLockState.lockLevel,
-          warnings: examLockState.warnings,
-          violationCount: examLockState.violationCount,
+          lockLevel: nextLockLevel,
+          warnings: 0,
+          violationCount: nextViolationCount,
           reason:
-            examLockState.lockLevel === 2
+            nextLockLevel === 2
               ? 'Pelanggaran berulang. Hubungi Admin untuk membuka.'
               : 'Batas pelanggaran tercapai. Hubungi pengawas.',
         },
@@ -134,14 +165,21 @@ export const examHandlers = (mock) => {
       ]
     }
 
-    console.log(`⚠️ [MOCK] Violation ${examLockState.warnings}/3: ${eventType} — ${reason}`)
+    updateLockState(sessionId, studentId, {
+      warnings: nextWarnings,
+      violationCount: nextViolationCount,
+    })
+
+    console.log(
+      `⚠️ [MOCK] Student ${studentId}@${sessionId} violation ${nextWarnings}/3: ${eventType}`,
+    )
     return [
       200,
       {
         status: 'processed',
         action: 'WARN',
-        warnings: examLockState.warnings,
-        violationCount: examLockState.violationCount,
+        warnings: nextWarnings,
+        violationCount: nextViolationCount,
         reason,
       },
       { delay: DELAY },
@@ -149,15 +187,23 @@ export const examHandlers = (mock) => {
   })
 
   // ── GET /exam/lock-status — polling unlock
-  mock.onGet('/exam/lock-status').reply(() => {
+  mock.onGet('/exam/lock-status').reply((config) => {
+    const studentId = parseStudentIdFromAuth(config)
+    const { sessionId } = parseJwtB(config)
+
+    if (!studentId || !sessionId) {
+      return [400, { error: 'missing_identity' }, { delay: DELAY }]
+    }
+
+    const s = getLockState(sessionId, studentId)
     return [
       200,
       {
-        locked: examLockState.locked,
-        lockLevel: examLockState.lockLevel,
-        warnings: examLockState.warnings,
-        violationCount: examLockState.violationCount,
-        lockCount: examLockState.lockCount,
+        locked: s.locked,
+        lockLevel: s.lockLevel,
+        warnings: s.warnings,
+        violationCount: s.violationCount,
+        lockCount: s.lockCount,
       },
       { delay: DELAY },
     ]
@@ -172,31 +218,34 @@ export const examHandlers = (mock) => {
       body = {}
     }
     const by = body.by === 'ADMIN' ? 'ADMIN' : 'PROCTOR'
+    const studentId = parseStudentIdFromAuth(config)
+    const { sessionId } = parseJwtB(config)
 
-    if (!examLockState.locked) {
-      return [200, { ok: false, message: 'Sesi tidak terkunci' }, { delay: DELAY }]
+    if (!studentId || !sessionId) {
+      return [400, { error: 'missing_identity' }, { delay: DELAY }]
     }
 
-    // Level 2 hanya admin
-    if (examLockState.lockLevel === 2 && by !== 'ADMIN') {
+    const cur = getLockState(sessionId, studentId)
+    if (!cur.locked) {
+      return [200, { ok: false, message: 'Sesi tidak terkunci' }, { delay: DELAY }]
+    }
+    if (cur.lockLevel === 2 && by !== 'ADMIN') {
       return [
         403,
-        {
-          ok: false,
-          message: 'Level 2 hanya dapat dibuka oleh ADMIN',
-        },
+        { ok: false, message: 'Level 2 hanya dapat dibuka oleh ADMIN' },
         { delay: DELAY },
       ]
     }
 
-    // Reset warnings: L1 → 1 (sisa 2 kesempatan), L2 → 0
-    const resetWarnings = examLockState.lockLevel === 2 ? 0 : 1
-    examLockState.locked = false
-    examLockState.warnings = resetWarnings
-    const unlockedLevel = examLockState.lockLevel
-    examLockState.lockLevel = 0
-
-    console.log(`🔓 [MOCK] Unlock by ${by} — sisa kesempatan: ${3 - resetWarnings}`)
+    const resetWarnings = cur.lockLevel === 2 ? 0 : 1
+    const unlockedLevel = cur.lockLevel
+    updateLockState(sessionId, studentId, {
+      locked: false,
+      lockLevel: 0,
+      warnings: resetWarnings,
+      unlockedBy: by,
+      unlockedAt: new Date().toISOString(),
+    })
 
     return [
       200,
@@ -334,23 +383,30 @@ export const examHandlers = (mock) => {
 
 // ── Demo helper (expose ke window untuk console)
 if (typeof window !== 'undefined') {
-  window.__examLockState = examLockState
-  window.__unlockExam = (by = 'PROCTOR') => {
-    const resetWarnings = examLockState.lockLevel === 2 ? 0 : 1
-    examLockState.locked = false
-    examLockState.warnings = resetWarnings
-    examLockState.lockLevel = 0
-    console.log(
-      `🔓 [DEMO] Unlock by ${by} — sisa ${3 - resetWarnings} kesempatan. ` +
-        `Polling akan sync dalam ≤5 detik.`,
-    )
+  // Legacy compat: __examLockState dihapus, diganti __studentLockStore
+  // window.__studentLockStore di-expose di studentLockStore.js
+  window.__unlockExam = (by = 'PROCTOR', sessionId, studentId) => {
+    if (!sessionId || !studentId) {
+      console.warn('__unlockExam: butuh sessionId + studentId')
+      return
+    }
+    const cur = getLockState(sessionId, studentId)
+    if (!cur.locked) {
+      console.warn('__unlockExam: siswa tidak locked')
+      return
+    }
+    const resetWarnings = cur.lockLevel === 2 ? 0 : 1
+    updateLockState(sessionId, studentId, {
+      locked: false,
+      lockLevel: 0,
+      warnings: resetWarnings,
+      unlockedBy: by,
+      unlockedAt: new Date().toISOString(),
+    })
+    console.log(`🔓 [DEMO] Unlock ${studentId}@${sessionId} by ${by}`)
   }
   window.__resetExamLock = () => {
-    examLockState.locked = false
-    examLockState.lockLevel = 0
-    examLockState.warnings = 0
-    examLockState.violationCount = 0
-    examLockState.lockCount = 0
-    console.log('🔄 [DEMO] Lock state direset')
+    if (window.__resetStudentLocks) window.__resetStudentLocks()
+    console.log('🔄 [DEMO] Semua lock direset')
   }
 }

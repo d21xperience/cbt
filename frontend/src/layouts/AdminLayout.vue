@@ -13,18 +13,6 @@
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-grey-1" :width="280" :breakpoint="1024"
       id="admin-drawer" role="navigation" aria-label="Main navigation">
       <!-- Drawer Header -->
-      <!-- <div class="q-py-md q-px-md bg-primary text-white">
-        <div class="flex items-center">
-          <q-avatar size="48px" class="q-mr-sm" aria-hidden="true">
-            <img src="@/assets/quasar-logo-vertical.svg" alt="Logo" />
-          </q-avatar>
-          <div>
-            <div class="text-subtitle1 text-weight-bold">CBT System</div>
-            <div class="text-caption text-white text-opacity-70">Version 2.0.0</div>
-          </div>
-        </div>
-      </div> -->
-
       <q-scroll-area style="height: calc(100% - 80px)">
         <q-list padding>
           <!-- Quick Stats -->
@@ -77,57 +65,65 @@
             </q-item-section>
           </q-item>
 
-          <!-- <q-separator class="q-my-sm" /> -->
-
           <!-- ═══ DATA REFERENSI ═══ -->
           <template v-if="referensiNavItems.length > 0">
             <q-separator class="q-my-sm" />
-            <q-item-label header class="text-uppercase text-grey-7">
-              <q-icon name="storage" class="q-mr-xs" size="xs" aria-hidden="true" />
-              Data Referensi
-            </q-item-label>
-
-            <q-item v-for="item in referensiNavItems" :key="item.name" clickable v-ripple :to="item.to"
-              active-class="bg-blue-1 text-primary" exact :aria-current="isActiveRoute(item.to) ? 'page' : undefined">
-              <q-item-section avatar>
-                <q-icon :name="item.icon" :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'" aria-hidden="true" />
-              </q-item-section>
-              <q-item-section>{{ item.label }}</q-item-section>
-            </q-item>
+            <q-expansion-item group="admin-nav-group" icon="storage" label="DATA REFERENSI"
+              header-class="text-uppercase text-grey-7 text-weight-medium" expand-icon-class="text-grey-7"
+              :default-opened="isGroupActive(referensiNavItems)">
+              <q-list>
+                <q-item v-for="item in referensiNavItems" :key="item.name" clickable v-ripple :to="item.to"
+                  :inset-level="0.3" active-class="bg-blue-1 text-primary" exact
+                  :aria-current="isActiveRoute(item.to) ? 'page' : undefined">
+                  <q-item-section avatar>
+                    <q-icon :name="item.icon" :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'"
+                      aria-hidden="true" />
+                  </q-item-section>
+                  <q-item-section>{{ item.label }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-expansion-item>
           </template>
 
           <!-- ═══ MANAJEMEN UJIAN ═══ -->
           <template v-if="managementNavItems.length > 0">
             <q-separator class="q-my-sm" />
-            <q-item-label header class="text-uppercase text-grey-7">
-              <q-icon name="tune" class="q-mr-xs" size="xs" aria-hidden="true" />
-              Manajemen Ujian
-            </q-item-label>
-
-            <q-item v-for="item in managementNavItems" :key="item.name" clickable v-ripple :to="item.to"
-              active-class="bg-blue-1 text-primary" exact :aria-current="isActiveRoute(item.to) ? 'page' : undefined">
-              <q-item-section avatar>
-                <q-icon :name="item.icon" :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'" aria-hidden="true" />
-              </q-item-section>
-              <q-item-section>{{ item.label }}</q-item-section>
-            </q-item>
+            <q-expansion-item :key="'mgmt-' + (academicStore.exam_mode || 'off')" group="admin-nav-group" icon="tune"
+              label="MANAJEMEN UJIAN" :disable="!academicStore.isExamModeActive"
+              header-class="text-uppercase text-grey-7 text-weight-medium" expand-icon-class="text-grey-7"
+              :default-opened="academicStore.isExamModeActive && isGroupActive(managementNavItems)">
+              <q-list>
+                <q-item v-for="item in managementNavItems" :key="item.name" clickable v-ripple :to="item.to"
+                  :inset-level="0.3" active-class="bg-blue-1 text-primary" exact
+                  :aria-current="isActiveRoute(item.to) ? 'page' : undefined">
+                  <q-item-section avatar>
+                    <q-icon :name="item.icon" :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'"
+                      aria-hidden="true" />
+                  </q-item-section>
+                  <q-item-section>{{ item.label }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-expansion-item>
           </template>
-
           <!-- ═══ MONITORING ═══ -->
           <template v-if="monitoringNavItems.length > 0">
             <q-separator class="q-my-sm" />
-            <q-item-label header class="text-uppercase text-grey-7">
-              <q-icon name="visibility" class="q-mr-xs" size="xs" aria-hidden="true" />
-              Monitoring
-            </q-item-label>
-
-            <q-item v-for="item in monitoringNavItems" :key="item.name" clickable v-ripple :to="item.to"
-              active-class="bg-blue-1 text-primary" exact :aria-current="isActiveRoute(item.to) ? 'page' : undefined">
-              <q-item-section avatar>
-                <q-icon :name="item.icon" :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'" aria-hidden="true" />
-              </q-item-section>
-              <q-item-section>{{ item.label }}</q-item-section>
-            </q-item>
+            <q-expansion-item :key="'mon-' + (academicStore.exam_mode || 'off')" group="admin-nav-group"
+              icon="visibility" label="MONITORING" :disable="!academicStore.isExamModeActive"
+              header-class="text-uppercase text-grey-7 text-weight-medium" expand-icon-class="text-grey-7"
+              :default-opened="academicStore.isExamModeActive && isGroupActive(monitoringNavItems)">
+              <q-list>
+                <q-item v-for="item in monitoringNavItems" :key="item.name" clickable v-ripple :to="item.to"
+                  :inset-level="0.3" active-class="bg-blue-1 text-primary" exact
+                  :aria-current="isActiveRoute(item.to) ? 'page' : undefined">
+                  <q-item-section avatar>
+                    <q-icon :name="item.icon" :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'"
+                      aria-hidden="true" />
+                  </q-item-section>
+                  <q-item-section>{{ item.label }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-expansion-item>
           </template>
         </q-list>
 
@@ -148,9 +144,7 @@
           <div class="absolute-bottom q-pa-md">
             <q-btn flat color="grey-7" icon="help" label="Bantuan" size="sm" class="full-width q-mb-xs"
               @click="showHelp" aria-label="Help" />
-            <div class="text-caption text-grey-6 text-center q-mt-xs" aria-live="polite">
-              {{ currentDateTime }}
-            </div>
+
           </div>
         </q-toolbar>
         <router-view v-slot="{ Component }">
@@ -203,15 +197,30 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <!-- Footer Global -->
+    <q-footer elevated class="bg-grey-2 text-grey-7 q-pa-sm">
+      <div class="row items-center justify-between full-width q-px-md text-caption">
+        <div>
+          <q-icon name="copyright" size="xs" /> 2026 CBT Engine - ujian.pw
+        </div>
+        <div>
+          <q-icon name="schedule" size="xs" class="q-mr-xs" />
+          {{ currentDateTime }}
+        </div>
+      </div>
+    </q-footer>
   </q-layout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
-import { useAdminStore } from '@/stores/admin/dashboard'   // ← BARU
+import { useAdminStore } from '@/stores/admin/dashboard'
+import { useAcademicStore } from '@/stores/academic'
+import { AcademicPeriodService } from '@/services/admin/AcademicPeriodService'
 import { useQuasar } from 'quasar'
 import SkipLink from '@/components/ui/SkipLink.vue'
 import { useKeyboardShortcuts } from '@/composables/ui/useKeyboardShortcuts'
@@ -219,7 +228,9 @@ import AppHeader from '@/components/ui/AppHeader.vue'
 import { useLayout } from '@/composables/ui/useLayout'
 import { useProctorProfile } from '@/composables/proctor/useProctorProfile'
 
-
+const isGroupActive = (items) => {
+  return items.some((item) => isActiveRoute(item.to))
+}
 // Use layout composable for common logic
 const { leftDrawerOpen, toggleDrawer, confirmLogout } = useLayout()
 const showLogoutDialog = ref(false)
@@ -266,9 +277,10 @@ const ALL_MAIN_NAV = [
 // ── DATA REFERENSI (setup master data)
 const ALL_REFERENSI_NAV = [
   { name: 'school-profile', label: 'Profil Sekolah', icon: 'school', to: { name: 'admin-school-profile' }, roles: ['ADMIN'] },
+  { name: 'academic-periods', label: 'Tahun Ajaran', icon: 'calendar_month', to: { name: 'admin-academic-periods' }, roles: ['ADMIN'] },
   { name: 'subjects', label: 'Mata Pelajaran', icon: 'menu_book', to: { name: 'admin-subjects' }, roles: ['ADMIN'] },
-  { name: 'classes', label: 'Kelas / Rombel', icon: 'class', to: { name: 'admin-classes' }, roles: ['ADMIN'] },
   { name: 'rooms', label: 'Ruang Ujian', icon: 'meeting_room', to: { name: 'admin-rooms' }, roles: ['ADMIN'] },
+  { name: 'classes', label: 'Kelas / Rombel', icon: 'class', to: { name: 'admin-classes' }, roles: ['ADMIN'] },
   { name: 'teachers', label: 'Guru & Proctor', icon: 'supervisor_account', to: { name: 'admin-teachers' }, roles: ['ADMIN'] },
   { name: 'students', label: 'Siswa', icon: 'groups', to: { name: 'admin-students' }, roles: ['ADMIN'] },
   { name: 'examTypes', label: 'Jenis Ujian', icon: 'assignment', to: { name: 'admin-exam-types' }, roles: ['ADMIN'] },
@@ -307,10 +319,36 @@ const filterItems = (items) =>
 const mainNavItems = computed(() => filterItems(ALL_MAIN_NAV))
 const referensiNavItems = computed(() => filterItems(ALL_REFERENSI_NAV))
 const managementNavItems = computed(() => filterItems(ALL_MANAGEMENT_NAV))
-const monitoringNavItems = computed(() => filterItems(ALL_MONITORING_NAV))
+const monitoringNavItems = computed(() => {
+  let items = filterItems(ALL_MONITORING_NAV)
+  // 'makeup' (Ujian Susulan) hanya muncul di mode UTS/UAS
+  if (!academicStore.isMainExamMode) {
+    items = items.filter((i) => i.name !== 'makeup')
+  }
+  return items
+})
 
 // ── Stats dari admin dashboard store (reactive)
 const adminStore = useAdminStore()
+const academicStore = useAcademicStore()
+
+// ── Guard: Tendang user ke Dashboard jika Mode Ujian dimatikan
+watch(() => academicStore.exam_mode, (newMode) => {
+  if (!newMode) {
+    const path = route.path
+    // Daftar prefix path yang dilarang saat mode ujian mati
+    const restrictedPrefixes = [
+      '/admin/participants', '/admin/kartu-ujian', '/admin/cetak-dokumen',
+      '/admin/manajemen-ujian', '/admin/questions', '/admin/payment-gates',
+      '/admin/sessions', '/admin/token-ujian', '/admin/makeup',
+      '/proctor'
+    ]
+    if (restrictedPrefixes.some(p => path.startsWith(p))) {
+      router.push({ name: 'admin-dashboard' })
+      $q.notify({ type: 'warning', message: 'Mode Ujian dimatikan. Anda dialihkan ke Dashboard.' })
+    }
+  }
+}, { immediate: true })
 
 const stats = computed(() => {
   if (isProctor.value) {
@@ -436,8 +474,75 @@ const loadStats = async () => {
     console.warn('[AdminLayout] load stats failed:', error.message)
   }
 }
+const isManagementExpanded = ref(false)
+const isMonitoringExpanded = ref(false)
 
-onMounted(() => {
+
+// ✅ Sinkronisasi Academic Context — Watch user + retry
+const _syncAcademicFromDB = async () => {
+  const role = authStore.user?.role
+  if (!['ADMIN', 'SUPER_ADMIN'].includes(role)) {
+    console.log('[Academic Sync] Skip — role:', role)
+    return
+  }
+  try {
+    const res = await AcademicPeriodService.list()
+    const list = res?.data?.data || []
+    const active = list.find((p) => p.is_active === true)
+    console.log('[Academic Sync] DB active:', active, '| Store:', academicStore.academic_year, academicStore.semester)
+    // SOFT SYNC: Hanya paksa update jika di UI belum ada tahun ajaran yang dipilih,
+    // atau jika tahun ajaran yang dipilih di UI ternyata sudah dihapus dari DB.
+    const isValidChoice = list.some(
+      (p) => p.academic_year === academicStore.academic_year &&
+             p.semester === academicStore.semester
+    )
+
+    if (active && !isValidChoice) {
+      academicStore.setPeriod(active.academic_year, active.semester, active.id)
+      console.log('[Academic Sync] Forced to DB active (UI choice was invalid):', active.academic_year)
+    } else {
+      console.log('[Academic Sync] UI choice is valid, respecting user selection.')
+    }
+  } catch (err) {
+    console.warn('[Academic Sync] Failed:', err.message)
+  }
+}
+
+watch(
+  () => authStore.user?.role,
+  (role) => {
+    if (role) _syncAcademicFromDB()
+  },
+  { immediate: true }
+)
+
+// Fallback timer — kalau auth belum siap saat mount
+setTimeout(_syncAcademicFromDB, 1500)
+
+onMounted(async () => {
+  // Buka menu jika route saat ini ada di dalamnya
+  isManagementExpanded.value = isGroupActive(managementNavItems.value)
+  isMonitoringExpanded.value = isGroupActive(monitoringNavItems.value)
+
+  // ✅ Sinkronisasi Academic Context dari DB (jika role ADMIN)
+  const role = authStore.user?.role
+  if (['ADMIN', 'SUPER_ADMIN'].includes(role)) {
+    try {
+      const res = await AcademicPeriodService.list()
+      const active = (res?.data?.data || []).find((p) => p.is_active)
+      if (
+        active &&
+        (academicStore.academic_year !== active.academic_year ||
+          academicStore.semester !== active.semester)
+      ) {
+        academicStore.setPeriod(active.academic_year, active.semester)
+      }
+    } catch (e) {
+      /* silent — jangan ganggu UX kalau endpoint belum siap */
+      console.log(`AdminLayout...,${e}`)
+    }
+  }
+
   updateDateTime()
   intervalId = setInterval(updateDateTime, 60000)
   loadStats()

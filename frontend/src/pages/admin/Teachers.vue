@@ -11,6 +11,8 @@
         </div>
       </div>
       <div class="q-gutter-sm">
+        <q-btn outline color="primary" icon="download" label="Download Kredensial" no-caps @click="downloadCredentials"
+          class="q-mr-sm" />
         <q-btn outline color="primary" icon="upload_file" label="Import CSV" no-caps @click="openImportDialog" />
         <q-btn color="primary" icon="add" label="Tambah Guru" no-caps @click="openCreateDialog" />
       </div>
@@ -73,8 +75,22 @@
           </q-td>
         </template>
 
+        <template v-slot:body-cell-password="props">
+          <q-td :props="props">
+            <div class="row items-center no-wrap">
+              <span v-if="visiblePasswords[props.row.id]">{{ props.row.password || '-' }}</span>
+              <span v-else-if="props.row.password">••••••</span>
+              <span v-else>-</span>
+              <q-btn v-if="props.row.password" flat round dense
+                :icon="visiblePasswords[props.row.id] ? 'visibility_off' : 'visibility'" size="sm"
+                @click="togglePassword(props.row.id)" class="q-ml-xs" />
+            </div>
+          </q-td>
+        </template>
         <template v-slot:body-cell-actions="props">
           <q-td :props="props" class="text-center" style="white-space: nowrap">
+            <q-btn flat round dense icon="lock_reset" color="orange" @click="resetPassword(props.row)"><q-tooltip>Reset
+                Password</q-tooltip></q-btn>
             <q-btn flat round dense icon="edit" color="primary" @click="openEditDialog(props.row)">
               <q-tooltip>Edit</q-tooltip>
             </q-btn>
@@ -102,6 +118,7 @@ import { useQuasar } from 'quasar'
 import { useTeachers } from '@/composables/admin/useTeachers'
 import TeacherFormDialog from '@/components/admin/TeacherFormDialog.vue'
 import TeacherImportDialog from '@/components/admin/TeacherImportDialog.vue'
+import { ref } from 'vue'
 
 const $q = useQuasar()
 
@@ -134,10 +151,17 @@ const {
   downloadTemplate,
   parseImport,
   confirmImport,
+  resetPassword,
+  downloadCredentials,
 } = useTeachers()
+
+const visiblePasswords = ref({})
+const togglePassword = (id) => { visiblePasswords.value[id] = !visiblePasswords.value[id] }
 
 const columns = [
   { name: 'nama', label: 'Nama / NIP', field: 'nama', align: 'left', style: 'min-width: 240px' },
+  { name: 'username', label: 'Username', field: 'username', align: 'left' },
+  { name: 'password', label: 'Password', field: 'password', align: 'left' },
   { name: 'status', label: 'Status', field: 'status', align: 'center', style: 'width: 100px' },
   { name: 'role', label: 'Peran', align: 'left', style: 'min-width: 220px' },
   { name: 'actions', label: 'Aksi', align: 'center', style: 'width: 110px' },

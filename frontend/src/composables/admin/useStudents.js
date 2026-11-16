@@ -1,8 +1,9 @@
 // src/composables/admin/useStudents.js
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { StudentService } from '@/services/admin/StudentService'
 import { ClassService } from '@/services/admin/ClassService'
+import { useAcademicStore } from '@/stores/academic'
 
 const EMPTY_FORM = {
   nisn: '',
@@ -15,6 +16,7 @@ const EMPTY_FORM = {
 }
 
 export function useStudents() {
+  const academicStore = useAcademicStore()
   const $q = useQuasar()
 
   // ── List
@@ -94,7 +96,7 @@ export function useStudents() {
   const loadStudents = async () => {
     loading.value = true
     try {
-      const res = await StudentService.list()
+      const res = await StudentService.list({ academic_period_id: academicStore.active_period_id })
       const data = res?.data?.data ?? res?.data
       if (!Array.isArray(data)) {
         errorState.value = 'contract_mismatch'
@@ -116,12 +118,18 @@ export function useStudents() {
 
   const loadClasses = async () => {
     try {
-      const res = await ClassService.list()
+      const res = await ClassService.list({ academic_period_id: academicStore.active_period_id })
       classes.value = Array.isArray(res?.data?.data) ? res.data.data : []
     } catch (err) {
       console.warn('[useStudents] loadClasses failed:', err?.message)
     }
   }
+  // Sync ulang data setiap kali Tahun Ajaran berubah
+    watch(() => academicStore.active_period_id, () => {
+    loadStudents()
+    loadClasses()
+  })
+
 
   // ── Dialog
   const openCreateDialog = () => {
@@ -259,6 +267,10 @@ export function useStudents() {
       const payload = res?.data || {}
       importPreview.value = Array.isArray(payload.data) ? payload.data : []
       importErrors.value = Array.isArray(payload.errors) ? payload.errors : []
+      
+      // ✅ FIX: Pindah ke Step 2 setelah preview berhasil dimuat
+      importStep.value = 2
+      
       return { success: true }
     } catch (err) {
       $q.notify({ type: 'negative', message: err?.response?.data?.error || 'Gagal parse file.' })

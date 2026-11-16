@@ -14,6 +14,7 @@ import { scheduleHandlers, resetScheduleData } from './handlers/scheduleHandlers
 import { examAssetHandlers } from './handlers/examAssetHandlers'
 import { publicHandlers } from './handlers/publicHandlers'
 import { proctorHandlers } from './handlers/proctorHandlers' // ← KRITIS
+import { proctorMonitoringHandlers } from './handlers/proctorMonitoringHandlers'
 import { examDashboardHandlers } from './handlers/examDashboardHandlers' // ← KRITIS
 import { keahlianHandlers, resetKeahlianMockData } from './handlers/keahlianHandlers'
 import { adminExtrasHandlers, resetAdminExtrasMockData } from './handlers/adminExtrasHandlers' // ← KRITIS
@@ -109,6 +110,7 @@ export const setupMockInterceptor = (api) => {
   examAssetHandlers(mock)
   publicHandlers(mock)
   proctorHandlers(mock) // ← KRITIS untuk ProctorDashboard
+  proctorMonitoringHandlers(mock)
   examDashboardHandlers(mock)
   keahlianHandlers(mock)
   adminExtrasHandlers(mock) // ← KRITIS untuk /admin/dashboard/stats

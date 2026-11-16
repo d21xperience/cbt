@@ -1,6 +1,7 @@
 // src/composables/admin/useClasses.js
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
+import { useAcademicStore } from '@/stores/academic'
 import { ClassService } from '@/services/admin/ClassService'
 import { SchoolProfileService } from '@/services/admin/SchoolProfileService'
 
@@ -16,6 +17,7 @@ const EMPTY_FORM = {
 
 export function useClasses() {
   const $q = useQuasar()
+  const academicStore = useAcademicStore()
 
   // ── List
   const classes = ref([])
@@ -67,7 +69,7 @@ export function useClasses() {
     const build = (start, end) => {
       const out = []
       for (let i = start; i <= end; i++) {
-        out.push({ label: `Tingkat ${i}`, value: String(i) })
+        out.push({ label: `Tingkat ${i}`, value: i })
       }
       return out
     }
@@ -131,7 +133,9 @@ export function useClasses() {
   const loadClasses = async () => {
     loading.value = true
     try {
-      const res = await ClassService.list()
+      const res = await ClassService.list({
+        academic_period_id: academicStore.active_period_id,
+      })
       const data = res?.data?.data ?? res?.data
       if (!Array.isArray(data)) {
         errorState.value = 'contract_mismatch'
@@ -150,6 +154,11 @@ export function useClasses() {
       loading.value = false
     }
   }
+  // Auto-refresh saat tahun ajaran di header diganti
+  watch(() => academicStore.active_period_id, () => {
+    loadClasses()
+  })
+
 
   const loadTeachers = async () => {
     try {
@@ -307,6 +316,10 @@ export function useClasses() {
       const payload = res?.data || {}
       importPreview.value = Array.isArray(payload.data) ? payload.data : []
       importErrors.value = Array.isArray(payload.errors) ? payload.errors : []
+      
+      // ✅ FIX: Pindah ke Step 2 setelah preview berhasil dimuat
+      importStep.value = 2
+      
       return {
         success: true,
         total: importPreview.value.length,
@@ -346,6 +359,10 @@ export function useClasses() {
       importing.value = false
     }
   }
+
+  watch(() => [academicStore.academic_year, academicStore.semester], () => {
+    loadClasses()
+  })
 
   onMounted(() => {
     loadSchoolContext()

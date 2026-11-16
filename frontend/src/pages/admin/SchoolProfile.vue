@@ -100,7 +100,7 @@
             <div class="col-12 col-md-8">
               <!-- <q-input v-model="form.nama" label="Nama Sekolah" outlined dense :readonly="!isEditing"
                 :rules="[(v) => !!v || 'Nama wajib diisi']" /> -->
-              <q-input v-model="form.nama" label="Nama Sekolah" outlined dense disable
+              <q-input v-model="form.nama_sekolah" label="Nama Sekolah" outlined dense disable
                 hint="Nama sekolah dikelola oleh Superadmin" />
             </div>
             <div class="col-12 col-md-4">

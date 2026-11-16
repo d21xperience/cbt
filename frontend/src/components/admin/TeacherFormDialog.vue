@@ -15,7 +15,7 @@
 
         <div class="row q-col-gutter-sm">
           <div class="col-12 col-sm-4">
-            <q-input v-model="localForm.nip" label="NIP" outlined dense />
+            <q-input v-model="localForm.nip" label="NIP (Opsional)" outlined dense />
           </div>
           <div class="col-12 col-sm-8">
             <q-input v-model="localForm.nama" label="Nama Lengkap" outlined dense
@@ -25,7 +25,7 @@
 
         <div class="row q-col-gutter-sm">
           <div class="col-12 col-sm-6">
-            <q-input v-model="localForm.email" type="email" label="Email" outlined dense />
+            <q-input v-model="localForm.email" type="email" label="Email (Opsional)" outlined dense />
           </div>
           <div class="col-12 col-sm-6">
             <q-select v-model="localForm.status" :options="statusOptions" label="Status" outlined dense emit-value
@@ -33,27 +33,13 @@
           </div>
         </div>
 
-        <!-- Akun Login -->
-        <div class="text-subtitle2 text-weight-bold text-primary row items-center q-mt-sm">
-          <q-icon name="login" size="xs" class="q-mr-xs" /> Akun Login
-        </div>
-
-        <div class="row q-col-gutter-sm">
-          <div class="col-12 col-sm-6">
-            <q-input v-model="localForm.username" label="Username" outlined dense
-              :rules="[(v) => !!v || 'Username wajib diisi']" />
-          </div>
-          <div class="col-12 col-sm-6">
-            <q-input v-model="localForm.password" :type="showPwd ? 'text' : 'password'"
-              :label="isEditing ? 'Password Baru (opsional)' : 'Password'" outlined dense
-              :rules="isEditing ? [] : [(v) => !!v || 'Password wajib']">
-              <template v-slot:append>
-                <q-icon :name="showPwd ? 'visibility_off' : 'visibility'" class="cursor-pointer"
-                  @click="showPwd = !showPwd" />
-              </template>
-            </q-input>
-          </div>
-        </div>
+        <!-- Info Kredensial Otomatis -->
+        <q-banner v-if="!isEditing" dense rounded class="bg-blue-1 text-blue-9 q-mt-sm">
+          <template v-slot:avatar>
+            <q-icon name="info" color="primary" />
+          </template>
+          Username dan Password akan di-generate secara otomatis oleh sistem saat data disimpan.
+        </q-banner>
 
         <!-- Mata Pelajaran Diampu -->
         <div class="text-subtitle2 text-weight-bold text-primary row items-center q-mt-sm">
@@ -104,8 +90,6 @@ const EMPTY = {
   nip: '',
   nama: '',
   email: '',
-  username: '',
-  password: '',
   status: 'AKTIF',
   teaching_subject_ids: [],
   is_homeroom: false,
@@ -115,7 +99,6 @@ const EMPTY = {
 const isOpen = ref(false)
 const localForm = reactive({ ...EMPTY })
 const originalSnapshot = ref(null)
-const showPwd = ref(false)
 
 watch(
   () => props.modelValue,
@@ -127,7 +110,6 @@ watch(
         localForm[k] = Array.isArray(v) ? [...v] : (v ?? EMPTY[k])
       })
       originalSnapshot.value = props.isEditing ? JSON.stringify({ ...localForm }) : null
-      showPwd.value = false
     }
   },
 )
@@ -140,8 +122,6 @@ const isDirty = computed(() => {
 
 const canSubmitInternal = computed(() => {
   if (!localForm.nama?.trim()) return false
-  if (!localForm.username?.trim()) return false
-  if (!props.isEditing && !localForm.password?.trim()) return false
   if (localForm.is_homeroom && !localForm.homeroom_class_id) return false
   if (props.isEditing && !isDirty.value) return false
   return true

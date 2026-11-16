@@ -36,6 +36,12 @@ export const getTenantSlug = () => {
       return fromStorage
     }
 
+    // E-Fix-1: env fallback untuk dev (QCLI_TENANT_SLUG=dev di .env.local)
+    const fromEnv = import.meta.env.QCLI_TENANT_SLUG
+    if (fromEnv && fromEnv !== 'null' && fromEnv !== 'undefined') {
+      return String(fromEnv).trim()
+    }
+
     return null
   }
 

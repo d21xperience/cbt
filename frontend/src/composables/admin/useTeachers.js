@@ -4,13 +4,12 @@ import { useQuasar } from 'quasar'
 import { TeacherService } from '@/services/admin/TeacherService'
 import { SubjectService } from '@/services/admin/SubjectService'
 import { ClassService } from '@/services/admin/ClassService'
+import { api } from '@/boot/axios' // Import API untuk reset password
 
 const EMPTY_FORM = {
   nip: '',
   nama: '',
   email: '',
-  username: '',
-  password: '',
   status: 'AKTIF',
   teaching_subject_ids: [],
   is_homeroom: false,
@@ -145,8 +144,6 @@ export function useTeachers() {
       nip: row.nip || '',
       nama: row.nama || '',
       email: row.email || '',
-      username: row.username || '',
-      password: '', // jangan pre-fill password
       status: row.status || 'AKTIF',
       teaching_subject_ids: Array.isArray(row.teaching_subject_ids)
         ? [...row.teaching_subject_ids]
@@ -218,6 +215,39 @@ export function useTeachers() {
     }
   }
 
+  // ── Aksi Khusus: Reset Password & Download Kredensial
+  const resetPassword = async (row) => {
+    try {
+      const resetRes = await api.post(`/admin/teachers/${row.id}/reset-password`)
+      $q.notify({ type: 'positive', message: `Password baru: ${resetRes.data.new_password}` })
+      await loadTeachers()
+    } catch (err) {
+      $q.notify({ type: 'negative', message: `Gagal reset password ${err}` })
+    }
+  }
+
+  const downloadCredentials = () => {
+    const data = teachers.value.map((t) => ({
+      Nama: t.nama,
+      NIP: t.nip || '-',
+      Username: t.username || '-',
+      Password: t.password || '-',
+      Mapel: (t.teaching_subject_ids || []).join(', '),
+    }))
+    const csvContent =
+      'data:text/csv;charset=utf-8,' +
+      ['Nama,NIP,Username,Password,Mapel']
+        .concat(data.map((e) => Object.values(e).join(',')))
+        .join('\n')
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement('a')
+    link.setAttribute('href', encodedUri)
+    link.setAttribute('download', `kredensial_guru_${Date.now()}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   // ── Import
   const openImportDialog = () => {
     importDialogOpen.value = true
@@ -271,6 +301,9 @@ export function useTeachers() {
       const payload = res?.data || {}
       importPreview.value = Array.isArray(payload.data) ? payload.data : []
       importErrors.value = Array.isArray(payload.errors) ? payload.errors : []
+
+      // Pindah ke step 2
+      importStep.value = 2
       return { success: true }
     } catch (err) {
       $q.notify({ type: 'negative', message: err?.response?.data?.error || 'Gagal parse file.' })
@@ -330,6 +363,8 @@ export function useTeachers() {
     closeDialog,
     submitForm,
     deleteTeacher,
+    resetPassword,
+    downloadCredentials,
     loadTeachers,
     importDialogOpen,
     importStep,

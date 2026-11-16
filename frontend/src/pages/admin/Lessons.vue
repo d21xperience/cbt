@@ -23,22 +23,20 @@
 
     <q-card flat bordered class="q-mb-md bg-white">
       <q-card-section class="row q-col-gutter-md items-center">
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-3">
           <q-input v-model="searchQuery" label="Cari mapel / kelas / guru" outlined dense clearable>
             <template v-slot:prepend><q-icon name="search" /></template>
           </q-input>
         </div>
-        <div class="col-12 col-md-3">
-          <q-select v-model="filterClass" :options="classOptions" label="Kelas" outlined dense emit-value map-options
-            clearable />
-        </div>
-        <div class="col-12 col-md-3">
-          <q-select v-model="filterTeacher" :options="teacherOptions" label="Guru" outlined dense emit-value map-options
-            clearable />
-        </div>
         <div class="col-12 col-md-2">
-          <q-select v-model="filterSemester" :options="semesterOptions" label="Smt" outlined dense emit-value
-            map-options clearable />
+          <q-select v-model="filterClass" :options="classOptions" label="Kelas" outlined dense emit-value map-options clearable />
+        </div>
+        <div class="col-12 col-md-3">
+          <q-select v-model="filterTeacher" :options="teacherOptions" label="Guru" outlined dense emit-value map-options clearable />
+        </div>
+        
+        <div class="col-6 col-md-2">
+          <q-select v-model="filterSemester" :options="semesterOptions" label="Smt" outlined dense emit-value map-options clearable />
         </div>
       </q-card-section>
     </q-card>

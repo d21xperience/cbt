@@ -88,6 +88,11 @@ watch(() => props.modelValue, (val) => {
   isOpen.value = val
   if (val) { step.value = props.importStep || 1; fileRef.value = null }
 })
+
+// ✅ FIX: Pantau perubahan importStep dari induk (useStudents.js)
+watch(() => props.importStep, (val) => {
+  if (val) step.value = val
+})
 watch(isOpen, (val) => emit('update:modelValue', val))
 watch(step, (val) => emit('update:importStep', val))
 

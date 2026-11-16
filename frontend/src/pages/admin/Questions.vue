@@ -97,6 +97,7 @@ import { useQuestionsV2 } from '@/composables/admin/useQuestionsV2'
 import ExamTypePickerDialog from '@/components/admin/ExamTypePickerDialog.vue'
 import SubjectQuestionTable from '@/components/admin/SubjectQuestionTable.vue'
 import { useRouter } from 'vue-router'
+import { useAcademicStore } from '@/stores/academic'
 import { ExamService } from '@/services/admin/ExamService'
 // ...
 const router = useRouter()
@@ -122,6 +123,7 @@ const {
   onClassChange,
 } = useQuestionsV2()
 
+const academicStore = useAcademicStore()
 const filteredClassCount = computed(() => {
   if (!tingkat.value) return 0
   return classOptions.value.length
@@ -140,8 +142,8 @@ const onEdit = async (row) => {
       jenis_ujian_id: examTypeId.value,
       subject_id: row.id,
       class_id: classId.value,
-      academic_year: '2025/2026',
-      semester: 'GANJIL',
+      academic_period_id: academicStore.active_period_id,
+      
     })
     const exam = res?.data?.data
     if (exam?.id) {

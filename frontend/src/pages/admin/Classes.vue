@@ -6,6 +6,9 @@
           <q-icon name="class" color="primary" size="sm" class="q-mr-sm" />
           Kelas / Rombel
         </div>
+        <q-chip color="primary" text-color="white" icon="calendar_month" dense class="q-mt-sm">
+          {{ academicStore.academic_year }} — {{ academicStore.semester }}
+        </q-chip>
         <div class="text-caption text-grey-7">
           Master data kelas dan wali kelas.
         </div>
@@ -123,6 +126,8 @@
 </template>
 
 <script setup>
+import { useAcademicStore } from '@/stores/academic'
+const academicStore = useAcademicStore()
 import { useQuasar } from 'quasar'
 import { useClasses } from '@/composables/admin/useClasses'
 import ClassFormDialog from '@/components/admin/ClassFormDialog.vue'

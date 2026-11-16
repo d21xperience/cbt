@@ -26,7 +26,7 @@
     <!-- STEP 1 -->
     <q-card-section v-if="step === 1" class="q-gutter-md">
       <q-select v-model="context.jenis_ujian_id" :options="examTypeOptions" label="Jenis Ujian" outlined dense
-        emit-value map-options />
+        emit-value map-options option-label="label" option-value="value" />
       <div class="row q-col-gutter-md">
         <div class="col-12 col-sm-6">
           <q-select v-model="context.academic_year" :options="academicYearOptions" label="Tahun Ajaran" outlined dense

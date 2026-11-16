@@ -1,7 +1,7 @@
 // src/composables/admin/useExamScheduleWizard.js
 // Refactored — semua data via Service, tidak ada import dari @/mocks/*.
 
-import { ref, computed } from 'vue'
+import { ref, computed , onMounted } from "vue"
 import { useQuasar } from 'quasar'
 import { ExamScheduleService } from '@/services/admin/ExamScheduleService'
 import { SubjectService } from '@/services/admin/SubjectService'
@@ -24,7 +24,7 @@ export function useExamScheduleWizard() {
   const loadingRefs = ref(false)
 
   const context = ref({
-    jenis_ujian_id: 'etype-002',
+    jenis_ujian_id: null,
     academic_year: '2025/2026',
     semester: 'GANJIL',
   })
@@ -224,7 +224,9 @@ export function useExamScheduleWizard() {
   const save = async () => {
     if (assignRows.value.length === 0) {
       $q.notify({ type: 'warning', message: 'Belum ada jadwal terisi' })
-      return { success: false }
+      onMounted(loadReferenceData)
+
+  return { success: false }
     }
     const jt = examTypes.value.find((t) => t.id === context.value.jenis_ujian_id)
     const payload = assignRows.value.map((r) => ({

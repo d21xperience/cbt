@@ -17,17 +17,7 @@
         <q-select v-model="localForm.teacher_id" :options="teacherOptions" label="Guru Pengampu" outlined dense
           emit-value map-options use-input input-debounce="200" :rules="[(v) => !!v || 'Guru wajib dipilih']" />
 
-        <div class="row q-col-gutter-sm">
-          <div class="col-12 col-sm-6">
-            <q-input v-model="localForm.academic_year" label="Tahun Ajaran" outlined dense
-              :rules="[(v) => !!v || 'Tahun ajaran wajib']" hint="Format: 2025/2026" />
-          </div>
-          <div class="col-12 col-sm-6">
-            <q-select v-model="localForm.semester" :options="semesterOptions" label="Semester" outlined dense emit-value
-              map-options :rules="[(v) => !!v || 'Semester wajib']" />
-          </div>
-        </div>
-      </q-card-section>
+        </q-card-section>
 
       <q-card-actions align="right" class="q-pb-md q-pr-md">
         <q-btn flat label="Batal" color="grey-7" v-close-popup />
