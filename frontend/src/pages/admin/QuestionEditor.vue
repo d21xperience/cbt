@@ -96,7 +96,11 @@
     </div>
 
     <!-- Dialog -->
-    <QuestionEditDialog v-model="dialogOpen" :is-editing="isEditing" :initial-form="initialForm"
+    <QuestionEditDialog
+      :questions="questions"
+      :editing-id="editingId"
+      @load-question="openEdit"
+      @create-new="openCreate" v-model="dialogOpen" :is-editing="isEditing" :initial-form="initialForm"
       :submitting="submitting" @submit="submitForm" @cancel="closeDialog" />
   </q-page>
 </template>
@@ -118,6 +122,7 @@ const {
   dialogOpen,
   isEditing,
   initialForm,
+  editingId,
   stats,
   openCreate,
   openEdit,

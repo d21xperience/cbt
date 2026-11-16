@@ -189,6 +189,12 @@ func registerAdminRoutes(admin fiber.Router, h *cbtHttp.CBTHandler) {
 	admin.Post("/sessions/:sessionId/token/rotate", h.HandleRotateTokenManual)
 	admin.Post("/archive", h.HandleArchive)
 	admin.Post("/participants/import-external", h.HandleImportExternalCSV)
+	admin.Get("/exams/:id", h.HandleGetExam)
+	admin.Get("/questions", h.HandleListQuestions)
+	admin.Post("/questions", h.HandleCreateQuestion)
+	admin.Put("/questions/:id", h.HandleUpdateQuestion)
+	admin.Delete("/questions/:id", h.HandleDeleteQuestion)
+
 	admin.Get("/questions/template", h.HandleDownloadTemplate)
 	admin.Post("/credentials/generate", h.HandleGenerateCredentials)
 	admin.Get("/credentials/view", h.HandleViewCredentials)

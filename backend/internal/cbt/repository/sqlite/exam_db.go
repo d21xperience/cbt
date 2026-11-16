@@ -260,3 +260,33 @@ func (r *ExamDB) DeleteExam(ctx context.Context, id string) error {
 	_, err := r.DB.ExecContext(ctx, `DELETE FROM exams WHERE id = ?`, id)
 	return err
 }
+
+func (r *ExamDB) GetExamByID(ctx context.Context, id string) (*domain.Exam, error) {
+	var e domain.Exam
+	q := `SELECT id, title, duration_minutes, start_time, end_time, COALESCE(subject_id,''), COALESCE(class_id,''), COALESCE(jenis_ujian_id,''), COALESCE(academic_period_id,'') FROM exams WHERE id = ?`
+	err := r.DB.QueryRowContext(ctx, q, id).Scan(&e.ID, &e.Title, &e.DurationMinutes, &e.StartTime, &e.EndTime, &e.SubjectID, &e.ClassID, &e.JenisUjianID, &e.AcademicPeriodID)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &e, nil
+}
+
+func (r *ExamDB) CreateQuestion(ctx context.Context, q *domain.Question) error {
+	query := `INSERT INTO questions (id, exam_id, question_text, media_url, options, correct_option, question_type, score, rubric) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	_, err := r.DB.ExecContext(ctx, query, q.ID, q.ExamID, q.QuestionText, q.MediaURL, string(q.Options), q.CorrectOption, q.QuestionType, q.Score, q.Rubric)
+	return err
+}
+
+func (r *ExamDB) UpdateQuestion(ctx context.Context, q *domain.Question) error {
+	query := `UPDATE questions SET question_text=?, media_url=?, options=?, correct_option=?, question_type=?, score=?, rubric=? WHERE id=?`
+	_, err := r.DB.ExecContext(ctx, query, q.QuestionText, q.MediaURL, string(q.Options), q.CorrectOption, q.QuestionType, q.Score, q.Rubric, q.ID)
+	return err
+}
+
+func (r *ExamDB) DeleteQuestion(ctx context.Context, id string) error {
+	_, err := r.DB.ExecContext(ctx, `DELETE FROM questions WHERE id = ?`, id)
+	return err
+}

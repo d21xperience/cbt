@@ -90,7 +90,7 @@ export function useQuestionEditor() {
     isEditing.value = false
     editingId.value = null
     initialForm.value = buildEmptyForm()
-    dialogOpen.value = true
+    dialogOpen.value = true // Pastikan tetap terbuka
   }
 
   const openEdit = (row) => {
@@ -165,7 +165,7 @@ export function useQuestionEditor() {
         }
         $q.notify({ type: 'positive', message: 'Soal ditambahkan.' })
       }
-      closeDialog()
+      openCreate() // ✅ Tetap buka form untuk soal berikutnya
       return { success: true }
     } catch (err) {
       $q.notify({
@@ -210,6 +210,7 @@ export function useQuestionEditor() {
     dialogOpen,
     isEditing,
     initialForm,
+    editingId,
     stats,
     openCreate,
     openEdit,

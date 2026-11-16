@@ -242,7 +242,7 @@ func (uc *ExamUseCase) ImportQuestionsFromCSV(ctx context.Context, examID string
 			ExamID:        examID,
 			QuestionText:  qText,
 			MediaURL:      getCol(record, colMap, "media_url"),
-			Options:       string(optionsJSON),
+			Options:       json.RawMessage(optionsJSON),
 			CorrectOption: strings.ToUpper(getCol(record, colMap, "correct_option")),
 		}
 
@@ -342,7 +342,7 @@ func (uc *ExamUseCase) ImportQuestionsFromExcel(ctx context.Context, examID stri
 			ExamID:        examID,
 			QuestionText:  qText,
 			MediaURL:      getCol(row, colMap, "media_url"),
-			Options:       string(optionsJSON),
+			Options:       json.RawMessage(optionsJSON),
 			CorrectOption: strings.ToUpper(getCol(row, colMap, "correct_option")),
 		}
 
@@ -681,4 +681,40 @@ func (uc *ExamUseCase) FindOrCreate(ctx context.Context, e domain.Exam) (*domain
 
 func (uc *ExamUseCase) Delete(ctx context.Context, id string) error {
 	return uc.questionRepo.DeleteExam(ctx, id)
+}
+
+func (uc *ExamUseCase) GetExamByID(ctx context.Context, id string) (*domain.Exam, error) {
+	return uc.questionRepo.GetExamByID(ctx, id)
+}
+
+func (uc *ExamUseCase) ListQuestions(ctx context.Context, examID string) ([]domain.Question, error) {
+	return uc.questionRepo.GetQuestionsByExamID(examID)
+}
+
+func (uc *ExamUseCase) CreateQuestion(ctx context.Context, q domain.Question) (*domain.Question, error) {
+	if q.ID == "" {
+		q.ID = uuid.NewString()
+	}
+	if q.QuestionType == "" {
+		q.QuestionType = "PG"
+	}
+	if q.Score == 0 {
+		q.Score = 10
+	}
+	if err := uc.questionRepo.CreateQuestion(ctx, &q); err != nil {
+		return nil, err
+	}
+	return &q, nil
+}
+
+func (uc *ExamUseCase) UpdateQuestion(ctx context.Context, id string, q domain.Question) (*domain.Question, error) {
+	q.ID = id
+	if err := uc.questionRepo.UpdateQuestion(ctx, &q); err != nil {
+		return nil, err
+	}
+	return &q, nil
+}
+
+func (uc *ExamUseCase) DeleteQuestion(ctx context.Context, id string) error {
+	return uc.questionRepo.DeleteQuestion(ctx, id)
 }

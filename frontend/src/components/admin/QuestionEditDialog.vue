@@ -12,138 +12,111 @@
       </q-bar>
 
       <q-card-section class="col scroll">
-        <q-form @submit.prevent="onSubmit" class="q-gutter-md">
-
-          <!-- ═══ ROW 1: Preview + Tipe Soal ═══ -->
+        <q-form @submit.prevent="onSubmit">
           <div class="row q-col-gutter-md">
+            <!-- KOLOM KIRI (Editor & Opsi) -->
             <div class="col-12 col-md-8">
-              <q-card flat bordered class="bg-grey-2 full-height">
+
+              <!-- Pengaturan Horizontal -->
+              <div class="row q-col-gutter-sm q-mb-md">
+                <div class="col-12 col-sm-5">
+                  <q-select v-model="localForm.question_type" :options="typeOptions" label="Tipe Soal" outlined dense emit-value map-options />
+                </div>
+                <div class="col-12 col-sm-2">
+                  <q-input v-model.number="localForm.score" type="number" label="Skor" outlined dense :min="1" :rules="[(v) => (v > 0) || 'Skor harus > 0']" />
+                </div>
+                <div class="col-12 col-sm-5">
+                  <q-input v-if="!isAudioVideo" v-model="localForm.media_url" label="URL Media (opsional)" outlined dense hint="Atau klik icon">
+                    <template v-slot:append>
+                      <q-btn flat round dense icon="image" color="primary" @click="onPickMainMedia">
+                        <q-tooltip>Insert gambar (max 1 MB)</q-tooltip>
+                      </q-btn>
+                    </template>
+                  </q-input>
+                </div>
+              </div>
+
+              <!-- Teks Soal & Editor -->
+              <div class="q-mb-md">
+                <div class="row items-center q-mb-xs">
+                  <div class="text-caption text-grey-7 col">
+                    <q-icon name="edit_note" size="xs" class="q-mr-xs" />
+                    Teks Soal (dukung LaTeX <code>$...$</code>, HTML, non-Latin)
+                  </div>
+                  <div class="row q-gutter-xs">
+                    <q-btn flat dense icon="translate" label="Aksara" no-caps size="sm" color="primary" @click="scriptPickerOpen = true" />
+                    <q-btn flat dense icon="functions" label="Simbol" no-caps size="sm" color="primary" @click="mathPickerOpen = true" />
+                  </div>
+                </div>
+                <q-editor ref="editorRef" v-model="localForm.question_text" :definitions="editorDefinitions"
+                  :toolbar="editorToolbar" min-height="200px" placeholder="Tulis soal di sini..." @paste="onPasteEditor" />
+              </div>
+
+              <QuestionMediaUpload v-if="isAudioVideo" v-model="localForm.media_url" :is-audio="isAudio" />
+
+              <!-- Opsi & Tipe Soal Lainnya -->
+              <div v-if="isPGType" class="q-mb-md">
+                <!-- <div class="text-caption text-grey-7 q-mb-xs"><q-icon name="list" size="xs" class="q-mr-xs" /> Opsi Jawaban</div> -->
+                <QuestionOptions v-model="localForm.options" :multi-correct="localForm.question_type === 'PG_COMPLEX'" @media="onPickOptionMedia" />
+              </div>
+
+              <div v-if="localForm.question_type === 'MATCHING'" class="q-mb-md"><QuestionMatching v-model="localForm.pairs" /></div>
+              <div v-if="localForm.question_type === 'TRUE_FALSE'" class="q-mb-md"><QuestionTrueFalse v-model="localForm.statements" /></div>
+              <div v-if="localForm.question_type === 'SHORT_ANSWER'" class="q-mb-md">
+                <QuestionShortAnswer v-model="localForm.accepted_answers" :case-sensitive="localForm.case_sensitive" :trim-whitespace="localForm.trim_whitespace" @update:case-sensitive="localForm.case_sensitive = $event" @update:trim-whitespace="localForm.trim_whitespace = $event" />
+              </div>
+              <div v-if="localForm.question_type === 'CODING'" class="q-mb-md">
+                <QuestionCoding v-model="localForm.test_cases" :language="localForm.language" :starter-code="localForm.starter_code" @update:language="localForm.language = $event" @update:starter-code="localForm.starter_code = $event" />
+              </div>
+              <div v-if="localForm.question_type === 'HOTSPOT'" class="q-mb-md">
+                <QuestionHotspot v-model="localForm.hotspots" :image-url="localForm.image_url" @update:image-url="localForm.image_url = $event" />
+              </div>
+              <div v-if="localForm.question_type === 'ESSAY'" class="q-mb-md">
+                <q-input v-model="localForm.rubric" type="textarea" label="Rubrik Penilaian (opsional)" outlined autogrow :rows="3" />
+              </div>
+            </div>
+
+            <!-- KOLOM KANAN (Preview & Navigasi) -->
+            <div class="col-12 col-md-4">
+              <!-- No Soal -->
+              <q-card flat bordered class="q-mb-md bg-grey-2">
+                <q-card-section>
+                  <div class="text-caption text-grey-7 q-mb-sm">No. Soal</div>
+                  <div class="row q-col-gutter-xs">
+                    <div class="col-2" v-for="n in totalQuestions + 1" :key="n">
+                      <q-btn
+                        class="full-width"
+                        :color="n === activeNumber ? 'primary' : 'grey-4'"
+                        :text-color="n === activeNumber ? 'white' : 'black'"
+                        :label="n"
+                        @click="onSelectNumber(n)"
+                      />
+                    </div>
+                  </div>
+                </q-card-section>
+              </q-card>
+
+              <!-- Preview Soal -->
+              <q-card flat bordered class="bg-grey-2">
                 <q-card-section>
                   <div class="text-caption text-grey-7 q-mb-sm">
-                    <q-icon name="visibility" size="xs" class="q-mr-xs" />
-                    Preview Soal
+                    <q-icon name="visibility" size="xs" class="q-mr-xs" /> Preview Soal
                   </div>
                   <div class="preview-box bg-white q-pa-md rounded-borders">
                     <QuestionPreviewInline :question="{
-                      question_type: localForm.question_type,
-                      question_text: localForm.question_text,
-                      options: localForm.options,
-                      pairs: localForm.pairs,
-                      statements: localForm.statements,
-                      accepted_answers: localForm.accepted_answers,
-                      case_sensitive: localForm.case_sensitive,
-                      trim_whitespace: localForm.trim_whitespace,
-                      language: localForm.language,
-                      starter_code: localForm.starter_code,
-                      test_cases: localForm.test_cases,
-                      image_url: localForm.image_url,
-                      hotspots: localForm.hotspots,
-                      media_url: localForm.media_url,
-                      rubric: localForm.rubric,
+                      question_type: localForm.question_type, question_text: localForm.question_text,
+                      options: localForm.options, pairs: localForm.pairs, statements: localForm.statements,
+                      accepted_answers: localForm.accepted_answers, case_sensitive: localForm.case_sensitive,
+                      trim_whitespace: localForm.trim_whitespace, language: localForm.language,
+                      starter_code: localForm.starter_code, test_cases: localForm.test_cases,
+                      image_url: localForm.image_url, hotspots: localForm.hotspots,
+                      media_url: localForm.media_url, rubric: localForm.rubric,
                     }" />
                   </div>
                 </q-card-section>
               </q-card>
             </div>
-
-            <div class="col-12 col-md-4">
-              <q-card flat bordered class="full-height">
-                <q-card-section class="q-gutter-md">
-                  <div class="text-caption text-grey-7">
-                    <q-icon name="tune" size="xs" class="q-mr-xs" />
-                    Pengaturan Soal
-                  </div>
-
-                  <q-select v-model="localForm.question_type" :options="typeOptions" label="Tipe Soal" outlined dense
-                    emit-value map-options />
-
-                  <q-input v-model.number="localForm.score" type="number" label="Skor Maksimal" outlined dense :min="1"
-                    :rules="[(v) => (v > 0) || 'Skor harus > 0']" />
-
-                  <q-input v-if="!isAudioVideo" v-model="localForm.media_url" label="URL Media Soal (opsional)" outlined
-                    dense hint="Atau klik icon image untuk insert">
-                    <template v-slot:append>
-                      <q-btn flat round dense icon="image" color="primary" @click="onPickMainMedia">
-                        <q-tooltip>Insert gambar (base64, max 1 MB)</q-tooltip>
-                      </q-btn>
-                    </template>
-                  </q-input>
-                </q-card-section>
-              </q-card>
-            </div>
           </div>
-
-          <!-- ═══ ROW 2: Editor + Toolbar ═══ -->
-          <div>
-            <div class="row items-center q-mb-xs">
-              <div class="text-caption text-grey-7 col">
-                <q-icon name="edit_note" size="xs" class="q-mr-xs" />
-                Teks Soal (dukung LaTeX <code>$...$</code>, HTML, tulisan non-Latin)
-              </div>
-              <div class="row q-gutter-xs">
-                <!-- Script picker -->
-                <q-btn flat dense icon="translate" label="Aksara" no-caps size="sm" color="primary"
-                  @click="scriptPickerOpen = true">
-                  <q-tooltip>Pilih aksara (Arab/Sunda/Jawa/Bali)</q-tooltip>
-                </q-btn>
-                <!-- Math picker -->
-                <q-btn flat dense icon="functions" label="Simbol" no-caps size="sm" color="primary"
-                  @click="mathPickerOpen = true">
-                  <q-tooltip>Pilih simbol matematika lengkap</q-tooltip>
-                </q-btn>
-              </div>
-            </div>
-
-            <!-- Quick math bar -->
-            <!-- <div class="quick-math-bar q-mb-sm q-pa-xs bg-grey-2 rounded-borders row q-gutter-xs items-center">
-              <span class="text-caption text-grey-7 q-mr-xs">Cepat:</span>
-              <q-btn v-for="key in quickSnippets" :key="key" flat dense no-caps size="sm" color="primary"
-                @click="insertMath(key)">
-                <span v-html="renderQuickPreview(key)" />
-              </q-btn>
-            </div> -->
-
-            <q-editor ref="editorRef" v-model="localForm.question_text" :definitions="editorDefinitions"
-              :toolbar="editorToolbar" min-height="200px"
-              placeholder="Tulis soal di sini... (paste gambar langsung untuk insert)" @paste="onPasteEditor" />
-          </div>
-
-          <!-- Media upload khusus AUDIO/VIDEO -->
-          <QuestionMediaUpload v-if="isAudioVideo" v-model="localForm.media_url" :is-audio="isAudio" />
-
-          <!-- Opsi jawaban (PG, PG_COMPLEX, AUDIO, VIDEO) -->
-          <div v-if="isPGType">
-            <QuestionOptions v-model="localForm.options" :multi-correct="localForm.question_type === 'PG_COMPLEX'"
-              @media="onPickOptionMedia" />
-          </div>
-
-          <div v-if="localForm.question_type === 'MATCHING'">
-            <QuestionMatching v-model="localForm.pairs" />
-          </div>
-
-          <div v-if="localForm.question_type === 'TRUE_FALSE'">
-            <QuestionTrueFalse v-model="localForm.statements" />
-          </div>
-
-          <div v-if="localForm.question_type === 'SHORT_ANSWER'">
-            <QuestionShortAnswer v-model="localForm.accepted_answers" :case-sensitive="localForm.case_sensitive"
-              :trim-whitespace="localForm.trim_whitespace" @update:case-sensitive="localForm.case_sensitive = $event"
-              @update:trim-whitespace="localForm.trim_whitespace = $event" />
-          </div>
-
-          <div v-if="localForm.question_type === 'CODING'">
-            <QuestionCoding v-model="localForm.test_cases" :language="localForm.language"
-              :starter-code="localForm.starter_code" @update:language="localForm.language = $event"
-              @update:starter-code="localForm.starter_code = $event" />
-          </div>
-
-          <div v-if="localForm.question_type === 'HOTSPOT'">
-            <QuestionHotspot v-model="localForm.hotspots" :image-url="localForm.image_url"
-              @update:image-url="localForm.image_url = $event" />
-          </div>
-
-          <q-input v-if="localForm.question_type === 'ESSAY'" v-model="localForm.rubric" type="textarea"
-            label="Rubrik Penilaian (opsional)" outlined autogrow :rows="3" />
         </q-form>
       </q-card-section>
 
@@ -191,8 +164,10 @@ const props = defineProps({
   isEditing: Boolean,
   initialForm: { type: Object, default: () => ({}) },
   submitting: Boolean,
+  questions: { type: Array, default: () => [] },
+  editingId: { type: String, default: null },
 })
-const emit = defineEmits(['update:modelValue', 'submit', 'cancel'])
+const emit = defineEmits(['update:modelValue', 'submit', 'cancel', 'load-question', 'create-new'])
 
 const $q = useQuasar()
 const { createDefaultOptions, createDefaultPairs, createDefaultStatements, createDefaultAnswers, createDefaultTestCases } = useDynamicOptions()
@@ -206,6 +181,24 @@ const MAX_IMG_SIZE = 1 * 1024 * 1024
 
 const isOpen = ref(false)
 const editorRef = ref(null)
+
+const totalQuestions = computed(() => props.questions?.length || 0)
+const activeNumber = computed(() => {
+  // Jika tidak sedang edit, arahkan ke nomor baru (total + 1)
+  if (!props.isEditing) return totalQuestions.value + 1
+  // Jika sedang edit, cari indeks soalnya
+  const idx = props.questions.findIndex((q) => q.id === props.editingId)
+  return idx !== -1 ? idx + 1 : totalQuestions.value + 1
+})
+const onSelectNumber = (n) => {
+  if (n === totalQuestions.value + 1) {
+    emit('create-new')
+  } else {
+    const q = props.questions[n - 1]
+    if (q) emit('load-question', q)
+  }
+}
+
 const localForm = reactive({
   question_type: 'PG',
   question_text: '',
@@ -268,11 +261,11 @@ const editorToolbar = [
 const editorDefinitions = {}
 
 watch(
-  () => props.modelValue,
-  (val) => {
+  [() => props.modelValue, () => props.initialForm],
+  ([val, init]) => {
     isOpen.value = val
     if (val) {
-      const init = props.initialForm || {}
+      init = init || {}
       localForm.question_type = init.question_type || 'PG'
       localForm.question_text = init.question_text || ''
       localForm.options = Array.isArray(init.options) && init.options.length > 0

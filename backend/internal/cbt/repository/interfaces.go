@@ -13,6 +13,10 @@ type QuestionRepository interface {
 
 	GetQuestionsByExamID(examID string) ([]domain.Question, error)
 	BatchInsertQuestions(ctx context.Context, batch []domain.Question) error
+	GetExamByID(ctx context.Context, id string) (*domain.Exam, error)
+	CreateQuestion(ctx context.Context, q *domain.Question) error
+	UpdateQuestion(ctx context.Context, q *domain.Question) error
+	DeleteQuestion(ctx context.Context, id string) error
 }
 
 // AnswerRepository untuk buffer jawaban real-time (Redis)

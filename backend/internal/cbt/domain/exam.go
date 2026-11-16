@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 )
 
@@ -40,19 +41,19 @@ const (
 )
 
 type Question struct {
-	ID              string       `json:"id"`
-	ExamID          string       `json:"exam_id"`
-	QuestionText    string       `json:"question_text"`
-	MediaURL        string       `json:"media_url,omitempty"`
-	Options         string       `json:"options"` // JSON string
-	CorrectOption   string       `json:"-"`       // JANGAN kirim ke peserta
-	QuestionType    QuestionType `json:"question_type"`
-	Score           float64      `json:"score"`
-	Rubric          string       `json:"rubric,omitempty"`
-	CodingCategory  string       `json:"coding_category,omitempty"`
-	ProgrammingLang string       `json:"programming_lang,omitempty"`
-	CodingMode      CodingMode   `json:"coding_mode,omitempty"`
-	CreatedAt       time.Time    `json:"created_at,omitempty"`
+	ID              string          `json:"id"`
+	ExamID          string          `json:"exam_id"`
+	QuestionText    string          `json:"question_text"`
+	MediaURL        string          `json:"media_url,omitempty"`
+	Options         json.RawMessage `json:"options"` // JSON object/array
+	CorrectOption   string          `json:"-"`       // JANGAN kirim ke peserta
+	QuestionType    QuestionType    `json:"question_type"`
+	Score           float64         `json:"score"`
+	Rubric          string          `json:"rubric,omitempty"`
+	CodingCategory  string          `json:"coding_category,omitempty"`
+	ProgrammingLang string          `json:"programming_lang,omitempty"`
+	CodingMode      CodingMode      `json:"coding_mode,omitempty"`
+	CreatedAt       time.Time       `json:"created_at,omitempty"`
 }
 
 // ==================== RESULT ====================
