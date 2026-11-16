@@ -40,9 +40,12 @@ func TenantResolver(
 			userCtx = context.Background()
 		}
 		userCtx = tenant.WithTenantInfo(userCtx, &tenant.TenantInfo{
-			TenantID:  resolution.TenantID,
-			Subdomain: resolution.Subdomain,
-			DBPath:    resolution.DBPath,
+			TenantID:   resolution.TenantID,
+			Subdomain:  resolution.Subdomain,
+			DBPath:     resolution.DBPath,
+			SchoolName: resolution.SchoolName,
+			NPSN:       resolution.NPSN,
+			Jenjang:    resolution.Jenjang,
 		})
 		c.SetUserContext(userCtx)
 

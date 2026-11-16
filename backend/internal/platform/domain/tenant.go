@@ -106,6 +106,9 @@ type TenantResolution struct {
 	DBPath      string
 	IsActive    bool
 	IsSuspended bool
+	SchoolName  string
+	NPSN        string
+	Jenjang     string
 }
 
 // ============================================

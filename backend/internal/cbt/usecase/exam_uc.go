@@ -67,7 +67,7 @@ func (uc *ExamUseCase) StartExam(ctx context.Context, participantID, examID stri
 }
 
 // getQuestionsWithSingleflight (Logika Singleflight tetap sama)
-func (uc *ExamUseCase) getQuestionsWithSingleflight(ctx context.Context, examID string) ([]domain.Question, error) {
+func (uc *ExamUseCase) getQuestionsWithSingleflight(_ context.Context, examID string) ([]domain.Question, error) {
 	uc.mu.RLock()
 	if qs, ok := uc.activeQuestions[examID]; ok {
 		uc.mu.RUnlock()
@@ -667,4 +667,18 @@ func (uc *ExamUseCase) GetParticipantNISN(ctx context.Context, participantID str
 func (uc *ExamUseCase) GetExamDB() (*sqlite.ExamDB, bool) {
 	db, ok := uc.questionRepo.(*sqlite.ExamDB)
 	return db, ok
+}
+
+// ==================== CRUD UJIAN (Fase Ujian) ====================
+
+func (uc *ExamUseCase) List(ctx context.Context, periodID string) ([]domain.Exam, error) {
+	return uc.questionRepo.ListExams(periodID)
+}
+
+func (uc *ExamUseCase) FindOrCreate(ctx context.Context, e domain.Exam) (*domain.Exam, error) {
+	return uc.questionRepo.FindOrCreate(ctx, &e)
+}
+
+func (uc *ExamUseCase) Delete(ctx context.Context, id string) error {
+	return uc.questionRepo.DeleteExam(ctx, id)
 }

@@ -106,13 +106,13 @@ func (r *ProctorDB) Unassign(ctx context.Context, proctorID, sessionID string) e
 	return err
 }
 
-// ListAllProctors — list user dengan role PROCTOR atau TEACHER
+// ListAllProctors — list user dari tabel teachers (sebagai proctor)
 func (r *ProctorDB) ListAllProctors(ctx context.Context) ([]map[string]any, error) {
 	const q = `
-		SELECT id, username, role, tenant_id
-		FROM admins
-		WHERE role IN ('PROCTOR', 'TEACHER') AND is_active = 1
-		ORDER BY username ASC`
+		SELECT id, username, 'TEACHER' as role
+		FROM teachers
+		WHERE status = 'AKTIF'
+		ORDER BY nama ASC`
 	rows, err := r.DB.QueryContext(ctx, q)
 	if err != nil {
 		return nil, err
@@ -121,26 +121,25 @@ func (r *ProctorDB) ListAllProctors(ctx context.Context) ([]map[string]any, erro
 
 	var out []map[string]any
 	for rows.Next() {
-		var id, username, role, tenantID string
-		if err := rows.Scan(&id, &username, &role, &tenantID); err != nil {
+		var id, username, role string
+		if err := rows.Scan(&id, &username, &role); err != nil {
 			return nil, err
 		}
 		out = append(out, map[string]any{
-			"id":        id,
-			"username":  username,
-			"role":      role,
-			"tenant_id": tenantID,
+			"id":       id,
+			"username": username,
+			"role":     role,
 		})
 	}
 	return out, rows.Err()
 }
 
-// FindProctorByUsername — untuk login proctor
+// FindProctorByUsername — untuk login proctor (query ke tabel teachers)
 func (r *ProctorDB) FindProctorByUsername(ctx context.Context, tenantID, username string) (id, passwordHash, role string, err error) {
-	const q = `SELECT id, password_hash, role FROM admins
-	           WHERE tenant_id = ? AND username = ? AND role IN ('PROCTOR', 'TEACHER') AND is_active = 1
+	const q = `SELECT id, password_hash, 'TEACHER' as role FROM teachers
+	           WHERE username = ? AND status = 'AKTIF'
 	           LIMIT 1`
-	row := r.DB.QueryRowContext(ctx, q, tenantID, username)
+	row := r.DB.QueryRowContext(ctx, q, username)
 	err = row.Scan(&id, &passwordHash, &role)
 	if err == sql.ErrNoRows {
 		return "", "", "", nil

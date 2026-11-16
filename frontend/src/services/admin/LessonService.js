@@ -17,7 +17,7 @@ export const LessonService = {
   remove(id) {
     return api.delete(`/admin/lessons/${id}`)
   },
-  downloadTemplate(format = 'csv') {
+  downloadTemplate(format = 'xlsx') {
     return api.get('/admin/lessons/template', {
       responseType: 'blob',
       params: { format },

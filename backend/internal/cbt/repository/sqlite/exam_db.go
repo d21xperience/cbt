@@ -207,3 +207,56 @@ func (r *ExamDB) GetParticipantHistory(ctx context.Context, participantID string
 	}
 	return out, rows.Err()
 }
+
+// ListExams mengambil daftar ujian berdasarkan periode akademik.
+func (r *ExamDB) ListExams(periodID string) ([]domain.Exam, error) {
+	q := `SELECT id, title, duration_minutes, start_time, end_time, COALESCE(subject_id,''), COALESCE(class_id,''), COALESCE(jenis_ujian_id,''), COALESCE(academic_period_id,''), COALESCE(tenant_id,'default') 
+	      FROM exams 
+	      WHERE academic_period_id = ? OR (academic_period_id IS NULL AND ? = '')
+	      ORDER BY title ASC`
+	rows, err := r.DB.Query(q, periodID, periodID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var list []domain.Exam
+	for rows.Next() {
+		var e domain.Exam
+		rows.Scan(&e.ID, &e.Title, &e.DurationMinutes, &e.StartTime, &e.EndTime, &e.SubjectID, &e.ClassID, &e.JenisUjianID, &e.AcademicPeriodID, &e.TenantID)
+		list = append(list, e)
+	}
+	return list, nil
+}
+
+// FindOrCreate mencari ujian berdasarkan kombinasi, jika tidak ada maka buat baru.
+func (r *ExamDB) FindOrCreate(ctx context.Context, e *domain.Exam) (*domain.Exam, error) {
+	const q = `SELECT id, title, duration_minutes, start_time, end_time, COALESCE(subject_id,''), COALESCE(class_id,''), COALESCE(jenis_ujian_id,''), COALESCE(academic_period_id,''), COALESCE(tenant_id,'default') 
+	           FROM exams WHERE subject_id = ? AND class_id = ? AND jenis_ujian_id = ? AND academic_period_id = ? LIMIT 1`
+	var res domain.Exam
+	err := r.DB.QueryRowContext(ctx, q, e.SubjectID, e.ClassID, e.JenisUjianID, e.AcademicPeriodID).Scan(
+		&res.ID, &res.Title, &res.DurationMinutes, &res.StartTime, &res.EndTime, &res.SubjectID, &res.ClassID, &res.JenisUjianID, &res.AcademicPeriodID, &res.TenantID)
+
+	if err == nil {
+		return &res, nil
+	}
+	if err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	// Create new
+	if e.ID == "" {
+		e.ID = uuid.NewString()
+	}
+	const insertQ = `INSERT INTO exams (id, title, duration_minutes, start_time, end_time, subject_id, class_id, jenis_ujian_id, academic_period_id, tenant_id) 
+	                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	_, err = r.DB.ExecContext(ctx, insertQ, e.ID, e.Title, e.DurationMinutes, e.StartTime, e.EndTime, e.SubjectID, e.ClassID, e.JenisUjianID, e.AcademicPeriodID, e.TenantID)
+	if err != nil {
+		return nil, err
+	}
+	return e, nil
+}
+
+func (r *ExamDB) DeleteExam(ctx context.Context, id string) error {
+	_, err := r.DB.ExecContext(ctx, `DELETE FROM exams WHERE id = ?`, id)
+	return err
+}

@@ -70,7 +70,27 @@ type Usecases struct {
 	ParticipantAuthUC *schedulingUC.ParticipantAuthUseCase
 	CredentialsUC     *schedulingUC.CredentialsUseCase
 	ProctorUC         *schedulingUC.ProctorUseCase
+	SiswaUC           *cbtUc.SiswaUseCase
 
+	SchoolProfileUC *cbtUc.SchoolProfileUseCase
+
+	ClassUC *cbtUc.ClassUseCase
+
+	SubjectUC *cbtUc.SubjectUseCase
+
+	ExamTypeUC *cbtUc.ExamTypeUseCase
+
+	LessonUC *cbtUc.LessonUseCase
+
+	AcademicPeriodUC *cbtUc.AcademicPeriodUseCase
+
+	ClassDB *cbtSqliteRepo.ClassDB
+
+	ExamScheduleUC *cbtUc.ExamScheduleUseCase
+
+	TeacherUC *cbtUc.TeacherUseCase
+
+	RoomUC *cbtUc.RoomUseCase
 	// Exam usecases
 	ExamUC    *cbtUc.ExamUseCase
 	TokenUC   *cbtUc.TokenUseCase
@@ -109,11 +129,49 @@ func (f *Factory) Usecases(ctx context.Context) (*Usecases, error) {
 	proctorDB := schedulingRepo.NewProctorDB(db)
 
 	// CBT repos
-	examDB := cbtSqliteRepo.NewExamDB(db)
 	sessionDB := cbtSqliteRepo.NewSessionDB(db)
 	tokenDB := cbtSqliteRepo.NewTokenDB(db)
 	paymentDB := cbtSqliteRepo.NewPaymentDB(db)
+	siswaDB := cbtSqliteRepo.NewSiswaDB(db)
+	siswaUC := cbtUc.NewSiswaUseCase(siswaDB, credRepo, f.credCipher)
 
+	schoolProfileDB := cbtSqliteRepo.NewSchoolProfileDB(db)
+
+	schoolProfileUC := cbtUc.NewSchoolProfileUseCase(schoolProfileDB)
+
+	classDB := cbtSqliteRepo.NewClassDB(db)
+
+	classUC := cbtUc.NewClassUseCase(classDB)
+
+	subjectDB := cbtSqliteRepo.NewSubjectDB(db)
+
+	subjectUC := cbtUc.NewSubjectUseCase(subjectDB)
+
+	examTypeDB := cbtSqliteRepo.NewExamTypeDB(db)
+
+	examTypeUC := cbtUc.NewExamTypeUseCase(examTypeDB)
+
+	lessonDB := cbtSqliteRepo.NewLessonDB(db)
+
+	lessonUC := cbtUc.NewLessonUseCase(lessonDB)
+
+	academicPeriodDB := cbtSqliteRepo.NewAcademicPeriodDB(db)
+
+	academicPeriodUC := cbtUc.NewAcademicPeriodUseCase(academicPeriodDB, classDB, siswaDB, lessonDB, schoolProfileDB)
+
+	examScheduleDB := cbtSqliteRepo.NewExamScheduleDB(db)
+
+	examScheduleUC := cbtUc.NewExamScheduleUseCase(examScheduleDB)
+
+	examDB := cbtSqliteRepo.NewExamDB(db)
+
+	teacherDB := cbtSqliteRepo.NewTeacherDB(db)
+
+	roomDB := cbtSqliteRepo.NewRoomDB(db)
+
+	teacherUC := cbtUc.NewTeacherUseCase(teacherDB, f.credCipher)
+
+	roomUC := cbtUc.NewRoomUseCase(roomDB)
 	// Archive
 	archiveDB := archiveRepo.NewArchiveDB(db)
 
@@ -132,7 +190,27 @@ func (f *Factory) Usecases(ctx context.Context) (*Usecases, error) {
 		ExamUC:    cbtUc.NewExamUseCase(examDB, examCache, examDB, examCache),
 		TokenUC:   cbtUc.NewTokenUseCase(tokenDB, sessionDB),
 		PaymentUC: cbtUc.NewPaymentUseCase(paymentDB),
+		SiswaUC:   siswaUC,
 
+		SchoolProfileUC: schoolProfileUC,
+
+		ClassUC: classUC,
+
+		SubjectUC: subjectUC,
+
+		ExamTypeUC: examTypeUC,
+
+		LessonUC: lessonUC,
+
+		AcademicPeriodUC: academicPeriodUC,
+
+		ClassDB: classDB,
+
+		ExamScheduleUC: examScheduleUC,
+
+		TeacherUC: teacherUC,
+
+		RoomUC:      roomUC,
 		SessionRepo: sessionDB,
 
 		ArchiveUC:    archiveUC.NewArchiveUseCase(archiveDB, f.siakadClient, f.redisClient),

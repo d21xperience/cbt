@@ -1,0 +1,1 @@
+-- no-op: rollback dilakukan manual (drop column) — data preserved untuk audit

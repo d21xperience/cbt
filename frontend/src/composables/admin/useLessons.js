@@ -256,7 +256,7 @@ export function useLessons() {
     importErrors.value = []
   }
 
-  const downloadTemplate = async (format = 'csv') => {
+  const downloadTemplate = async (format = 'xlsx') => {
     downloadingTemplate.value = true
     try {
       const res = await LessonService.downloadTemplate(format)

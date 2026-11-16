@@ -5,6 +5,20 @@ import (
 	"time"
 )
 
+// ==================== EXAM ====================
+type Exam struct {
+	ID               string `json:"id"`
+	Title            string `json:"title"`
+	DurationMinutes  int    `json:"duration_minutes"`
+	StartTime        string `json:"start_time"`
+	EndTime          string `json:"end_time"`
+	SubjectID        string `json:"subject_id"`
+	ClassID          string `json:"class_id"`
+	JenisUjianID     string `json:"jenis_ujian_id"`
+	AcademicPeriodID string `json:"academic_period_id"`
+	TenantID         string `json:"tenant_id"`
+}
+
 // ==================== QUESTION ====================
 
 type QuestionType string

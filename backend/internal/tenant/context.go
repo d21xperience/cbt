@@ -9,13 +9,19 @@ const (
 	tenantIDKey contextKey = iota
 	tenantDBPathKey
 	tenantSubdomainKey
+	tenantSchoolNameKey
+	tenantNPSNKey
+	tenantJenjangKey
 )
 
 // TenantInfo — info tenant yang di-resolve dari request
 type TenantInfo struct {
-	TenantID  string
-	Subdomain string
-	DBPath    string
+	TenantID   string
+	Subdomain  string
+	DBPath     string
+	SchoolName string
+	NPSN       string
+	Jenjang    string
 }
 
 // WithTenantInfo — set tenant info ke context
@@ -23,6 +29,9 @@ func WithTenantInfo(ctx context.Context, info *TenantInfo) context.Context {
 	ctx = context.WithValue(ctx, tenantIDKey, info.TenantID)
 	ctx = context.WithValue(ctx, tenantDBPathKey, info.DBPath)
 	ctx = context.WithValue(ctx, tenantSubdomainKey, info.Subdomain)
+	ctx = context.WithValue(ctx, tenantSchoolNameKey, info.SchoolName)
+	ctx = context.WithValue(ctx, tenantNPSNKey, info.NPSN)
+	ctx = context.WithValue(ctx, tenantJenjangKey, info.Jenjang)
 	return ctx
 }
 
@@ -40,6 +49,15 @@ func FromContext(ctx context.Context) *TenantInfo {
 	}
 	if v, ok := ctx.Value(tenantSubdomainKey).(string); ok {
 		info.Subdomain = v
+	}
+	if v, ok := ctx.Value(tenantSchoolNameKey).(string); ok {
+		info.SchoolName = v
+	}
+	if v, ok := ctx.Value(tenantNPSNKey).(string); ok {
+		info.NPSN = v
+	}
+	if v, ok := ctx.Value(tenantJenjangKey).(string); ok {
+		info.Jenjang = v
 	}
 	if info.TenantID == "" {
 		return nil

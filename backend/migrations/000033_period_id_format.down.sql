@@ -1,0 +1,2 @@
+-- Tidak ada rollback spesifik — ID hanyalah opaque string.
+-- Untuk rollback, restore dari backup DB.

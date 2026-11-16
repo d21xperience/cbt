@@ -13,12 +13,17 @@ import (
 	schedulingDomain "cbt-engine-service/internal/scheduling/domain"
 	schedulingUsecase "cbt-engine-service/internal/scheduling/usecase"
 	"cbt-engine-service/internal/tenant"
+	tenantPkg "cbt-engine-service/internal/tenant"
 	"cbt-engine-service/pkg/auth"
+	"context"
+	"database/sql"
 	"encoding/json"
 	"log"
 	"path/filepath"
 	"strings"
 	"time"
+
+	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -261,7 +266,7 @@ func (h *CBTHandler) HandleLogin(c *fiber.Ctx) error {
 		return err
 	}
 
-	// ✅ Resolve tenant dari server context
+	// Resolve tenant
 	info := tenant.FromContext(c.UserContext())
 	if info == nil || info.TenantID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -270,31 +275,44 @@ func (h *CBTHandler) HandleLogin(c *fiber.Ctx) error {
 		})
 	}
 
-	// Auth peserta (legacy — akan di-refactor di Phase 3B)
-	result, err := h.participantAuthUC.Login(c.Context(), req.Username, req.Password)
+	if h.factory == nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "factory_unavailable"})
+	}
+	uc, err := h.factory.Usecases(c.UserContext())
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		log.Printf("[Handler] factory.Usecases: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "tenant_db_unavailable"})
 	}
 
-	// ✅ JWT-A: uid=participant_id, tenant_id=UUID (untuk TenantGuard)
-	token, err := auth.GenerateTokenFull(
-		result.ParticipantID, "PARTICIPANT", "", info.TenantID, 6*time.Hour,
-	)
+	// BCR-1: login via siswa (single source of truth)
+	siswa, err := uc.SiswaUC.LoginByNIS(c.Context(), req.Username, req.Password)
+	if err != nil || siswa == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "NIS atau password salah"})
+	}
+
+	// JWT-A: uid = siswa.id (identity, deterministic)
+	token, err := auth.GenerateTokenFull(siswa.ID, "PARTICIPANT", "", info.TenantID, 6*time.Hour)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal generate token"})
 	}
 
+	tenantSlug := info.Subdomain
+	if tenantSlug == "" {
+		tenantSlug = "default"
+	}
+
 	return c.JSON(fiber.Map{
-		"status": "authorized",
-		"role":   "PARTICIPANT",
-		"token":  token,
+		"role":  "PARTICIPANT",
+		"token": token,
 		"user": fiber.Map{
-			"participant_id": result.ParticipantID,
-			"nisn":           result.NISN,
-			"name":           result.FullName,
-			"rombel":         result.RombelName,
+			"id":     siswa.ID,
+			"name":   siswa.Nama,
+			"nis":    siswa.NIS,
+			"nisn":   siswa.NISN,
+			"class":  siswa.KelasNama,
+			"tenant": tenantSlug,
 		},
-		"eligible_exams": result.ExamIDs,
+		"eligible_exams": []string{},
 	})
 }
 
@@ -1124,13 +1142,29 @@ func (h *CBTHandler) HandleGetTenantConfig(c *fiber.Ctx) error {
 		duration = 3
 	}
 
+	// ── Sinkronisasi Logo: Baca dari Tenant DB (school_profile)
+	logoURL := tenant.LogoURL
+	if h.factory != nil {
+		tctx := context.Background()
+		tctx = tenantPkg.WithTenantInfo(tctx, &tenantPkg.TenantInfo{
+			TenantID:  tenant.TenantID,
+			Subdomain: tenant.Subdomain,
+			DBPath:    tenant.DBPath,
+		})
+		if uc, err := h.factory.Usecases(tctx); err == nil && uc.SchoolProfileUC != nil {
+			if ext, err := uc.SchoolProfileUC.Get(tctx); err == nil && ext.LogoURL != "" {
+				logoURL = ext.LogoURL
+			}
+		}
+	}
+
 	return c.JSON(fiber.Map{
 		"slug":                   tenant.Subdomain,
 		"npsn":                   tenant.NPSN,
 		"school_name":            tenant.SchoolName,
 		"jenjang":                jenjang,  // ← NEW
 		"program_duration_years": duration, // ← NEW
-		"logo_url":               tenant.LogoURL,
+		"logo_url":               logoURL,
 		"is_suspended":           tenant.IsSuspended,
 		"is_active":              tenant.IsActive,
 	})
@@ -1164,20 +1198,46 @@ func (h *CBTHandler) HandleListSchools(c *fiber.Ctx) error {
 
 	data := make([]fiber.Map, 0, len(tenants))
 	for _, t := range tenants {
+		// ── Fetch Logo Langsung dari File SQLite (Bypass Context)
+		logoURL := ""
+		if h.tenantUC != nil {
+			resolution, err := h.tenantUC.ResolveBySubdomain(c.Context(), t.Subdomain)
+			if err == nil && resolution != nil && resolution.DBPath != "" {
+				// Buka DB langsung
+				db, errDB := sql.Open("sqlite3", resolution.DBPath)
+				if errDB == nil {
+					var logo string
+					// Query langsung ke tabel
+					_ = db.QueryRow("SELECT logo_url FROM school_profile WHERE id='singleton'").Scan(&logo)
+					if logo != "" {
+						logoURL = logo
+					}
+					db.Close()
+				} else {
+					log.Printf("[DEBUG] Gagal buka DB %s: %v", resolution.DBPath, errDB)
+				}
+			}
+		}
+
 		data = append(data, fiber.Map{
-			"slug":       t.Subdomain,
-			"name":       t.SchoolName,
-			"npsn":       t.NPSN,
-			"logo_url":   "",
-			"is_active":  t.IsActive && !t.IsSuspended,
-			"portal_url": "/auth/participant",
+			"tenant_id":    t.TenantID,
+			"slug":         t.Subdomain,
+			"subdomain":    t.Subdomain,
+			"name":         t.SchoolName,
+			"school_name":  t.SchoolName,
+			"npsn":         t.NPSN,
+			"jenjang":      t.Jenjang,
+			"is_active":    t.IsActive && !t.IsSuspended,
+			"is_suspended": t.IsSuspended,
+			"logo_url":     logoURL,
+			"portal_url":   "/auth/participant",
+			"created_at":   t.CreatedAt,
 		})
 	}
 
 	return c.JSON(fiber.Map{"status": "ok", "data": data})
 }
 
-// ============================================
 // PHASE D1: Admin credential management
 // ============================================
 

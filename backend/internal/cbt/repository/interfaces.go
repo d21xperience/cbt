@@ -7,6 +7,10 @@ import (
 
 // QuestionRepository untuk mengambil bank soal
 type QuestionRepository interface {
+	ListExams(periodID string) ([]domain.Exam, error)
+	FindOrCreate(ctx context.Context, e *domain.Exam) (*domain.Exam, error)
+	DeleteExam(ctx context.Context, id string) error
+
 	GetQuestionsByExamID(examID string) ([]domain.Question, error)
 	BatchInsertQuestions(ctx context.Context, batch []domain.Question) error
 }

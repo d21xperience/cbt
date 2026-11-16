@@ -114,6 +114,9 @@ func (uc *TenantUseCase) ResolveBySubdomain(ctx context.Context, subdomain strin
 		DBPath:      filepath.Join(uc.basePath, t.DBPath),
 		IsActive:    t.IsActive,
 		IsSuspended: t.IsSuspended,
+		SchoolName:  t.SchoolName,
+		NPSN:        t.NPSN,
+		Jenjang:     t.Jenjang,
 	}, nil
 }
 

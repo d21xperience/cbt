@@ -133,6 +133,8 @@ var skipInProvisioner = map[string]bool{
 	"000013_backfill_tenant_id.up.sql":         true,
 	"000014_add_tenant_status.up.sql":          true,
 	"000015_add_pending_admin_username.up.sql": true,
+	"000016_add_tenant_jenjang.up.sql":         true,
+	"000017_add_master_keahlian.up.sql":        true,
 }
 
 // applyMigrations — run embedded tenant migrations only.

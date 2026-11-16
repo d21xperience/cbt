@@ -14,17 +14,17 @@
               <template v-slot:avatar>
                 <q-icon name="info" color="primary" />
               </template>
-              Format CSV: <code>mapel_kode,kelas_nama,guru_username,tahun_ajaran,semester</code>
+              Format Excel: Pilih Mapel, Kelas, dan Guru dari dropdown yang tersedia.
               <br />
               <code>mapel_kode</code>, <code>kelas_nama</code>, <code>guru_username</code> harus sesuai data yang sudah
               ada.
             </q-banner>
 
-            <q-btn outline color="primary" icon="download" label="Download Template CSV" no-caps class="q-mb-md"
-              :loading="downloadingTemplate" @click="onDownloadTemplate('csv')" />
+            <q-btn outline color="primary" icon="download" label="Download Template Excel" no-caps class="q-mb-md"
+              :loading="downloadingTemplate" @click="onDownloadTemplate('xlsx')" />
 
             <q-form @submit.prevent="onUploadStep" class="q-gutter-md">
-              <q-file v-model="fileRef" label="File CSV" accept=".csv" outlined
+              <q-file v-model="fileRef" label="File Excel" accept=".xlsx, .xls" outlined
                 :rules="[(v) => !!v || 'File wajib dipilih']">
                 <template v-slot:prepend><q-icon name="attach_file" /></template>
               </q-file>
