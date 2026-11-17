@@ -14,18 +14,33 @@
       </q-toolbar-title>
 
       <div class="q-gutter-sm flex items-center" role="toolbar" aria-label="Header actions">
-        <!-- Tombol Tahun Ajaran Global -->
-        <q-btn flat dense no-caps text-color="white" icon="calendar_month" @click="academicDialogOpen = true">
-          <div class="q-ml-xs text-caption text-weight-bold">{{ academicStore.academic_year }} - {{
-            academicStore.semester }}</div>
-        </q-btn>
 
-        <!-- Tombol Mode Ujian Global -->
-        <q-btn flat dense no-caps :color="academicStore.exam_mode ? 'yellow-5' : 'white'"
-          :icon="academicStore.exam_mode ? 'assignment_turned_in' : 'assignment'" @click="examModeDialogOpen = true"
-          class="q-ml-sm">
-          <div class="q-ml-xs text-caption text-weight-bold">{{ academicStore.exam_mode || 'Mode Ujian' }}</div>
-        </q-btn>
+        <!-- ===== ADMIN: kontrol Mode Ujian & Tahun Ajaran (bisa buka dialog & reset) ===== -->
+        <template v-if="isAdmin">
+          <!-- Tombol Mode Ujian Global -->
+          <q-btn flat dense no-caps :color="academicStore.exam_mode ? 'yellow-5' : 'white'"
+            :icon="academicStore.exam_mode ? 'assignment_turned_in' : 'assignment'" @click="examModeDialogOpen = true"
+            class="q-ml-sm">
+            <div class="q-ml-xs text-caption text-weight-bold">{{ academicStore.exam_mode || 'Mode Ujian' }}</div>
+          </q-btn>
+          <!-- Tombol Tahun Ajaran Global -->
+          <q-btn flat dense no-caps text-color="white" icon="calendar_month" @click="academicDialogOpen = true"
+            :disable="disableThnAjaran">
+            <div class="q-ml-xs text-caption text-weight-bold">{{ academicStore.academic_year }} - {{
+              academicStore.semester }}</div>
+          </q-btn>
+        </template>
+
+        <!-- ===== NON-ADMIN (siswa/proktor): chip status READ-ONLY, tidak bisa reset ===== -->
+        <template v-else>
+          <q-chip v-if="academicStore.exam_mode" color="yellow-5" text-color="black" dense
+            icon="assignment_turned_in" class="q-ml-sm">
+            {{ academicStore.exam_mode }}
+          </q-chip>
+          <q-chip color="white" text-color="primary" dense icon="calendar_month">
+            {{ academicStore.academic_year }} - {{ academicStore.semester }}
+          </q-chip>
+        </template>
 
         <q-btn v-if="enableDarkMode" flat round :icon="themeStore.dark ? 'dark_mode' : 'light_mode'"
           @click="themeStore.toggleDark()"></q-btn>
@@ -40,8 +55,8 @@
 
     <slot name="secondary" />
 
-    <!-- Dialog Tahun Ajaran -->
-    <q-dialog v-model="academicDialogOpen" persistent>
+    <!-- Dialog Tahun Ajaran (admin only) -->
+    <q-dialog v-model="academicDialogOpen" persistent v-if="isAdmin">
       <q-card style="min-width: 350px">
         <q-card-section class="text-h6 bg-primary text-white">Ganti Tahun Ajaran</q-card-section>
         <q-card-section class="q-gutter-md">
@@ -57,23 +72,36 @@
       </q-card>
     </q-dialog>
 
-    <!-- Dialog Mode Ujian -->
-    <q-dialog v-model="examModeDialogOpen" persistent>
-      <q-card style="min-width: 350px">
+    <!-- Dialog Mode Ujian (admin only) -->
+    <q-dialog v-model="examModeDialogOpen" v-if="isAdmin">
+      <q-card style="min-width: 400px">
         <q-card-section class="text-h6 bg-primary text-white">Mode Ujian</q-card-section>
         <q-card-section class="q-gutter-md">
-          <q-select v-model="tempExamMode"
-            :options="[
-              { label: 'UTS — Ujian Tengah Semester', value: 'UTS' },
-              { label: 'UAS — Ujian Akhir Semester', value: 'UAS' },
-              { label: 'UH — Ulangan Harian', value: 'UH' },
-              { label: 'SURVEI — Survei/Uji Coba', value: 'SURVEI' }
-            ]"
-            label="Pilih Tipe Ujian" outlined dense emit-value map-options />
+
+          <q-banner class="bg-red-1 text-red-9 q-mb-md" rounded dense>
+            <template v-slot:avatar>
+              <q-icon name="warning" color="red" />
+            </template>
+            <strong>PERINGATAN:</strong> Mengaktifkan mode ujian akan <strong>menghapus semua sesi ujian</strong> dan
+            <strong>me-reset password peserta</strong> untuk tahun ajaran aktif.
+          </q-banner>
+
+          <!-- ✅ SINKRONISASI MASTER: Dinamis dari DATA REFERENSI -> Jenis Ujian -->
+          <q-select 
+            v-model="tempExamMode" 
+            :options="filteredExamTypes" 
+            option-label="nama" 
+            option-value="kode" 
+            label="Pilih Tipe Ujian" 
+            outlined 
+            dense 
+            emit-value 
+            map-options 
+          />
         </q-card-section>
         <q-card-actions align="right">
-          <q-btn flat label="Matikan Mode" color="negative" @click="clearExamMode" />
-          <q-btn color="primary" label="Simpan" @click="saveExamMode" />
+          <q-btn flat label="Matikan Mode" color="negative" @click="clearExamMode" :loading="isSavingMode" />
+          <q-btn color="primary" label="Simpan & Reset Data" @click="saveExamMode" :loading="isSavingMode" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -81,11 +109,14 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useThemeStore } from '@/stores/theme'
 import { useAcademicStore } from '@/stores/academic'
+import { useAuthStore } from '@/stores/auth'
+import { useExamTypes } from '@/composables/admin/useExamTypes'
 
+const isSavingMode = ref(false)
 defineProps({
   title: { type: String, required: true },
   badge: { type: String, default: '' },
@@ -104,10 +135,20 @@ defineEmits(['toggle-drawer', 'notifications-click', 'refresh', 'logout'])
 
 const themeStore = useThemeStore()
 const academicStore = useAcademicStore()
+const authStore = useAuthStore()
 const $q = useQuasar()
+
+// D.2: hanya ADMIN/SUPER_ADMIN yang boleh menyentuh API & kontrol admin
+const isAdmin = computed(() => ['ADMIN', 'SUPER_ADMIN'].includes(authStore.role))
 
 const academicDialogOpen = ref(false)
 const examModeDialogOpen = ref(false)
+
+// autoLoad:false → tidak auto-fetch saat mount (mencegah 403 untuk siswa)
+const { filteredExamTypes, loadExamTypes } = useExamTypes({ autoLoad: false })
+
+// Fetch exam-types HANYA jika role admin (sinkron master tetap hidup untuk admin)
+watch(isAdmin, (v) => { if (v) loadExamTypes() }, { immediate: true })
 
 const tempYear = ref(academicStore.academic_year)
 const tempSemester = ref(academicStore.semester)
@@ -119,17 +160,33 @@ const saveAcademicPeriod = () => {
   $q.notify({ type: 'positive', message: `Tahun ajaran diubah ke ${tempYear.value} - ${tempSemester.value}` })
 }
 
-const saveExamMode = () => {
+const disableThnAjaran = ref(false)
+
+const saveExamMode = async () => {
   if (!tempExamMode.value) return
-  academicStore.setExamMode(tempExamMode.value)
-  examModeDialogOpen.value = false
-  $q.notify({ type: 'positive', message: `Mode Ujian diaktifkan: ${tempExamMode.value}` })
+  isSavingMode.value = true
+  const result = await academicStore.setExamMode(tempExamMode.value)
+  isSavingMode.value = false
+  if (result.success) {
+    disableThnAjaran.value = true
+    examModeDialogOpen.value = false
+    $q.notify({ type: 'positive', message: `Mode Ujian diaktifkan: ${tempExamMode.value}` })
+  } else {
+    $q.notify({ type: 'negative', message: result.message })
+  }
 }
 
-const clearExamMode = () => {
-  academicStore.setExamMode(null)
-  tempExamMode.value = null
-  examModeDialogOpen.value = false
-  $q.notify({ type: 'info', message: 'Mode Ujian dimatikan.' })
+const clearExamMode = async () => {
+  isSavingMode.value = true
+  const result = await academicStore.setExamMode(null)
+  isSavingMode.value = false
+  if (result.success) {
+    disableThnAjaran.value = false
+    tempExamMode.value = null
+    examModeDialogOpen.value = false
+    $q.notify({ type: 'info', message: 'Mode Ujian dimatikan.' })
+  } else {
+    $q.notify({ type: 'negative', message: result.message })
+  }
 }
 </script>

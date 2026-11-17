@@ -317,6 +317,7 @@ func registerAdminRoutes(admin fiber.Router, h *cbtHttp.CBTHandler) {
 
 	// BCR-1: Participants (derived)
 	admin.Get("/participants", h.HandleListParticipants)
+	admin.Post("/exam-mode", h.HandleToggleExamMode)
 	admin.Post("/participants/:id/reset-password", h.HandleResetParticipantPassword)
 }
 

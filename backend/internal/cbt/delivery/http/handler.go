@@ -301,6 +301,11 @@ func (h *CBTHandler) HandleLogin(c *fiber.Ctx) error {
 		tenantSlug = "default"
 	}
 
+	// D.2: Ambil Exam Mode untuk response
+	examMode := ""
+	if mode, mErr := uc.ParticipantUC.GetExamMode(c.Context()); mErr == nil {
+		examMode = mode
+	}
 	return c.JSON(fiber.Map{
 		"role":  "PARTICIPANT",
 		"token": token,
@@ -312,6 +317,7 @@ func (h *CBTHandler) HandleLogin(c *fiber.Ctx) error {
 			"class":  siswa.KelasNama,
 			"tenant": tenantSlug,
 		},
+		"exam_mode":      examMode,
 		"eligible_exams": []string{},
 	})
 }
@@ -836,7 +842,7 @@ func (h *CBTHandler) HandleImportPaste(c *fiber.Ctx) error {
 			QuestionType:  qType,
 			QuestionText:  q.Text,
 			MediaURL:      q.MediaURL,
-			Options:       string(optionsJSON),
+			Options:       optionsJSON,
 			CorrectOption: strings.ToUpper(q.CorrectOption),
 			Score:         score,
 			Rubric:        q.Rubric,

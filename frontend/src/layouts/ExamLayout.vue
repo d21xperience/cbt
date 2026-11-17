@@ -79,6 +79,15 @@
     </q-drawer>
 
     <q-page-container>
+      <!-- D.2: Banner Peringatan Mode Ujian -->
+      <q-banner v-if="authStore.examMode" class="bg-warning text-black q-mb-md" rounded dense>
+        <template v-slot:avatar>
+          <q-icon name="warning" color="black" />
+        </template>
+        <strong>PERINGATAN MODE UJIAN:</strong> Anda sedang dalam sesi <strong>{{ authStore.examMode }}</strong>. 
+        Dilarang membuka tab baru, meninggalkan ruangan, atau melakukan tindakan yang melanggar tata tertib.
+      </q-banner>
+
       <router-view />
     </q-page-container>
   </q-layout>
@@ -89,10 +98,12 @@ import { ref, computed, onUnmounted, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
 import { useExamStore } from '@/stores/exam/examActive'
+import { useAuthStore } from '@/stores/auth' // D.2: Import auth store
 
 const $q = useQuasar()
 const router = useRouter()
 const examStore = useExamStore()
+const authStore = useAuthStore() // D.2: Instantiate auth store
 const showNav = ref(false)
 
 // Reactive breakpoint

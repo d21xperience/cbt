@@ -9,7 +9,8 @@ const EMPTY_FORM = {
   deskripsi: '',
 }
 
-export function useExamTypes() {
+export function useExamTypes(options = {}) {
+  const { autoLoad = true } = options
   const $q = useQuasar()
 
   // ── List
@@ -242,7 +243,7 @@ export function useExamTypes() {
     }
   }
 
-  onMounted(loadExamTypes)
+  if (autoLoad) onMounted(loadExamTypes)
 
   return {
     examTypes,
