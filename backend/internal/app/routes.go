@@ -317,6 +317,7 @@ func registerAdminRoutes(admin fiber.Router, h *cbtHttp.CBTHandler) {
 
 	// BCR-1: Participants (derived)
 	admin.Get("/participants", h.HandleListParticipants)
+	admin.Get("/cards", h.HandleGetExamCards)
 	admin.Post("/exam-mode", h.HandleToggleExamMode)
 	admin.Post("/participants/:id/reset-password", h.HandleResetParticipantPassword)
 }
@@ -329,25 +330,28 @@ func registerProctorRoutes(proctor fiber.Router, h *cbtHttp.CBTHandler) {
 func registerExamRoutes(exam fiber.Router, h *cbtHttp.CBTHandler) {
 	exam.Get("/active", h.HandleGetActiveExams)
 	exam.Get("/history", h.HandleGetExamHistory)
-	exam.Get("/timer", h.HandleGetTimer)
+	exam.Get("/timer", middleware.RequireExamToken(), h.HandleGetTimer)
 	exam.Post("/:examId/verify-token",
 		middleware.RateLimiter(middleware.RateVerifyToken),
 		h.HandleVerifyToken,
 	)
-	exam.Post("/start", h.HandleStartExam)
+	exam.Post("/start", middleware.RequireExamToken(), h.HandleStartExam)
 	exam.Post("/answer",
+		middleware.RequireExamToken(),
 		middleware.RateLimiter(middleware.RateBatchAnswer),
 		h.HandleSubmitAnswer,
 	)
 	exam.Post("/answers/batch",
+		middleware.RequireExamToken(),
 		middleware.RateLimiter(middleware.RateBatchAnswer),
 		h.HandleBatchAnswer,
 	)
 	exam.Post("/submit",
+		middleware.RequireExamToken(),
 		middleware.RateLimiter(middleware.RateSubmit),
 		h.HandleFinishExam,
 	)
-	exam.Post("/heartbeat", h.HandleHeartbeat)
-	exam.Post("/telemetry", h.HandleTelemetry)
-	exam.Get("/dashboard", h.HandleParticipantDashboard)
+	exam.Post("/heartbeat", middleware.RequireExamToken(), h.HandleHeartbeat)
+	exam.Post("/telemetry", middleware.RequireExamToken(), h.HandleTelemetry)
+	exam.Get("/dashboard", middleware.RequireExamToken(), h.HandleParticipantDashboard)
 }
