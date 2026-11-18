@@ -31,7 +31,7 @@ func (uc *ExamScheduleUseCase) Create(ctx context.Context, req domain.ExamSchedu
 		req.AcademicPeriodID = uc.repo.GetActivePeriodID(ctx)
 	}
 
-	if err := uc.repo.Create(ctx, &req); err != nil {
+	if err := uc.repo.CreateWithSync(ctx, &req); err != nil {
 		return nil, err
 	}
 	return &req, nil
@@ -39,7 +39,7 @@ func (uc *ExamScheduleUseCase) Create(ctx context.Context, req domain.ExamSchedu
 
 func (uc *ExamScheduleUseCase) Update(ctx context.Context, id string, req domain.ExamSchedule) error {
 	req.ID = id
-	return uc.repo.Update(ctx, &req)
+	return uc.repo.UpdateWithSync(ctx, &req)
 }
 
 func (uc *ExamScheduleUseCase) Delete(ctx context.Context, id string) error {
