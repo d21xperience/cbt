@@ -1,6 +1,4 @@
 // src/composables/admin/useExamCardPrint.js
-// Composable untuk generate + print kartu ujian (front + back).
-
 import { ref } from 'vue'
 import QRCode from 'qrcode'
 import { ExamCardService } from '@/services/admin/ExamCardService'
@@ -37,7 +35,8 @@ export function useExamCardPrint() {
     return out
   }
 
-  const printCards = async ({ cards, school, tenant, exams = [], mode = 'open' }) => {
+  // ✅ PERBAIKAN: Tambah parameter examMode
+  const printCards = async ({ cards, school, tenant, exams = [], examMode = 'UJIAN', mode = 'open' }) => {
     if (!cards || cards.length === 0) return
     generating.value = true
     try {
@@ -47,6 +46,7 @@ export function useExamCardPrint() {
         school,
         tenant,
         exams,
+        examMode, // ✅ Diteruskan ke template
       })
       if (mode === 'download') {
         downloadCardPdf(def, `kartu-ujian-${tenant}-${Date.now()}.pdf`)

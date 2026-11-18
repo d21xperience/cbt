@@ -336,6 +336,13 @@ func (h *CBTHandler) HandleStartExam(c *fiber.Ctx) error {
 		})
 	}
 
+	// Session bootstrap (RC-2)
+	if h.sessionUC != nil {
+		if err := h.examUC.EnsureParticipantSession(c.Context(), participantID, examID, h.sessionUC); err != nil {
+			log.Printf("[HANDLER] StartExam EnsureSession: %v", err)
+		}
+	}
+
 	// Timer guard — server authority
 	if _, err := h.examUC.CheckTimer(c.Context(), participantID, examID, h.sessionUC); err != nil {
 		if err == cbtUC.ErrExamExpired {
@@ -407,6 +414,13 @@ func (h *CBTHandler) HandleFinishExam(c *fiber.Ctx) error {
 	examID, _ := c.Locals("examID").(string)
 	if participantID == "" || examID == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Identity tidak valid"})
+	}
+
+	// Session bootstrap (RC-2)
+	if h.sessionUC != nil {
+		if err := h.examUC.EnsureParticipantSession(c.Context(), participantID, examID, h.sessionUC); err != nil {
+			log.Printf("[HANDLER] FinishExam EnsureSession: %v", err)
+		}
 	}
 
 	result, err := h.examUC.FinishExam(c.Context(), participantID, examID)
@@ -521,9 +535,17 @@ func (h *CBTHandler) HandleAdminLogin(c *fiber.Ctx) error {
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal generate token"})
 		}
+
+		// D.3 Enhancement: Ambil exam_mode saat login
+		examMode := ""
+		if mode, _ := uc.ParticipantUC.GetExamMode(c.Context()); mode != "" {
+			examMode = mode
+		}
+
 		return c.JSON(fiber.Map{
-			"token": token,
-			"role":  res.Role,
+			"token":     token,
+			"role":      res.Role,
+			"exam_mode": examMode,
 			"user": fiber.Map{
 				"id":        res.AdminID,
 				"username":  res.Username,
@@ -550,8 +572,9 @@ func (h *CBTHandler) HandleAdminLogin(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal generate token"})
 	}
 	return c.JSON(fiber.Map{
-		"token": token,
-		"role":  res.Role,
+		"token":     token,
+		"role":      res.Role,
+		"exam_mode": "", // Legacy fallback tidak mengambil exam_mode
 		"user": fiber.Map{
 			"id":        res.AdminID,
 			"username":  res.Username,
@@ -902,6 +925,13 @@ func (h *CBTHandler) HandleBatchAnswer(c *fiber.Ctx) error {
 	}
 	if len(req.Answers) == 0 {
 		return c.JSON(fiber.Map{"status": "noop", "accepted": 0})
+	}
+
+	// Session bootstrap (RC-2)
+	if h.sessionUC != nil {
+		if err := h.examUC.EnsureParticipantSession(c.Context(), participantID, examID, h.sessionUC); err != nil {
+			log.Printf("[HANDLER] StartExam EnsureSession: %v", err)
+		}
 	}
 
 	// Timer guard — server authority
@@ -1619,4 +1649,10 @@ func (h *CBTHandler) HandleDashboardStats(c *fiber.Ctx) error {
 		"active_sessions":    activeSessions,
 		"completed_exams":    completedExams,
 	})
+}
+
+// HandleLogout — Standar keamanan: kembalikan 200 OK agar frontend tahu server menerima permintaan logout
+// (Untuk stateless JWT, invalidasi token dilakukan di frontend. Jika ada Redis blacklist, bisa ditambahkan di sini).
+func (h *CBTHandler) HandleLogout(c *fiber.Ctx) error {
+	return c.JSON(fiber.Map{"status": "ok", "message": "Logged out successfully"})
 }

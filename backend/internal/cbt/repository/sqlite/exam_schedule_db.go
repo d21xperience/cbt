@@ -14,6 +14,8 @@ func (r *ExamScheduleDB) ListByPeriodID(ctx context.Context, periodID string) ([
 	q := `
 		SELECT 
 			COALESCE(es.id, ''), 
+			COALESCE(c.id, ''),          -- ✅ ClassID
+			COALESCE(s.kode, ''),        -- ✅ SubjectKode
 			l.id, 
 			COALESCE(es.jenis_ujian_id, ''), 
 			COALESCE(es.tanggal, ''), 
@@ -43,29 +45,57 @@ func (r *ExamScheduleDB) ListByPeriodID(ctx context.Context, periodID string) ([
 		LEFT JOIN teachers t2 ON t2.id = es.pengawas2_id
 		WHERE l.academic_period_id = ?
 		ORDER BY c.tingkat ASC, c.nama ASC, s.nama ASC, es.tanggal ASC`
+
 	rows, err := r.DB.QueryContext(ctx, q, periodID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
+
 	var list []domain.ExamSchedule
 	for rows.Next() {
 		var es domain.ExamSchedule
-		rows.Scan(&es.ID, &es.LessonID, &es.JenisUjianID, &es.Tanggal, &es.JamMulai, &es.DurasiMenit,
-			&es.Pengawas1ID, &es.Pengawas2ID, &es.RuangID, &es.Status,
-			&es.JenisUjianKode, &es.SubjectNama, &es.ClassName, &es.TeacherNama,
-			&es.RuangNama, &es.Pengawas1Nama, &es.Pengawas2Nama, &es.Tingkat,
-			&es.AcademicPeriodID)
+		// ✅ Scan urutan HARUS SAMA PERSIS dengan SELECT di atas
+		err := rows.Scan(
+			&es.ID,
+			&es.ClassID,     // ✅
+			&es.SubjectKode, // ✅
+			&es.LessonID,
+			&es.JenisUjianID,
+			&es.Tanggal,
+			&es.JamMulai,
+			&es.DurasiMenit,
+			&es.Pengawas1ID,
+			&es.Pengawas2ID,
+			&es.RuangID,
+			&es.Status,
+			&es.JenisUjianKode,
+			&es.SubjectNama,
+			&es.ClassName,
+			&es.TeacherNama,
+			&es.RuangNama,
+			&es.Pengawas1Nama,
+			&es.Pengawas2Nama,
+			&es.Tingkat,
+			&es.AcademicPeriodID,
+		)
+		if err != nil {
+			return nil, err
+		}
 		list = append(list, es)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 	return list, nil
 }
 
 func (r *ExamScheduleDB) List(ctx context.Context) ([]domain.ExamSchedule, error) {
-	// No-period filter version (legacy compat)
 	q := `
 		SELECT 
 			COALESCE(es.id, ''), 
+			COALESCE(c.id, ''),          -- ✅ ClassID
+			COALESCE(s.kode, ''),        -- ✅ SubjectKode
 			l.id, 
 			COALESCE(es.jenis_ujian_id, ''), 
 			COALESCE(es.tanggal, ''), 
@@ -94,20 +124,46 @@ func (r *ExamScheduleDB) List(ctx context.Context) ([]domain.ExamSchedule, error
 		LEFT JOIN teachers t1 ON t1.id = es.pengawas1_id
 		LEFT JOIN teachers t2 ON t2.id = es.pengawas2_id
 		ORDER BY c.tingkat ASC, c.nama ASC, s.nama ASC, es.tanggal ASC`
+
 	rows, err := r.DB.QueryContext(ctx, q)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
+
 	var list []domain.ExamSchedule
 	for rows.Next() {
 		var es domain.ExamSchedule
-		rows.Scan(&es.ID, &es.LessonID, &es.JenisUjianID, &es.Tanggal, &es.JamMulai, &es.DurasiMenit,
-			&es.Pengawas1ID, &es.Pengawas2ID, &es.RuangID, &es.Status,
-			&es.JenisUjianKode, &es.SubjectNama, &es.ClassName, &es.TeacherNama,
-			&es.RuangNama, &es.Pengawas1Nama, &es.Pengawas2Nama, &es.Tingkat,
-			&es.AcademicPeriodID)
+		err := rows.Scan(
+			&es.ID,
+			&es.ClassID,     // ✅
+			&es.SubjectKode, // ✅
+			&es.LessonID,
+			&es.JenisUjianID,
+			&es.Tanggal,
+			&es.JamMulai,
+			&es.DurasiMenit,
+			&es.Pengawas1ID,
+			&es.Pengawas2ID,
+			&es.RuangID,
+			&es.Status,
+			&es.JenisUjianKode,
+			&es.SubjectNama,
+			&es.ClassName,
+			&es.TeacherNama,
+			&es.RuangNama,
+			&es.Pengawas1Nama,
+			&es.Pengawas2Nama,
+			&es.Tingkat,
+			&es.AcademicPeriodID,
+		)
+		if err != nil {
+			return nil, err
+		}
 		list = append(list, es)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 	return list, nil
 }

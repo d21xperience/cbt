@@ -319,6 +319,7 @@ func registerAdminRoutes(admin fiber.Router, h *cbtHttp.CBTHandler) {
 	admin.Get("/participants", h.HandleListParticipants)
 	admin.Get("/cards", h.HandleGetExamCards)
 	admin.Post("/exam-mode", h.HandleToggleExamMode)
+	admin.Post("/cards/:id/mark-printed", h.HandleMarkCardPrinted)
 	admin.Post("/participants/:id/reset-password", h.HandleResetParticipantPassword)
 }
 

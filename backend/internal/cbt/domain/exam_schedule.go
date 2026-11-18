@@ -23,8 +23,10 @@ type ExamSchedule struct {
 	Semester         string `json:"semester"`
 
 	// Derived fields (JOIN)
+	SubjectKode    string `json:"subject_kode,omitempty"`
 	JenisUjianKode string `json:"jenis_ujian_kode,omitempty"`
 	SubjectNama    string `json:"subject_nama,omitempty"`
+	ClassID        string `json:"class_id,omitempty"`
 	ClassName      string `json:"class_nama,omitempty"`
 	TeacherNama    string `json:"teacher_nama,omitempty"`
 	RuangNama      string `json:"ruang_nama,omitempty"`

@@ -290,11 +290,11 @@ const ALL_REFERENSI_NAV = [
 // ── MANAJEMEN UJIAN (persiapan pelaksanaan ujian)
 const ALL_MANAGEMENT_NAV = [
   { name: 'participants', label: 'Data Peserta', icon: 'group', to: { name: 'admin-participants' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
-  { name: 'examCard', label: 'Kartu Ujian', icon: 'card_membership', to: { name: 'admin-exam-card' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
-  { name: 'cetakDokumen', label: 'Cetak Dokumen Ujian', icon: 'print', to: { name: 'admin-cetak-dokumen' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
-  { name: 'buatJadwal', label: 'Buat Jadwal', icon: 'schedule', to: { name: 'admin-exam-management' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
   { name: 'kelolaSoal', label: 'Kelola Soal', icon: 'quiz', to: { name: 'admin-questions' }, roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'] },
+  { name: 'buatJadwal', label: 'Buat Jadwal', icon: 'schedule', to: { name: 'admin-exam-management' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
   { name: 'paymentGates', label: 'Payment Gate', icon: 'payments', to: { name: 'admin-payment-gates' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
+  //{ name: 'examCard', label: 'Kartu Ujian', icon: 'card_membership', to: { name: 'admin-exam-card' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
+  { name: 'cetakDokumen', label: 'Cetak Dokumen Ujian', icon: 'print', to: { name: 'admin-cetak-dokumen' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
 ]
 
 // ── MONITORING (runtime pelaksanaan ujian + proctor tools)
@@ -482,24 +482,24 @@ const isMonitoringExpanded = ref(false)
 const _syncAcademicFromDB = async () => {
   const role = authStore.user?.role
   if (!['ADMIN', 'SUPER_ADMIN'].includes(role)) {
-    console.log('[Academic Sync] Skip — role:', role)
+    // console.log('[Academic Sync] Skip — role:', role)
     return
   }
   try {
     const res = await AcademicPeriodService.list()
     const list = res?.data?.data || []
     const active = list.find((p) => p.is_active === true)
-    console.log('[Academic Sync] DB active:', active, '| Store:', academicStore.academic_year, academicStore.semester)
+    // console.log('[Academic Sync] DB active:', active, '| Store:', academicStore.academic_year, academicStore.semester)
     // SOFT SYNC: Hanya paksa update jika di UI belum ada tahun ajaran yang dipilih,
     // atau jika tahun ajaran yang dipilih di UI ternyata sudah dihapus dari DB.
     const isValidChoice = list.some(
       (p) => p.academic_year === academicStore.academic_year &&
-             p.semester === academicStore.semester
+        p.semester === academicStore.semester
     )
 
     if (active && !isValidChoice) {
       academicStore.setPeriod(active.academic_year, active.semester, active.id)
-      console.log('[Academic Sync] Forced to DB active (UI choice was invalid):', active.academic_year)
+      // console.log('[Academic Sync] Forced to DB active (UI choice was invalid):', active.academic_year)
     } else {
       console.log('[Academic Sync] UI choice is valid, respecting user selection.')
     }

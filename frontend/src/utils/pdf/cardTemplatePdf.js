@@ -1,8 +1,6 @@
 // src/utils/pdf/cardTemplatePdf.js
 // Template pdfmake untuk Kartu Ujian CR80.
 // Layout: 2 kolom × 5 baris = 10 kartu / A4 portrait.
-// Sisi depan: header (logo + teks + no. kartu) / identitas / footer (foto | ttd | QR).
-// Sisi belakang: jadwal ujian (kode mapel, hari, tanggal, jam).
 
 import pdfMake from 'pdfmake/build/pdfmake'
 import * as pdfFonts from 'pdfmake/build/vfs_fonts'
@@ -10,23 +8,19 @@ import * as pdfFonts from 'pdfmake/build/vfs_fonts'
 if (pdfFonts?.pdfMake?.vfs) pdfMake.vfs = pdfFonts.pdfMake.vfs
 else if (pdfFonts?.vfs) pdfMake.vfs = pdfFonts.vfs
 
-// CR80 = 85.6 × 53.98 mm
-const CARD_W = 242.6
+const CARD_W = 255.6
 const COLS = 2
 const ROWS = 5
 const PER_PAGE = COLS * ROWS
 const H_GAP = 8
 const V_GAP = 4
 
-// ── Layout kartu depan (single table 3 baris)
-// Garis hanya di: atas kartu, separator header↔isi (1 garis), bawah kartu.
-// TIDAK ada garis antara isi dan footer.
 const CARD_TABLE_LAYOUT = {
   hLineWidth: (i, node) => {
-    if (i === 0) return 0.8 // garis atas
-    if (i === 1) return 0.6 // separator header↔isi (satu-satunya)
-    if (i === node.table.body.length) return 0.8 // garis bawah
-    return 0 // tidak ada garis isi↔footer
+    if (i === 0) return 0.8
+    if (i === 1) return 0.6
+    if (i === node.table.body.length) return 0.8
+    return 0
   },
   vLineWidth: (i, node) => (i === 0 || i === node.table.widths.length ? 0.8 : 0),
   hLineColor: () => '#222',
@@ -48,17 +42,18 @@ const INNER_TABLE_LAYOUT = {
   paddingBottom: () => 2,
 }
 
-// ── Formatters
 const fmtTanggal = (dateStr) => {
   if (!dateStr) return '-'
   const d = new Date(dateStr)
   return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
 }
+
 const fmtHari = (dateStr) => {
   if (!dateStr) return '-'
   const d = new Date(dateStr)
   return d.toLocaleDateString('id-ID', { weekday: 'long' })
 }
+
 const fmtJam = (mulai, selesai) => {
   if (!mulai) return '-'
   return selesai ? `${mulai}–${selesai}` : mulai
@@ -80,8 +75,6 @@ export const buildSignatureQrUrl = (tenant, cardNumber, sigToken) => {
   return `${origin}/verify/card/${cardNumber}?h=${sigToken.slice(0, 8)}`
 }
 
-// ── Logo cell: image kalau ada, placeholder box kalau kosong
-// ── Helper: validasi URL image sebelum render (hindari blank PDF)
 const isUsableImageUrl = (url) => {
   if (typeof url !== 'string') return false
   const trimmed = url.trim()
@@ -94,16 +87,10 @@ const isUsableImageUrl = (url) => {
   )
 }
 
-// ── Logo cell: image kalau valid, placeholder box kalau kosong/invalid
 const buildLogoCell = (school) => {
   const url = (school.logo_url || '').trim()
   if (isUsableImageUrl(url)) {
-    return {
-      width: 26,
-      image: url,
-      fit: [24, 24],
-      alignment: 'center',
-    }
+    return { width: 26, image: url, fit: [24, 24], alignment: 'center' }
   }
   return {
     width: 26,
@@ -123,15 +110,14 @@ const buildLogoCell = (school) => {
   }
 }
 
-// ── ROW 1: Header
-const buildHeaderRow = (card, school) => ({
+const buildHeaderRow = (card, school, examModeLabel) => ({
   columns: [
     buildLogoCell(school),
     {
       width: '*',
       stack: [
         { text: 'KARTU LOGIN', fontSize: 7, bold: true, alignment: 'center' },
-        { text: 'UJIAN TENGAH SEMESTER', fontSize: 6, alignment: 'center' },
+        { text: examModeLabel || 'UJIAN', fontSize: 6, alignment: 'center' },
         { text: school.nama || 'SEKOLAH', fontSize: 6.5, bold: true, alignment: 'center' },
         {
           text: school.alamat_jalan || school.alamat_kabupaten || '',
@@ -153,7 +139,6 @@ const buildHeaderRow = (card, school) => ({
   margin: [3, 3, 3, 3],
 })
 
-// ── ROW 2: Identitas
 const buildBodyRow = (card) => ({
   stack: [
     { text: `Nama Peserta : ${card.student_name}`, fontSize: 6.5, bold: true },
@@ -179,7 +164,6 @@ const buildBodyRow = (card) => ({
   margin: [3, 3, 3, 3],
 })
 
-// ── ROW 3: Footer (foto | ttd | QR) — semua vertical-align: bottom
 const buildFooterRow = (card, school) => {
   const fotoCell = {
     width: 34,
@@ -256,33 +240,32 @@ const buildFooterRow = (card, school) => {
   }
 
   return {
-    table: {
-      widths: [34, '*', 56],
-      body: [[fotoCell, ttdCell, qrCell]],
-    },
+    table: { widths: [34, '*', 56], body: [[fotoCell, ttdCell, qrCell]] },
     layout: {
       hLineWidth: () => 0,
       vLineWidth: () => 0,
       paddingLeft: () => 3,
       paddingRight: () => 3,
       paddingTop: () => 19,
-      paddingBottom: () => 0, // jarak konten dengan tepi bawah kartu
+      paddingBottom: () => 0,
     },
   }
 }
 
-// ── Sisi depan = single table (3 baris, 3 garis saja)
-const buildFrontCell = (card, school) => ({
+const buildFrontCell = (card, school, examModeLabel) => ({
   table: {
     widths: ['*'],
-    body: [[buildHeaderRow(card, school)], [buildBodyRow(card)], [buildFooterRow(card, school)]],
+    body: [
+      [buildHeaderRow(card, school, examModeLabel)],
+      [buildBodyRow(card)],
+      [buildFooterRow(card, school)],
+    ],
   },
   layout: CARD_TABLE_LAYOUT,
 })
 
-// ── Sisi belakang: jadwal ujian
 const buildBackCell = (card, exams = []) => {
-  const myExams = exams.filter((e) => e.class_id === card.class_id)
+  const myExams = (Array.isArray(exams) ? exams : []).filter((e) => e.class_id === card.class_id)
 
   const headerRow = ['Kode', 'Mapel', 'Hari', 'Tanggal', 'Jam'].map((t) => ({
     text: t,
@@ -293,6 +276,7 @@ const buildBackCell = (card, exams = []) => {
     margin: [0, 1, 0, 1],
   }))
 
+  // ✅ PERBAIKAN: Struktur array nested [[ ... ]] dipertahankan agar pdfmake tidak error
   const rows = myExams.length
     ? myExams.map((e) => [
         { text: e.subject_kode || '-', fontSize: 5, alignment: 'center' },
@@ -303,13 +287,7 @@ const buildBackCell = (card, exams = []) => {
       ])
     : [
         [
-          {
-            text: 'Belum ada jadwal',
-            fontSize: 5,
-            colSpan: 5,
-            alignment: 'center',
-            color: '#888',
-          },
+          { text: 'Belum ada jadwal', fontSize: 5, colSpan: 5, alignment: 'center', color: '#888' },
           '',
           '',
           '',
@@ -359,8 +337,13 @@ const buildBackCell = (card, exams = []) => {
   }
 }
 
-// ── MAIN
-export const buildCardPdfDefinition = ({ cards = [], school = {}, tenant = '', exams = [] }) => {
+export const buildCardPdfDefinition = ({
+  cards = [],
+  school = {},
+  tenant = '',
+  exams = [],
+  examMode = 'UJIAN',
+}) => {
   const pages = []
   for (let i = 0; i < cards.length; i += PER_PAGE) {
     pages.push(cards.slice(i, i + PER_PAGE))
@@ -371,16 +354,15 @@ export const buildCardPdfDefinition = ({ cards = [], school = {}, tenant = '', e
   pages.forEach((pageCards, pageIdx) => {
     if (pageIdx > 0) content.push({ text: '', pageBreak: 'before' })
 
-    // ---- FRONT PAGE ----
     const frontRows = []
     for (let r = 0; r < ROWS; r++) {
       const left = pageCards[r * COLS]
       const right = pageCards[r * COLS + 1]
       frontRows.push({
         columns: [
-          { width: CARD_W, ...(left ? buildFrontCell(left, school) : { text: '' }) },
+          { width: CARD_W, ...(left ? buildFrontCell(left, school, examMode) : { text: '' }) },
           { width: H_GAP, text: '' },
-          { width: CARD_W, ...(right ? buildFrontCell(right, school) : { text: '' }) },
+          { width: CARD_W, ...(right ? buildFrontCell(right, school, examMode) : { text: '' }) },
         ],
         columnGap: 0,
         margin: [0, V_GAP, 0, V_GAP],
@@ -388,7 +370,6 @@ export const buildCardPdfDefinition = ({ cards = [], school = {}, tenant = '', e
     }
     content.push({ stack: frontRows })
 
-    // ---- BACK PAGE (mirror kolom untuk duplex flip long-edge) ----
     content.push({ text: '', pageBreak: 'before' })
     const backRows = []
     for (let r = 0; r < ROWS; r++) {

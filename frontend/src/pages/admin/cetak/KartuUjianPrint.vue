@@ -111,14 +111,17 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
+import { useAcademicStore } from '@/stores/academic'
 import { ExamCardService } from '@/services/admin/ExamCardService'
 import { StudentService } from '@/services/admin/StudentService'
 import { SchoolProfileService } from '@/services/admin/SchoolProfileService'
-import { ExamService } from '@/services/admin/ExamService'
+import { ExamScheduleService } from '@/services/admin/ExamScheduleService'
+import { ExamTypeService } from '@/services/admin/ExamTypeService'
 import { useExamCardPrint } from '@/composables/admin/useExamCardPrint'
 import { getTenantSlug } from '@/utils/tenant'
 
 const $q = useQuasar()
+const academicStore = useAcademicStore()
 const { printing, printCards } = useExamCardPrint()
 
 // ── State
@@ -126,11 +129,12 @@ const rows = ref([])
 const selected = ref([])
 const loading = ref(false)
 const loadingRefs = ref(false)
+const enrichedSchedules = ref([])
+const examTypesList = ref([])
 
-// Reference data (via service)
+// Reference data
 const students = ref([])
 const schoolProfile = ref({})
-const exams = ref([])
 
 const filters = ref({
   search: '',
@@ -181,32 +185,46 @@ const statusColor = (s) =>
 
 const tenantSlug = computed(() => getTenantSlug() || '')
 
+// ✅ Mapping kode exam_mode -> nama lengkap dari Data Referensi
+const examModeLabel = computed(() => {
+  const mode = academicStore.exam_mode
+  if (!mode) return 'UJIAN'
+  const found = examTypesList.value.find((t) => t.kode === mode)
+  return found ? found.nama : mode
+})
+
 // ── Load reference data
 const loadReferences = async () => {
   loadingRefs.value = true
   try {
-    const [stuRes, schoolRes, examRes] = await Promise.allSettled([
+    const [stuRes, schoolRes, scheduleRes, examTypeRes] = await Promise.allSettled([
       StudentService.list(),
       SchoolProfileService.getProfile(),
-      ExamService.list(),
+      ExamScheduleService.list({ params: { academic_period_id: academicStore.active_period_id } }),
+      ExamTypeService.list(),
     ])
 
     if (stuRes.status === 'fulfilled') {
       students.value = stuRes.value.data?.data || stuRes.value.data || []
-    } else {
-      console.warn('[KartuUjian] load students failed', stuRes.reason)
     }
 
     if (schoolRes.status === 'fulfilled') {
-      schoolProfile.value = schoolRes.value.data?.data || schoolRes.value.data || {}
-    } else {
-      console.warn('[KartuUjian] load school profile failed', schoolRes.reason)
+      const data = schoolRes.value.data?.data || schoolRes.value.data || {}
+      // ✅ Fallback nama sekolah (DB tidak punya kolom 'nama', pakai kode_sekolah)
+      schoolProfile.value = {
+        ...data,
+        nama: data.nama || data.nama_sekolah || data.kode_sekolah || 'SEKOLAH',
+      }
     }
 
-    if (examRes.status === 'fulfilled') {
-      exams.value = examRes.value.data?.data || examRes.value.data || []
-    } else {
-      console.warn('[KartuUjian] load exams failed', examRes.reason)
+    if (scheduleRes.status === 'fulfilled') {
+      const rawData = scheduleRes.value.data?.data || scheduleRes.value.data || []
+      enrichedSchedules.value = Array.isArray(rawData) ? rawData : []
+    }
+
+    if (examTypeRes.status === 'fulfilled') {
+      const rawData = examTypeRes.value.data?.data || examTypeRes.value.data || []
+      examTypesList.value = Array.isArray(rawData) ? rawData : []
     }
   } finally {
     loadingRefs.value = false
@@ -221,11 +239,13 @@ const reload = async () => {
       search: filters.value.search || undefined,
       card_type: filters.value.card_type === 'SEMUA' ? undefined : filters.value.card_type,
       status: filters.value.status === 'SEMUA' ? undefined : filters.value.status,
+      class_id: filters.value.class_id || undefined,
+      period_id: academicStore.active_period_id || undefined,
     })
-    const data = res.data?.data || []
-    rows.value = filters.value.class_id
-      ? data.filter((c) => c.class_id === filters.value.class_id)
-      : data
+    // ✅ PARSER TANGGUH: terima array LANGSUNG ATAU objek {cards}
+    const raw = res.data?.data
+    const data = Array.isArray(raw) ? raw : (raw?.cards || [])
+    rows.value = Array.isArray(data) ? data : []
   } catch (err) {
     $q.notify({ type: 'negative', message: 'Gagal memuat kartu: ' + (err.message || err) })
   } finally {
@@ -239,7 +259,8 @@ const onPrintSingle = async (card) => {
     cards: [card],
     school: schoolProfile.value,
     tenant: tenantSlug.value,
-    exams: exams.value,
+    exams: enrichedSchedules.value,
+    examMode: examModeLabel.value,
     mode: 'open',
   })
 }
@@ -249,7 +270,8 @@ const onPrintSelected = async () => {
     cards: selected.value,
     school: schoolProfile.value,
     tenant: tenantSlug.value,
-    exams: exams.value,
+    exams: enrichedSchedules.value,
+    examMode: examModeLabel.value,
     mode: 'open',
   })
 }
@@ -259,7 +281,8 @@ const onDownloadSelected = async () => {
     cards: selected.value,
     school: schoolProfile.value,
     tenant: tenantSlug.value,
-    exams: exams.value,
+    exams: enrichedSchedules.value,
+    examMode: examModeLabel.value,
     mode: 'download',
   })
 }

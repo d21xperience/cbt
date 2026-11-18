@@ -73,3 +73,45 @@ func generateRandomPassword(length int) string {
 	}
 	return string(b)
 }
+
+// GetExamCards mengambil data kartu ujian dan mendekripsi password
+func (uc *ParticipantUseCase) GetExamCards(ctx context.Context, classID, search string) ([]domain.ExamCardDTO, error) {
+	rows, err := uc.repo.GetExamCards(ctx, classID, search)
+	if err != nil {
+		return nil, err
+	}
+
+	var cards []domain.ExamCardDTO
+	for _, row := range rows {
+		password := "<not-generated>"
+		if len(row.PasswordEnc) > 0 && len(row.PasswordIV) > 0 {
+			if plain, decErr := uc.cipher.Decrypt(row.PasswordEnc, row.PasswordIV); decErr == nil {
+				password = plain
+			} else {
+				password = "<decrypt-error>"
+			}
+		}
+
+		cardType := "PERMANENT"
+		if row.IsBlocked == 1 {
+			cardType = "TEMPORARY"
+		}
+
+		cards = append(cards, domain.ExamCardDTO{
+			ID:          row.StudentID,
+			CardNumber:  "CRD-" + row.StudentID,
+			StudentID:   row.StudentID,
+			StudentName: row.StudentName,
+			StudentNIS:  row.StudentNIS,
+			StudentNISN: row.NISN,
+			ClassID:     row.ClassID,
+			ClassNama:   row.ClassNama,
+			Username:    row.Username,
+			Password:    password,
+			CardType:    cardType,
+			Status:      "ACTIVE",
+			Reason:      row.Reason,
+		})
+	}
+	return cards, nil
+}
