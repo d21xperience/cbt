@@ -320,6 +320,9 @@ func registerAdminRoutes(admin fiber.Router, h *cbtHttp.CBTHandler) {
 	admin.Get("/cards", h.HandleGetExamCards)
 	admin.Post("/exam-mode", h.HandleToggleExamMode)
 	admin.Post("/cards/:id/mark-printed", h.HandleMarkCardPrinted)
+	admin.Post("/cards/:nis/revoke", h.HandleRevokeCard)
+	admin.Post("/cards/:nis/reset-device", h.HandleResetDevice)
+	admin.Post("/cards/:nis/generate-qr", h.HandleGenerateQrToken)
 	admin.Post("/participants/:id/reset-password", h.HandleResetParticipantPassword)
 }
 
@@ -354,5 +357,5 @@ func registerExamRoutes(exam fiber.Router, h *cbtHttp.CBTHandler) {
 	)
 	exam.Post("/heartbeat", middleware.RequireExamToken(), h.HandleHeartbeat)
 	exam.Post("/telemetry", middleware.RequireExamToken(), h.HandleTelemetry)
-	exam.Get("/dashboard", middleware.RequireExamToken(), h.HandleParticipantDashboard)
+	exam.Get("/dashboard", h.HandleParticipantDashboard)
 }
