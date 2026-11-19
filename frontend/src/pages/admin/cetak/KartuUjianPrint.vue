@@ -14,6 +14,7 @@
         :loading="printing" @click="onPrintSelected" />
       <q-btn flat color="primary" icon="picture_as_pdf" label="Unduh PDF" class="q-ml-sm"
         :disable="selected.length === 0 || printing" @click="onDownloadSelected" />
+      <q-btn flat color="grey-7" icon="tune" label="Pengaturan" @click="settingsDialog = true" class="q-ml-sm" />
     </div>
 
     <!-- Filter -->
@@ -71,6 +72,7 @@
             @click="onResetDevice(props.row)">
             <q-tooltip>Reset Device Binding</q-tooltip>
           </q-btn>
+
           <q-btn flat round dense icon="block" color="negative" :disable="props.row.status !== 'ACTIVE'"
             @click="onRevoke(props.row)">
             <q-tooltip>Cabut Kartu</q-tooltip>
@@ -105,6 +107,63 @@
         <q-tooltip>Buat Kartu Baru</q-tooltip>
       </q-btn>
     </q-page-sticky>
+
+    <!-- Dialog Pengaturan Cetak -->
+    <q-dialog v-model="settingsDialog">
+      <q-card style="min-width: 450px">
+        <q-card-section class="text-h6">Pengaturan Cetak Kartu</q-card-section>
+        <q-card-section class="q-gutter-md">
+          <div class="row q-col-gutter-sm">
+            <div class="col-6">
+              <q-select v-model="printSettings.paper_size" :options="['A4', 'A5', 'A6', 'Letter']" label="Ukuran Kertas" outlined dense />
+            </div>
+            <div class="col-6">
+              <q-select v-model="printSettings.orientation" :options="['portrait', 'landscape']" label="Orientasi" outlined dense />
+            </div>
+          </div>
+
+          <q-separator />
+
+          <div class="text-subtitle2 q-mt-sm">Ukuran Kartu</div>
+          <q-select 
+            v-model="printSettings.card_preset" 
+            :options="['ID-1 (ATM/KTP)', 'ID-2 (Paspor)', 'Custom']" 
+            label="Preset Ukuran" 
+            outlined dense 
+            @update:model-value="applyPreset"
+          />
+          
+          <div class="row q-col-gutter-sm" v-if="printSettings.card_preset === 'Custom'">
+            <div class="col-6">
+              <q-input v-model.number="printSettings.card_width" type="number" step="0.1" label="Lebar (mm)" outlined dense />
+            </div>
+            <div class="col-6">
+              <q-input v-model.number="printSettings.card_height" type="number" step="0.1" label="Tinggi (mm)" outlined dense />
+            </div>
+          </div>
+          <div v-else class="text-caption text-grey-7">
+            Ukuran: {{ printSettings.card_width }}mm x {{ printSettings.card_height }}mm
+          </div>
+
+          <q-toggle v-model="printSettings.center_cards" label="Rata Tengah Otomatis (Hilangkan ruang kosong kanan)" />
+
+          <q-separator />
+
+          <div class="text-subtitle2">Margin Halaman (mm)</div>
+          <div class="row q-col-gutter-sm">
+            <div class="col-6"><q-input v-model.number="printSettings.margin_top" type="number" label="Atas" outlined dense /></div>
+            <div class="col-6"><q-input v-model.number="printSettings.margin_bottom" type="number" label="Bawah" outlined dense /></div>
+            <div class="col-6"><q-input v-model.number="printSettings.margin_left" type="number" label="Kiri" outlined dense /></div>
+            <div class="col-6"><q-input v-model.number="printSettings.margin_right" type="number" label="Kanan" outlined dense /></div>
+          </div>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="Batal" v-close-popup />
+          <q-btn color="primary" label="Simpan" :loading="savingSettings" @click="savePrintSettings" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
   </q-page>
 </template>
 
@@ -119,6 +178,8 @@ import { ExamScheduleService } from '@/services/admin/ExamScheduleService'
 import { ExamTypeService } from '@/services/admin/ExamTypeService'
 import { useExamCardPrint } from '@/composables/admin/useExamCardPrint'
 import { getTenantSlug } from '@/utils/tenant'
+import { PrintSettingsService } from '@/services/admin/PrintSettingsService'
+
 
 const $q = useQuasar()
 const academicStore = useAcademicStore()
@@ -252,7 +313,40 @@ const reload = async () => {
     loading.value = false
   }
 }
+const applyPreset = (preset) => {
+  printSettings.value.card_preset = preset
+  if (preset === 'ID-1 (ATM/KTP)') {
+    printSettings.value.card_width = 85.6
+    printSettings.value.card_height = 53.98
+  } else if (preset === 'ID-2 (Paspor)') {
+    printSettings.value.card_width = 105
+    printSettings.value.card_height = 74
+  }
+}
 
+const loadPrintSettings = async () => {
+  try {
+    const res = await PrintSettingsService.get()
+    if (res.data.status === 'ok') {
+      printSettings.value = { ...printSettings.value, ...res.data.data }
+    }
+  } catch (err) {
+    console.warn('Gagal memuat pengaturan cetak, menggunakan default', err)
+  }
+}
+
+const savePrintSettings = async () => {
+  savingSettings.value = true
+  try {
+    await PrintSettingsService.update(printSettings.value)
+    $q.notify({ type: 'positive', message: 'Pengaturan cetak berhasil disimpan' })
+    settingsDialog.value = false
+  } catch (err) {
+    $q.notify({ type: 'negative', message: `Gagal menyimpan pengaturan ${err}` })
+  } finally {
+    savingSettings.value = false
+  }
+}
 // ── Print
 const onPrintSingle = async (card) => {
   await printCards({
@@ -261,6 +355,7 @@ const onPrintSingle = async (card) => {
     tenant: tenantSlug.value,
     exams: enrichedSchedules.value,
     examMode: examModeLabel.value,
+    settings: printSettings.value,
     mode: 'open',
   })
 }
@@ -272,6 +367,7 @@ const onPrintSelected = async () => {
     tenant: tenantSlug.value,
     exams: enrichedSchedules.value,
     examMode: examModeLabel.value,
+    settings: printSettings.value,
     mode: 'open',
   })
 }
@@ -283,9 +379,11 @@ const onDownloadSelected = async () => {
     tenant: tenantSlug.value,
     exams: enrichedSchedules.value,
     examMode: examModeLabel.value,
+    settings: printSettings.value,
     mode: 'download',
   })
 }
+
 
 // ── Device & Revoke
 const onResetDevice = (card) => {
@@ -296,7 +394,7 @@ const onResetDevice = (card) => {
     persistent: true,
   }).onOk(async () => {
     try {
-      await ExamCardService.resetDevice(card.id)
+      await ExamCardService.resetDevice(card.student_nis)
       $q.notify({ type: 'positive', message: 'Device binding direset' })
       reload()
     } catch (err) {
@@ -313,7 +411,7 @@ const onRevoke = (card) => {
     persistent: true,
   }).onOk(async () => {
     try {
-      await ExamCardService.revoke(card.id)
+      await ExamCardService.revoke(card.student_nis)
       $q.notify({ type: 'positive', message: 'Kartu dicabut' })
       reload()
     } catch (err) {
@@ -361,8 +459,25 @@ const onCreate = async () => {
   }
 }
 
+const settingsDialog = ref(false)
+const printSettings = ref({
+  paper_size: 'A4',
+  orientation: 'portrait',
+  margin_top: 20,
+  margin_right: 20,
+  margin_bottom: 40,
+  margin_left: 20,
+  card_width: 85.6,
+  card_height: 53.98,
+  center_cards: true,
+  card_preset: 'ID-1 (ATM/KTP)'
+})
+const savingSettings = ref(false)
+
+
 onMounted(async () => {
   await loadReferences()
+  await loadPrintSettings()
   reload()
 })
 </script>

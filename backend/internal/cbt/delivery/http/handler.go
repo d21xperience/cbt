@@ -343,6 +343,13 @@ func (h *CBTHandler) HandleStartExam(c *fiber.Ctx) error {
 		}
 	}
 
+	// Session bootstrap (RC-2)
+	if h.sessionUC != nil {
+		if err := h.examUC.EnsureParticipantSession(c.Context(), participantID, examID, h.sessionUC); err != nil {
+			log.Printf("[HANDLER] StartExam EnsureSession: %v", err)
+		}
+	}
+
 	// Timer guard — server authority
 	if _, err := h.examUC.CheckTimer(c.Context(), participantID, examID, h.sessionUC); err != nil {
 		if err == cbtUC.ErrExamExpired {
@@ -414,6 +421,13 @@ func (h *CBTHandler) HandleFinishExam(c *fiber.Ctx) error {
 	examID, _ := c.Locals("examID").(string)
 	if participantID == "" || examID == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Identity tidak valid"})
+	}
+
+	// Session bootstrap (RC-2)
+	if h.sessionUC != nil {
+		if err := h.examUC.EnsureParticipantSession(c.Context(), participantID, examID, h.sessionUC); err != nil {
+			log.Printf("[HANDLER] FinishExam EnsureSession: %v", err)
+		}
 	}
 
 	// Session bootstrap (RC-2)
@@ -1049,18 +1063,25 @@ func (h *CBTHandler) HandleVerifyToken(c *fiber.Ctx) error {
 		})
 	}
 
-	// 2. Cek window waktu
+	// 2. Cek window waktu & status
 	now := time.Now()
-	if now.Before(sess.StartTime) {
+	status := sess.DeriveStatus(now, false)
+	if status == domain.ExamNotStarted {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 			"error":  "Ujian belum dimulai",
 			"status": "NOT_STARTED",
 		})
 	}
-	if now.After(sess.EndTime) {
+	if status == domain.ExamExpired {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 			"error":  "Waktu ujian sudah habis",
 			"status": "EXPIRED",
+		})
+	}
+	if status == domain.ExamSubmitted {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error":  "Anda sudah menyelesaikan ujian ini",
+			"status": "SUBMITTED",
 		})
 	}
 
@@ -1363,23 +1384,21 @@ func (h *CBTHandler) HandleListSessions(c *fiber.Ctx) error {
 	examID := c.Query("exam_id")
 	activeOnly := c.Query("active_only") == "true"
 
-	if h.sessionUC == nil {
-		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			"error": "Session repo belum siap",
-		})
+	if h.factory == nil {
+		return c.Status(500).JSON(fiber.Map{"error": "factory_unavailable"})
+	}
+	uc, err := h.factory.Usecases(c.UserContext())
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "tenant_db_unavailable"})
 	}
 
-	list, err := h.sessionUC.ListSessions(c.Context(), examID, activeOnly)
+	list, err := uc.SessionRepo.ListSessions(c.Context(), examID, activeOnly)
 	if err != nil {
 		log.Printf("[HANDLER] ListSessions: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.JSON(fiber.Map{
-		"status": "ok",
-		"data":   list,
-		"count":  len(list),
-	})
+	return c.JSON(fiber.Map{"status": "ok", "data": list, "count": len(list)})
 }
 
 // ============================================
@@ -1655,4 +1674,77 @@ func (h *CBTHandler) HandleDashboardStats(c *fiber.Ctx) error {
 // (Untuk stateless JWT, invalidasi token dilakukan di frontend. Jika ada Redis blacklist, bisa ditambahkan di sini).
 func (h *CBTHandler) HandleLogout(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "ok", "message": "Logged out successfully"})
+}
+
+// HandleStartSession memulai sesi ujian dengan mengubah status menjadi ACTIVE
+// dan menerbitkan token baru untuk pengawas.
+func (h *CBTHandler) HandleStartSession(c *fiber.Ctx) error {
+	sessionID := c.Params("sessionId")
+	adminID, _ := c.Locals("userID").(string)
+	if adminID == "" {
+		adminID = "system"
+	}
+
+	uc, err := h.factory.Usecases(c.UserContext())
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "tenant_db_unavailable"})
+	}
+
+	// 1. Update time and status
+	if err := uc.SessionRepo.UpdateSessionStartAndStatus(c.Context(), sessionID, "ACTIVE"); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal memulai sesi: " + err.Error()})
+	}
+
+	// 2. Rotate Token
+	t, err := h.tokenUC.Rotate(c.Context(), sessionID, adminID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal membuat token: " + err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"status": "ok", "message": "Sesi dimulai & waktu disesuaikan", "data": t})
+}
+
+func (h *CBTHandler) HandlePauseSession(c *fiber.Ctx) error {
+	sessionID := c.Params("sessionId")
+	uc, err := h.factory.Usecases(c.UserContext())
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "tenant_db_unavailable"})
+	}
+	if err := uc.SessionRepo.UpdateSessionStatus(c.Context(), sessionID, "PAUSED"); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "ok", "message": "Sesi dijeda"})
+}
+
+func (h *CBTHandler) HandleResumeSession(c *fiber.Ctx) error {
+	sessionID := c.Params("sessionId")
+	uc, err := h.factory.Usecases(c.UserContext())
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "tenant_db_unavailable"})
+	}
+	if err := uc.SessionRepo.UpdateSessionStatus(c.Context(), sessionID, "ACTIVE"); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "ok", "message": "Sesi dilanjutkan"})
+}
+
+func (h *CBTHandler) HandleEndSession(c *fiber.Ctx) error {
+	sessionID := c.Params("sessionId")
+	uc, err := h.factory.Usecases(c.UserContext())
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "tenant_db_unavailable"})
+	}
+	if err := uc.SessionRepo.UpdateSessionStatus(c.Context(), sessionID, "CLOSED"); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "ok", "message": "Sesi diakhiri"})
+}
+
+func (h *CBTHandler) HandleForceSubmitSession(c *fiber.Ctx) error {
+	sessionID := c.Params("sessionId")
+	// Ubah status sesi menjadi CLOSED
+	if err := h.sessionUC.UpdateSessionStatus(c.Context(), sessionID, "CLOSED"); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "ok", "message": "Sesi diakhiri dan jawaban dipaksa submit"})
 }

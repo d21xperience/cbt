@@ -2,6 +2,7 @@ package http
 
 import (
 	"cbt-engine-service/internal/cbt/domain"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
 )
@@ -75,4 +76,68 @@ func (h *CBTHandler) HandleGetExamCards(c *fiber.Ctx) error {
 func (h *CBTHandler) HandleMarkCardPrinted(c *fiber.Ctx) error {
 	// TODO: Phase selanjutnya bisa mencatat audit log pencetakan di sini
 	return c.JSON(fiber.Map{"status": "ok", "message": "Card marked as printed"})
+}
+
+// HandleRevokeCard — Cabut kartu berdasarkan NIS (username)
+func (h *CBTHandler) HandleRevokeCard(c *fiber.Ctx) error {
+	nis := c.Params("nis")
+	if nis == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "NIS diperlukan"})
+	}
+
+	uc, err := h.factory.Usecases(c.UserContext())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "tenant_db_unavailable"})
+	}
+
+	err = uc.ParticipantUC.RevokeCard(c.Context(), nis)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "gagal mencabut kartu"})
+	}
+
+	return c.JSON(fiber.Map{"status": "ok", "message": "Kartu berhasil dicabut"})
+}
+
+// HandleResetDevice — Reset device binding berdasarkan NIS (username)
+func (h *CBTHandler) HandleResetDevice(c *fiber.Ctx) error {
+	nis := c.Params("nis")
+	if nis == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "NIS diperlukan"})
+	}
+
+	uc, err := h.factory.Usecases(c.UserContext())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "tenant_db_unavailable"})
+	}
+
+	_, err = uc.ParticipantUC.ResetDevice(c.Context(), nis)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "gagal reset device"})
+	}
+
+	return c.JSON(fiber.Map{"status": "ok", "message": "Device binding berhasil direset"})
+}
+
+// HandleGenerateQrToken — Generate QR token baru untuk NIS tertentu
+func (h *CBTHandler) HandleGenerateQrToken(c *fiber.Ctx) error {
+	nis := c.Params("nis")
+	if nis == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "NIS diperlukan"})
+	}
+
+	uc, err := h.factory.Usecases(c.UserContext())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "tenant_db_unavailable"})
+	}
+
+	newToken, err := uc.ParticipantUC.GenerateQrToken(c.Context(), nis)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "gagal generate QR token"})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":   "ok",
+		"message":  "QR token berhasil dibuat",
+		"qr_token": newToken,
+	})
 }

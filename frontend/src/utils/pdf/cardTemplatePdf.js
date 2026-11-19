@@ -1,14 +1,10 @@
 // src/utils/pdf/cardTemplatePdf.js
-// Template pdfmake untuk Kartu Ujian CR80.
-// Layout: 2 kolom × 5 baris = 10 kartu / A4 portrait.
-
 import pdfMake from 'pdfmake/build/pdfmake'
 import * as pdfFonts from 'pdfmake/build/vfs_fonts'
 
 if (pdfFonts?.pdfMake?.vfs) pdfMake.vfs = pdfFonts.pdfMake.vfs
 else if (pdfFonts?.vfs) pdfMake.vfs = pdfFonts.vfs
 
-const CARD_W = 255.6
 const COLS = 2
 const ROWS = 5
 const PER_PAGE = COLS * ROWS
@@ -64,7 +60,7 @@ export const buildQrUrl = (tenant, qrToken) => {
     typeof window !== 'undefined' && window.location?.origin
       ? window.location.origin
       : `https://${tenant}.ujian.pw`
-  return `${origin}/qr/${qrToken}`
+  return `${origin}/?tenant=${tenant}#/auth/participant/qr/${qrToken}`
 }
 
 export const buildSignatureQrUrl = (tenant, cardNumber, sigToken) => {
@@ -87,10 +83,11 @@ const isUsableImageUrl = (url) => {
   )
 }
 
+// Merubah dimensi logo - HEADER
 const buildLogoCell = (school) => {
   const url = (school.logo_url || '').trim()
   if (isUsableImageUrl(url)) {
-    return { width: 26, image: url, fit: [24, 24], alignment: 'center' }
+    return { width: 30, image: url, fit: [30, 30], alignment: 'center' }
   }
   return {
     width: 26,
@@ -117,8 +114,8 @@ const buildHeaderRow = (card, school, examModeLabel) => ({
       width: '*',
       stack: [
         { text: 'KARTU LOGIN', fontSize: 7, bold: true, alignment: 'center' },
-        { text: examModeLabel || 'UJIAN', fontSize: 6, alignment: 'center' },
-        { text: school.nama || 'SEKOLAH', fontSize: 6.5, bold: true, alignment: 'center' },
+        { text: examModeLabel || 'UJIAN', fontSize: 8, alignment: 'center' },
+        { text: school.nama || 'SEKOLAH', fontSize: 8.5, bold: true, alignment: 'center' },
         {
           text: school.alamat_jalan || school.alamat_kabupaten || '',
           fontSize: 5,
@@ -276,7 +273,6 @@ const buildBackCell = (card, exams = []) => {
     margin: [0, 1, 0, 1],
   }))
 
-  // ✅ PERBAIKAN: Struktur array nested [[ ... ]] dipertahankan agar pdfmake tidak error
   const rows = myExams.length
     ? myExams.map((e) => [
         { text: e.subject_kode || '-', fontSize: 5, alignment: 'center' },
@@ -343,7 +339,22 @@ export const buildCardPdfDefinition = ({
   tenant = '',
   exams = [],
   examMode = 'UJIAN',
+  settings = {},
 }) => {
+  // 1. Konversi dan variabel dinamis (AMAN DARI TDZ)
+  const mm2pt = (mm) => (mm || 0) * 2.83465
+  const cardW = mm2pt(settings.card_width) || 242.6
+  const centerCards = settings.center_cards !== false
+
+  const paperSize = settings.paper_size || 'A4'
+  const orientation = settings.orientation || 'portrait'
+  const margins = [
+    settings.margin_left ?? 20,
+    settings.margin_top ?? 20,
+    settings.margin_right ?? 20,
+    settings.margin_bottom ?? 40,
+  ]
+
   const pages = []
   for (let i = 0; i < cards.length; i += PER_PAGE) {
     pages.push(cards.slice(i, i + PER_PAGE))
@@ -360,15 +371,27 @@ export const buildCardPdfDefinition = ({
       const right = pageCards[r * COLS + 1]
       frontRows.push({
         columns: [
-          { width: CARD_W, ...(left ? buildFrontCell(left, school, examMode) : { text: '' }) },
+          { width: cardW, ...(left ? buildFrontCell(left, school, examMode) : { text: '' }) },
           { width: H_GAP, text: '' },
-          { width: CARD_W, ...(right ? buildFrontCell(right, school, examMode) : { text: '' }) },
+          { width: cardW, ...(right ? buildFrontCell(right, school, examMode) : { text: '' }) },
         ],
         columnGap: 0,
         margin: [0, V_GAP, 0, V_GAP],
       })
     }
-    content.push({ stack: frontRows })
+
+    // 2. Logika Centering
+    if (centerCards) {
+      content.push({
+        columns: [
+          { width: '*', text: '' },
+          { width: 'auto', stack: frontRows },
+          { width: '*', text: '' },
+        ],
+      })
+    } else {
+      content.push({ stack: frontRows })
+    }
 
     content.push({ text: '', pageBreak: 'before' })
     const backRows = []
@@ -377,21 +400,33 @@ export const buildCardPdfDefinition = ({
       const right = pageCards[r * COLS + 1]
       backRows.push({
         columns: [
-          { width: CARD_W, ...(right ? buildBackCell(right, exams) : { text: '' }) },
+          { width: cardW, ...(right ? buildBackCell(right, exams) : { text: '' }) },
           { width: H_GAP, text: '' },
-          { width: CARD_W, ...(left ? buildBackCell(left, exams) : { text: '' }) },
+          { width: cardW, ...(left ? buildBackCell(left, exams) : { text: '' }) },
         ],
         columnGap: 0,
         margin: [0, V_GAP, 0, V_GAP],
       })
     }
-    content.push({ stack: backRows })
+
+    // 3. Logika Centering untuk halaman belakang
+    if (centerCards) {
+      content.push({
+        columns: [
+          { width: '*', text: '' },
+          { width: 'auto', stack: backRows },
+          { width: '*', text: '' },
+        ],
+      })
+    } else {
+      content.push({ stack: backRows })
+    }
   })
 
   return {
-    pageSize: 'A4',
-    pageOrientation: 'portrait',
-    pageMargins: [20, 20, 20, 40],
+    pageSize: paperSize,
+    pageOrientation: orientation,
+    pageMargins: margins,
     defaultStyle: { fontSize: 6 },
     footer: (currentPage, pageCount) => ({
       columns: [

@@ -1,6 +1,3 @@
-// src/services/admin/ExamCardService.js
-// Adapter HTTP untuk Kartu Ujian — Fase 2b-3a
-
 import { api } from '@/boot/axios'
 
 export const ExamCardService = {
@@ -10,11 +7,14 @@ export const ExamCardService = {
   create(payload) {
     return api.post('/admin/cards', payload)
   },
-  revoke(id) {
-    return api.post(`/admin/cards/${id}/revoke`)
+  revoke(nis) {
+    return api.post(`/admin/cards/${nis}/revoke`)
   },
-  resetDevice(id) {
-    return api.post(`/admin/cards/${id}/reset-device`)
+  resetDevice(nis) {
+    return api.post(`/admin/cards/${nis}/reset-device`)
+  },
+  generateQr(nis) {
+    return api.post(`/admin/cards/${nis}/generate-qr`)
   },
   markPrinted(id) {
     return api.post(`/admin/cards/${id}/mark-printed`)

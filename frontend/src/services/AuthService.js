@@ -26,11 +26,18 @@ export const AuthService = {
     }
   },
 
-  logout() {
-    return api.post('/auth/logout').catch(() => {})
+  async logout() {
+    try {
+      return await api.post('/auth/logout')
+    } catch {
+      console.log('logout...')
+    }
   },
 
   refreshToken() {
     return api.post('/auth/refresh')
+  },
+  qrLogin(token) {
+    return api.post('/auth/qr-login', { token })
   },
 }

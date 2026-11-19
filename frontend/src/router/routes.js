@@ -26,6 +26,13 @@ const routes = [
         name: 'participant-login',
         component: () => import('@/pages/auth/ParticipantLogin.vue'),
         meta: { requiresTenant: true },
+        children: [
+          {
+            path: 'qr/:token',
+            name: 'participant-qr-login',
+            component: () => import('@/pages/auth/ParticipantQrLogin.vue'),
+          },
+        ],
       },
       {
         path: 'admin',

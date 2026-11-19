@@ -36,7 +36,7 @@ export function useExamCardPrint() {
   }
 
   // ✅ PERBAIKAN: Tambah parameter examMode
-  const printCards = async ({ cards, school, tenant, exams = [], examMode = 'UJIAN', mode = 'open' }) => {
+  const printCards = async ({ cards, school, tenant, exams = [], examMode = 'UJIAN', settings = {}, mode = 'open' }) => {
     if (!cards || cards.length === 0) return
     generating.value = true
     try {
@@ -46,7 +46,8 @@ export function useExamCardPrint() {
         school,
         tenant,
         exams,
-        examMode, // ✅ Diteruskan ke template
+        examMode,
+        settings, // ✅ Diteruskan ke template
       })
       if (mode === 'download') {
         downloadCardPdf(def, `kartu-ujian-${tenant}-${Date.now()}.pdf`)

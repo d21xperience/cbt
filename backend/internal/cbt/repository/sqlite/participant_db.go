@@ -146,17 +146,20 @@ var _ = uuid.NewString
 
 // examCardRow adalah struct internal untuk scanning hasil JOIN
 type examCardRow struct {
-	StudentID   string
-	StudentNIS  string
-	NISN        string
-	StudentName string
-	ClassID     string
-	ClassNama   string
-	Username    string
-	PasswordEnc []byte
-	PasswordIV  []byte
-	IsBlocked   int
-	Reason      string
+	StudentID         string
+	StudentNIS        string
+	NISN              string
+	StudentName       string
+	ClassID           string
+	ClassNama         string
+	Username          string
+	PasswordEnc       []byte
+	PasswordIV        []byte
+	QrToken           string
+	DeviceFingerprint string
+	IsRevoked         int
+	IsBlocked         int
+	Reason            string
 }
 
 // GetExamCards mengambil data siswa + kredensial + status payment gate untuk cetak kartu
@@ -167,7 +170,10 @@ func (r *ParticipantDB) GetExamCards(ctx context.Context, classID, search string
 			COALESCE(cm.class_id, s.kelas_id) as class_id, COALESCE(c.nama, s.kelas_nama) as class_nama,
 			COALESCE(pc.username, COALESCE(s.nisn, s.nis)) as username,
 			pc.password_enc, pc.password_iv,
-			COALESCE(pg.is_blocked, 0) as is_blocked, COALESCE(pg.reason, '') as reason
+                    COALESCE(pc.qr_token, '') as qr_token,
+                    COALESCE(pc.device_fingerprint, '') as device_fingerprint,
+                    COALESCE(pc.is_revoked, 0) as is_revoked,
+                    COALESCE(pg.is_blocked, 0) as is_blocked, COALESCE(pg.reason, '') as reason
 		FROM siswa s
 		LEFT JOIN class_members cm ON cm.siswa_id = s.id AND cm.is_active = 1
 		LEFT JOIN classes c ON c.id = cm.class_id
@@ -200,6 +206,7 @@ func (r *ParticipantDB) GetExamCards(ctx context.Context, classID, search string
 			&row.StudentID, &row.StudentNIS, &row.NISN, &row.StudentName,
 			&row.ClassID, &row.ClassNama, &row.Username,
 			&row.PasswordEnc, &row.PasswordIV,
+			&row.QrToken, &row.DeviceFingerprint, &row.IsRevoked,
 			&row.IsBlocked, &row.Reason,
 		); err != nil {
 			return nil, err
@@ -207,4 +214,20 @@ func (r *ParticipantDB) GetExamCards(ctx context.Context, classID, search string
 		list = append(list, row)
 	}
 	return list, rows.Err()
+}
+
+// GetSetting mengambil nilai setting berdasarkan key
+func (r *ParticipantDB) GetSetting(ctx context.Context, key string) (string, error) {
+	var value string
+	err := r.DB.QueryRowContext(ctx, `SELECT value FROM tenant_settings WHERE key = ?`, key).Scan(&value)
+	return value, err
+}
+
+// SetSetting menyimpan atau memperbarui nilai setting
+func (r *ParticipantDB) SetSetting(ctx context.Context, key, value string) error {
+	_, err := r.DB.ExecContext(ctx, `
+		INSERT INTO tenant_settings (key, value) VALUES (?, ?)
+		ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP
+	`, key, value)
+	return err
 }
