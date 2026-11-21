@@ -24,7 +24,7 @@
     "axios-mock-adapter": "^2.1.0",
     "chart.js": "^4.5.1",
     "dexie": "^4.4.4",
-    "katex": "^0.17.0",
+    "katex": "^0.18.10",
     "papaparse": "^5.5.4",
     "path-browserify": "^1.0.1",
     "pdfmake": "^0.2.23",
@@ -37,7 +37,7 @@
     "vue-chartjs": "^5.3.3",
     "vue-router": "^5.0.6",
     "vuedraggable": "^4.1.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
