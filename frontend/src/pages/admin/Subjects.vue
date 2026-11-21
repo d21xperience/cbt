@@ -68,7 +68,6 @@
             <q-badge outline color="primary" :label="`Kelas ${props.row.tingkat}`" />
           </q-td>
         </template>
-
         <template v-slot:body-cell-jurusan="props">
           <q-td :props="props" class="text-center">
             <span v-if="props.row.jurusan_id" class="text-caption text-grey-7">
@@ -108,6 +107,7 @@ import { useQuasar } from 'quasar'
 import { useSubjects } from '@/composables/admin/useSubjects'
 import SubjectFormDialog from '@/components/admin/SubjectFormDialog.vue'
 import SubjectImportDialog from '@/components/admin/SubjectImportDialog.vue'
+import { computed } from 'vue'
 
 const $q = useQuasar()
 
@@ -141,7 +141,9 @@ const {
   closeImportDialog,
   downloadTemplate,
   parseImport,
-  confirmImport, loadingContext
+  confirmImport,
+  loadingContext,
+  isVocational
 } = useSubjects()
 
 // ── Auto-advance step 2 setelah parse sukses (fix T7)
@@ -152,15 +154,43 @@ const onParseImport = async (file) => {
   }
 }
 
-const columns = [
-  { name: 'kode', label: 'Kode / Singkat', field: 'kode', align: 'left', style: 'width: 160px' },
-  { name: 'nama', label: 'Nama Mapel', field: 'nama', align: 'left', style: 'min-width: 220px' },
-  { name: 'kelompok', label: 'Kelompok', field: 'kelompok', align: 'center', style: 'width: 130px' },
-  { name: 'tingkat', label: 'Tingkat', field: 'tingkat', align: 'center', style: 'width: 100px' },
-  { name: 'jurusan', label: 'Jurusan', align: 'center', style: 'width: 130px' },
-  { name: 'actions', label: 'Aksi', align: 'center', style: 'width: 110px' },
-]
+// const columns = [
+//   { name: 'kode', label: 'Kode / Singkat', field: 'kode', align: 'left', style: 'width: 160px' },
+//   { name: 'nama', label: 'Nama Mapel', field: 'nama', align: 'left', style: 'min-width: 220px' },
+//   { name: 'kelompok', label: 'Kelompok', field: 'kelompok', align: 'center', style: 'width: 130px' },
+//   { name: 'tingkat', label: 'Tingkat', field: 'tingkat', align: 'center', style: 'width: 100px' },
+//   { name: 'jurusan', label: 'Jurusan', align: 'center', style: 'width: 130px' },
+//   { name: 'actions', label: 'Aksi', align: 'center', style: 'width: 110px' },
+// ]
+const columns = computed(() => {
+  const baseColumns = [
+    { name: 'kode', label: 'Kode', field: 'kode', align: 'left', sortable: true },
+    { name: 'nama', label: 'Mata Pelajaran', field: 'nama', align: 'left', sortable: true },
+    { name: 'kelompok', label: 'Kelompok', field: 'kelompok', align: 'center', sortable: true },
+    { name: 'tingkat', label: 'Tingkat', field: 'tingkat', align: 'center', sortable: true },
+  ]
 
+  // Tambahkan kolom jurusan HANYA JIKA isVocational bernilai true
+  if (isVocational.value) {
+    baseColumns.push({
+      name: 'jurusan',
+      label: 'Jurusan',
+      field: 'jurusan_id',
+      align: 'center',
+      sortable: true
+    })
+  }
+
+  // Tambahkan kolom actions di bagian paling akhir
+  baseColumns.push({
+    name: 'actions',
+    label: 'Aksi',
+    field: 'actions',
+    align: 'center'
+  })
+
+  return baseColumns
+})
 const kelompokColor = (k) => {
   if (k === 'WAJIB') return 'primary'
   if (k === 'PILIHAN') return 'teal'

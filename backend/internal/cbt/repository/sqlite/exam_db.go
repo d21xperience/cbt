@@ -5,6 +5,7 @@ import (
 	"cbt-engine-service/internal/cbt/domain"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -43,13 +44,18 @@ func (r *ExamDB) GetQuestionsByExamID(examID string) ([]domain.Question, error) 
 	var questions []domain.Question
 	for rows.Next() {
 		var q domain.Question
+		var optionsStr string // Tangkap sebagai string dulu
+
 		if err := rows.Scan(
 			&q.ID, &q.ExamID, &q.QuestionText,
-			&q.MediaURL, &q.Options, &q.CorrectOption,
+			&q.MediaURL, &optionsStr, &q.CorrectOption,
 			&q.QuestionType, &q.Score, &q.Rubric,
 		); err != nil {
 			return nil, fmt.Errorf("gagal scan soal: %w", err)
 		}
+
+		// Konversi string ke json.RawMessage agar UI bisa parsing Array/Object
+		q.Options = json.RawMessage(optionsStr)
 		questions = append(questions, q)
 	}
 	return questions, rows.Err()
@@ -224,6 +230,9 @@ func (r *ExamDB) ListExams(periodID string) ([]domain.Exam, error) {
 		var e domain.Exam
 		rows.Scan(&e.ID, &e.Title, &e.DurationMinutes, &e.StartTime, &e.EndTime, &e.SubjectID, &e.ClassID, &e.JenisUjianID, &e.AcademicPeriodID, &e.TenantID)
 		list = append(list, e)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err // sesuaikan nilai return dengan signature fungsi masing-masing
 	}
 	return list, nil
 }

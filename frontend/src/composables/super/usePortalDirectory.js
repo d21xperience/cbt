@@ -1,10 +1,10 @@
 // src/composables/super/usePortalDirectory.js
 import { ref, computed } from 'vue'
-import { useQuasar } from 'quasar'
+// import { useQuasar } from 'quasar'
 import { TenantService as PortalService } from '@/services/super/TenantService'
 
 export function usePortalDirectory() {
-  const $q = useQuasar()
+  // const $q = useQuasar()
   const loading = ref(false)
   const schools = ref([])
   const searchQuery = ref('')
@@ -42,12 +42,12 @@ export function usePortalDirectory() {
     } catch (error) {
       console.error('[PortalDirectory] loadSchools error:', error)
       schools.value = []
-      $q.notify({
-        type: 'negative',
-        message: 'Gagal memuat daftar sekolah. Silakan refresh halaman.',
-        position: 'top',
-        timeout: 5000,
-      })
+      // $q.notify({
+      //   type: 'negative',
+      //   message: 'Gagal memuat daftar sekolah. Silakan refresh halaman.',
+      //   position: 'top',
+      //   timeout: 5000,
+      // })
     } finally {
       loading.value = false
     }

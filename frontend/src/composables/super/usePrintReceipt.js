@@ -29,7 +29,7 @@ export function usePrintReceipt() {
 
   const billingTypeLabel = (t) => {
     if (t === 'MONTHLY') return 'Tagihan Bulanan'
-    if (t === 'PER_EXAM') return 'Tagihan Per Ujian'
+    if (t === 'PER_EXAM') return 'Tagihan Per ulangan'
     return 'Tagihan'
   }
 

@@ -28,19 +28,22 @@ func NewParticipantUseCase(repo *sqlite.ParticipantDB, cipher *crypto.Cipher) *P
 	}
 }
 
-func (uc *ParticipantUseCase) ToggleExamMode(ctx context.Context, mode string, students []domain.Siswa) error {
+func (uc *ParticipantUseCase) ToggleExamMode(ctx context.Context, mode string, students []domain.Siswa, tenantID string) error {
 	var creds []sqlite.EncryptedCredential
 
-	// Jika mode dinyalakan (bukan string kosong), kita generate password baru
+	if tenantID == "" {
+		tenantID = "default"
+	}
+
+	// Jika mode dinyalakan (bukan string kosong), generate password + qr_token baru.
+	// DELETE+INSERT di repo akan mencabut SEMUA kartu periode sebelumnya (desain).
 	if mode != "" {
 		for _, s := range students {
 			if s.NISN == "" {
 				continue
 			}
 
-			// Generate password plain (6 karakter)
 			plainPass := generateRandomPassword(6)
-
 			encStr, ivStr, err := uc.cipher.Encrypt(plainPass)
 			if err != nil {
 				return fmt.Errorf("gagal enkripsi password untuk %s: %w", s.NISN, err)
@@ -51,6 +54,8 @@ func (uc *ParticipantUseCase) ToggleExamMode(ctx context.Context, mode string, s
 				Username:      s.NISN,
 				EncryptedPass: []byte(encStr),
 				IV:            []byte(ivStr),
+				TenantID:      tenantID,
+				QrToken:       uuid.NewString(),
 			})
 		}
 	}
@@ -97,11 +102,14 @@ func (uc *ParticipantUseCase) GetExamCards(ctx context.Context, classID, search 
 			}
 		}
 
-		// Auto-generate QR token jika belum ada (Lazy Generation)
+		// Auto-generate QR token jika belum ada (Lazy Generation).
+		// Pakai nisn (PK participant_credentials) agar konsisten dgn Arah B.
 		qrToken := row.QrToken
-		if qrToken == "" {
+		if qrToken == "" && row.NISN != "" {
 			qrToken = uuid.NewString()
-			_, _ = uc.repo.DB.ExecContext(ctx, `UPDATE participant_credentials SET qr_token = ? WHERE username = ?`, qrToken, row.Username)
+			_, _ = uc.repo.DB.ExecContext(ctx,
+				`UPDATE participant_credentials SET qr_token = ? WHERE nisn = ?`,
+				qrToken, row.NISN)
 		}
 
 		cardType := "PERMANENT"
@@ -131,30 +139,53 @@ func (uc *ParticipantUseCase) GetExamCards(ctx context.Context, classID, search 
 	return cards, nil
 }
 
-// RevokeCard mencabut kartu berdasarkan NIS (username)
-func (uc *ParticipantUseCase) RevokeCard(ctx context.Context, nis string) error {
-	_, err := uc.repo.DB.ExecContext(ctx, `UPDATE participant_credentials SET is_revoked = 1 WHERE username = ?`, nis)
+// RevokeCard mencabut kartu berdasarkan NIS atau NISN.
+// participant_credentials.username = NISN, jadi resolve dulu lewat siswa.
+func (uc *ParticipantUseCase) RevokeCard(ctx context.Context, nisOrNisn string) error {
+	_, err := uc.repo.DB.ExecContext(ctx, `
+		UPDATE participant_credentials
+		SET is_revoked = 1
+		WHERE nisn = (
+			SELECT nisn FROM siswa
+			WHERE nis = ? OR nisn = ?
+			LIMIT 1
+		)
+	`, nisOrNisn, nisOrNisn)
 	return err
 }
 
-// ResetDevice mereset device binding DAN generate qr_token baru agar aman
-func (uc *ParticipantUseCase) ResetDevice(ctx context.Context, nis string) (string, error) {
+// ResetDevice mereset device binding, generate qr_token baru, dan mengaktifkan kembali kartu.
+func (uc *ParticipantUseCase) ResetDevice(ctx context.Context, nisOrNisn string) (string, error) {
 	newQrToken := uuid.NewString()
-	_, err := uc.repo.DB.ExecContext(ctx,
-		`UPDATE participant_credentials SET device_fingerprint = NULL, qr_token = ? WHERE username = ?`,
-		newQrToken, nis)
+	_, err := uc.repo.DB.ExecContext(ctx, `
+		UPDATE participant_credentials
+		SET device_fingerprint = NULL,
+		    qr_token = ?,
+		    is_revoked = 0
+		WHERE nisn = (
+			SELECT nisn FROM siswa
+			WHERE nis = ? OR nisn = ?
+			LIMIT 1
+		)
+	`, newQrToken, nisOrNisn, nisOrNisn)
 	if err != nil {
 		return "", err
 	}
 	return newQrToken, nil
 }
 
-// GenerateQrToken membuat token QR baru untuk NIS tertentu (tanpa reset device)
-func (uc *ParticipantUseCase) GenerateQrToken(ctx context.Context, nis string) (string, error) {
+// GenerateQrToken membuat token QR baru untuk NIS/NISN (tanpa reset device, tanpa un-revoke).
+func (uc *ParticipantUseCase) GenerateQrToken(ctx context.Context, nisOrNisn string) (string, error) {
 	newQrToken := uuid.NewString()
-	_, err := uc.repo.DB.ExecContext(ctx,
-		`UPDATE participant_credentials SET qr_token = ? WHERE username = ?`,
-		newQrToken, nis)
+	_, err := uc.repo.DB.ExecContext(ctx, `
+		UPDATE participant_credentials
+		SET qr_token = ?
+		WHERE nisn = (
+			SELECT nisn FROM siswa
+			WHERE nis = ? OR nisn = ?
+			LIMIT 1
+		)
+	`, newQrToken, nisOrNisn, nisOrNisn)
 	if err != nil {
 		return "", err
 	}
@@ -162,18 +193,16 @@ func (uc *ParticipantUseCase) GenerateQrToken(ctx context.Context, nis string) (
 }
 
 // LoginByQrToken resolve token ke data siswa dan generate JWT
-
-// LoginByQrToken resolve token ke data siswa dan generate JWT
-func (uc *ParticipantUseCase) LoginByQrToken(ctx context.Context, token string) (*domain.Siswa, string, error) {
-	var nisn, username, tenantID string
+func (uc *ParticipantUseCase) LoginByQrToken(ctx context.Context, token string, tenantID string) (*domain.Siswa, string, error) {
+	var nisn string
 	var isRevoked int
 
-	// 1. Resolve token ke kredensial
+	// 1. Resolve token ke kredensial (PK = nisn; kolom "nis" tidak ada di tabel ini)
 	err := uc.repo.DB.QueryRowContext(ctx, `
-		SELECT nisn, username, COALESCE(tenant_id, 'default'), is_revoked 
-		FROM participant_credentials 
+		SELECT nisn, COALESCE(is_revoked, 0)
+		FROM participant_credentials
 		WHERE qr_token = ? AND is_active = 1
-	`, token).Scan(&nisn, &username, &tenantID, &isRevoked)
+	`, token).Scan(&nisn, &isRevoked)
 
 	if err == sql.ErrNoRows {
 		return nil, "", fmt.Errorf("token QR tidak valid atau kartu sudah dicabut")
@@ -185,10 +214,10 @@ func (uc *ParticipantUseCase) LoginByQrToken(ctx context.Context, token string) 
 		return nil, "", fmt.Errorf("kartu ini telah dicabut")
 	}
 
-	// 2. Ambil data siswa lengkap
+	// 2. Ambil data siswa lengkap (cari via nisn — konsisten dengan PK credential)
 	var siswa domain.Siswa
 	err = uc.repo.DB.QueryRowContext(ctx, `
-		SELECT id, nis, COALESCE(nisn, ''), nama, COALESCE(jenis_kelamin, ''), 
+		SELECT id, nis, COALESCE(nisn, ''), nama, COALESCE(jenis_kelamin, ''),
 		       COALESCE(kelas_id, ''), COALESCE(kelas_nama, ''), status
 		FROM siswa WHERE nisn = ?
 	`, nisn).Scan(&siswa.ID, &siswa.NIS, &siswa.NISN, &siswa.Nama, &siswa.JenisKelamin, &siswa.KelasID, &siswa.KelasNama, &siswa.Status)
@@ -197,8 +226,8 @@ func (uc *ParticipantUseCase) LoginByQrToken(ctx context.Context, token string) 
 		return nil, "", fmt.Errorf("data siswa tidak ditemukan: %w", err)
 	}
 
-	// 3. Generate JWT (gunakan variabel lokal tenantID, dan durasi 24 jam)
-	jwtToken, err := auth.GenerateTokenFull(siswa.ID, "PARTICIPANT", "", tenantID, 24*time.Hour)
+	// 3. JWT — durasi disamakan dengan login manual (6 jam)
+	jwtToken, err := auth.GenerateTokenFull(siswa.ID, "PARTICIPANT", "", tenantID, 6*time.Hour)
 	if err != nil {
 		return nil, "", err
 	}

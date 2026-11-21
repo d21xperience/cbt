@@ -77,10 +77,13 @@ defineProps({
 defineEmits(['edit', 'preview', 'delete'])
 
 const columns = [
-  { name: 'kode', label: 'Kode', field: 'kode', align: 'left', style: 'width: 130px' },
-  { name: 'nama', label: 'Mata Pelajaran', field: 'nama', align: 'left', style: 'min-width: 220px' },
-  { name: 'status', label: 'Status Soal', align: 'center', style: 'width: 160px' },
-  { name: 'actions', label: 'Aksi', align: 'center', style: 'width: 160px' },
+  { name: 'kode', label: 'Kode', field: 'kode', align: 'center', sortable: true },
+  { name: 'mapel', label: 'Mata Pelajaran', field: 'nama', align: 'center', sortable: true },
+  { name: 'tingkat', label: 'Tingkat', field: 'tingkat', align: 'center', sortable: true },
+  { name: 'class_nama', label: 'Kelas', field: 'class_nama', align: 'left', sortable: true },
+  { name: 'jurusan', label: 'Jurusan', field: 'jurusan', align: 'left', sortable: true },
+  { name: 'status', label: 'Status Soal', field: 'has_questions', align: 'center' },
+  { name: 'actions', label: 'Aksi', field: 'actions', align: 'center' },
 ]
 
 const kelompokColor = (k) => {

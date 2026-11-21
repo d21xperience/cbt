@@ -22,6 +22,9 @@ func (r *RoomDB) List(ctx context.Context) ([]domain.Room, error) {
 		rows.Scan(&rm.ID, &rm.Nama, &rm.Kapasitas, &rm.Gedung)
 		list = append(list, rm)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err // sesuaikan nilai return dengan signature fungsi masing-masing
+	}
 	return list, nil
 }
 

@@ -46,6 +46,228 @@ func (h *CBTHandler) HandlePublicRegisterSchool(c *fiber.Ctx) error {
 	})
 }
 
+// ============================================
+// NEW (FASE 2): SuperAdmin direct register
+// ============================================
+
+// HandleSuperRegisterSchool — POST /super/schools/register
+// Auth: SUPER_ADMIN
+// Langsung provision (status ACTIVE) + return temp_password.
+func (h *CBTHandler) HandleSuperRegisterSchool(c *fiber.Ctx) error {
+	if h.tenantUC == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"error": "service_unavailable",
+		})
+	}
+
+	var req platformDomain.SuperRegisterSchoolRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "invalid_body",
+			"message": err.Error(),
+		})
+	}
+
+	actorID, _ := c.Locals("userID").(string)
+	if actorID == "" {
+		actorID = "system"
+	}
+
+	t, tempPassword, err := h.tenantUC.SuperRegisterSchool(c.Context(), req, actorID)
+	if err != nil {
+		return respondOnboardingError(c, err)
+	}
+
+	loginURL := fmt.Sprintf("https://%s.ujian.pw/#/auth/admin", t.Subdomain)
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"status":  "ok",
+		"message": "School registered and activated",
+		"data": fiber.Map{
+			"tenant_id":        t.TenantID,
+			"subdomain":        t.Subdomain,
+			"school_name":      t.SchoolName,
+			"admin_username":   t.PendingAdminUsername,
+			"temp_password":    tempPassword,
+			"login_url":        loginURL,
+			"package_tier":     t.PackageTier,
+			"billing_type":     t.BillingType,
+			"max_participants": t.MaxParticipants,
+			"note":             "Simpan password ini. Wajib diganti setelah login pertama.",
+		},
+	})
+}
+
+// ============================================
+// NEW (FASE 2): UpdateSchool
+// ============================================
+
+// HandleSuperUpdateSchool — PUT /super/schools/:tenant_id
+// Auth: SUPER_ADMIN
+func (h *CBTHandler) HandleSuperUpdateSchool(c *fiber.Ctx) error {
+	if h.tenantUC == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"error": "service_unavailable",
+		})
+	}
+
+	tenantID := c.Params("tenant_id")
+	if tenantID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "tenant_id_wajib",
+		})
+	}
+
+	var req platformDomain.UpdateSchoolRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "invalid_body",
+			"message": err.Error(),
+		})
+	}
+
+	actorID, _ := c.Locals("userID").(string)
+	if actorID == "" {
+		actorID = "system"
+	}
+
+	if err := h.tenantUC.UpdateSchool(c.Context(), tenantID, &req, actorID); err != nil {
+		return respondOnboardingError(c, err)
+	}
+
+	// Return updated tenant
+	t, _ := h.tenantUC.GetTenant(c.Context(), tenantID)
+	return c.JSON(fiber.Map{
+		"status":  "ok",
+		"message": "School updated",
+		"data":    tenantToMap(t),
+	})
+}
+
+// ============================================
+// NEW (FASE 2): Suspend / Unsuspend / SyncLock
+// ============================================
+
+// HandleSuperSuspendSchool — POST /super/schools/:tenant_id/suspend
+// Auth: SUPER_ADMIN
+func (h *CBTHandler) HandleSuperSuspendSchool(c *fiber.Ctx) error {
+	if h.tenantUC == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"error": "service_unavailable",
+		})
+	}
+
+	tenantID := c.Params("tenant_id")
+	if tenantID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "tenant_id_wajib"})
+	}
+
+	var req platformDomain.SuspendSchoolRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid_body",
+		})
+	}
+
+	actorID, _ := c.Locals("userID").(string)
+	if actorID == "" {
+		actorID = "system"
+	}
+
+	if err := h.tenantUC.SuspendSchool(c.Context(), tenantID, req.Reason, actorID); err != nil {
+		return respondOnboardingError(c, err)
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "ok",
+		"message": "Tenant suspended",
+		"data": fiber.Map{
+			"tenant_id":    tenantID,
+			"is_suspended": true,
+			"reason":       req.Reason,
+		},
+	})
+}
+
+// HandleSuperUnsuspendSchool — POST /super/schools/:tenant_id/unsuspend
+// Auth: SUPER_ADMIN
+func (h *CBTHandler) HandleSuperUnsuspendSchool(c *fiber.Ctx) error {
+	if h.tenantUC == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"error": "service_unavailable",
+		})
+	}
+
+	tenantID := c.Params("tenant_id")
+	if tenantID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "tenant_id_wajib"})
+	}
+
+	var req platformDomain.UnsuspendSchoolRequest
+	_ = c.BodyParser(&req) // body opsional
+
+	actorID, _ := c.Locals("userID").(string)
+	if actorID == "" {
+		actorID = "system"
+	}
+
+	if err := h.tenantUC.UnsuspendSchool(c.Context(), tenantID, req.Note, actorID); err != nil {
+		return respondOnboardingError(c, err)
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "ok",
+		"message": "Tenant unsuspended",
+		"data": fiber.Map{
+			"tenant_id":    tenantID,
+			"is_suspended": false,
+		},
+	})
+}
+
+// HandleSuperSetSyncLock — POST /super/schools/:tenant_id/sync-lock
+// Auth: SUPER_ADMIN
+func (h *CBTHandler) HandleSuperSetSyncLock(c *fiber.Ctx) error {
+	if h.tenantUC == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"error": "service_unavailable",
+		})
+	}
+
+	tenantID := c.Params("tenant_id")
+	if tenantID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "tenant_id_wajib"})
+	}
+
+	var req platformDomain.SetSyncLockRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid_body",
+		})
+	}
+
+	actorID, _ := c.Locals("userID").(string)
+	if actorID == "" {
+		actorID = "system"
+	}
+
+	if err := h.tenantUC.SetSyncLock(c.Context(), tenantID, req.Locked, actorID); err != nil {
+		return respondOnboardingError(c, err)
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "ok",
+		"message": "Sync lock updated",
+		"data": fiber.Map{
+			"tenant_id":   tenantID,
+			"sync_locked": req.Locked,
+		},
+	})
+}
+
+// ============================================
+// Existing: pending / approve / reject
+// ============================================
+
 // HandleListPendingSchools — GET /super/schools/pending
 // Auth: SUPER_ADMIN
 func (h *CBTHandler) HandleListPendingSchools(c *fiber.Ctx) error {
@@ -63,7 +285,6 @@ func (h *CBTHandler) HandleListPendingSchools(c *fiber.Ctx) error {
 		})
 	}
 
-	// Sanitize output — only safe fields
 	data := make([]fiber.Map, 0, len(list))
 	for _, t := range list {
 		data = append(data, fiber.Map{
@@ -98,13 +319,11 @@ func (h *CBTHandler) HandleApproveSchool(c *fiber.Ctx) error {
 		actorID = "system"
 	}
 
-	// ApproveSchool returns temp password
 	tempPassword, err := h.tenantUC.ApproveSchool(c.Context(), tenantID, actorID)
 	if err != nil {
 		return respondOnboardingError(c, err)
 	}
 
-	// Fetch tenant for subdomain + admin username info
 	t, _ := h.tenantUC.GetTenant(c.Context(), tenantID)
 	subdomain := ""
 	adminUsername := "admin"
@@ -185,6 +404,41 @@ func (h *CBTHandler) HandleListPublicSchools(c *fiber.Ctx) error {
 		"data":   list,
 		"count":  len(list),
 	})
+}
+
+// ============================================
+// NEW (FASE 2): Helper tenant → fiber.Map
+// ============================================
+
+// tenantToMap — serialize Tenant ke bentuk yang konsisten dengan HandleListSchools.
+func tenantToMap(t *platformDomain.Tenant) fiber.Map {
+	if t == nil {
+		return nil
+	}
+	return fiber.Map{
+		"id":                     t.TenantID, // alias agar frontend `s.id` jalan
+		"tenant_id":              t.TenantID,
+		"npsn":                   t.NPSN,
+		"slug":                   t.Subdomain,
+		"subdomain":              t.Subdomain,
+		"name":                   t.SchoolName,
+		"school_name":            t.SchoolName,
+		"contact_email":          t.ContactEmail,
+		"contact_phone":          t.ContactPhone,
+		"jenjang":                t.Jenjang,
+		"program_duration_years": t.ProgramDurationYears,
+		"status":                 t.Status,
+		"is_active":              t.IsActive && !t.IsSuspended,
+		"is_suspended":           t.IsSuspended,
+		"suspended_reason":       t.SuspendReason,
+		"package_tier":           t.PackageTier,
+		"billing_type":           t.BillingType,
+		"max_participants":       t.MaxParticipants,
+		"sync_locked":            t.SyncLocked,
+		"logo_url":               t.LogoURL,
+		"created_at":             t.CreatedAt,
+		"updated_at":             t.UpdatedAt,
+	}
 }
 
 // ============================================

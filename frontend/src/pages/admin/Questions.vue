@@ -8,7 +8,7 @@
           Kelola Soal
         </div>
         <div class="text-caption text-grey-7">
-          Pilih jenis ujian → kelas → mata pelajaran untuk mengelola soal.
+          Pilih jenis ujian → mata pelajaran → kelas untuk mengelola soal.
         </div>
       </div>
       <div class="row q-gutter-sm">
@@ -44,35 +44,57 @@
 
     <!-- STATE 2: Sudah pilih jenis ujian -->
     <template v-else>
-      <!-- Picker Bar: Tingkat + Kelas -->
+      <!-- Picker Bar: Mata Pelajaran -->
+      <!-- Picker Bar: Tingkat & Kelas -->
       <q-card flat bordered class="q-mb-md bg-white">
-        <q-card-section class="row q-col-gutter-md">
+        <q-card-section class="row q-col-gutter-md items-end">
+          <!-- Filter Tingkat -->
+          <div class="col-12 col-md-4">
+            <div class="text-caption text-grey-7 q-mb-xs">1. Pilih Tingkat</div>
+            <div class="row q-gutter-sm">
+              <q-btn :color="selectedTingkat === 'all' ? 'primary' : 'grey-3'"
+                :text-color="selectedTingkat === 'all' ? 'white' : 'grey-8'" label="Semua" no-caps dense rounded
+                @click="selectTingkat('all')" />
+              <q-btn v-for="t in ['10', '11', '12']" :key="t" :color="selectedTingkat === t ? 'primary' : 'grey-3'"
+                :text-color="selectedTingkat === t ? 'white' : 'grey-8'" :label="`Kelas ${t}`" no-caps dense rounded
+                @click="selectTingkat(t)" />
+            </div>
+          </div>
+
+          <!-- Filter Kelas -->
           <div class="col-12 col-md-8">
-            <q-select v-model="classId" :options="classOptions" label="Pilih Kelas" outlined dense emit-value
-              map-options @update:model-value="onClassChange">
+            <div class="text-caption text-grey-7 q-mb-xs">2. Pilih Kelas (Opsional)</div>
+            <q-select v-model="selectedClassId" :options="classOptions" label="Semua Kelas di Tingkat Ini" outlined
+              dense emit-value map-options clearable @update:model-value="onClassChange">
               <template v-slot:prepend><q-icon name="class" /></template>
             </q-select>
           </div>
-          <div v-if="selectedClass" class="col-12 col-md-2 text-right">
-            <q-chip color="blue-grey-2" text-color="blue-grey-9" icon="groups">
-              {{ filteredClassCount }} kelas
-            </q-chip>
-          </div>
         </q-card-section>
       </q-card>
 
-      <!-- STATE 2a: Belum pilih kelas -->
-      <q-card v-if="!classId" flat bordered class="bg-white">
+      <!-- STATE 2a: Belum pilih tingkat/kelas -->
+      <q-card v-if="selectedTingkat === 'all' && !selectedClassId" flat bordered class="bg-white">
         <q-card-section class="text-center q-pa-xl text-grey-6">
-          <q-icon name="class" size="60px" color="grey-4" />
-          <div class="text-h6 q-mt-md">Pilih Kelas</div>
+          <q-icon name="filter_list" size="60px" color="grey-4" />
+          <div class="text-h6 q-mt-md">Pilih Tingkat atau Kelas</div>
           <div class="text-caption q-mt-sm">
-            Setelah memilih kelas, daftar mata pelajaran akan muncul.
+            Pilih tingkat (10, 11, 12) atau kelas spesifik untuk melihat daftar mata pelajaran.
           </div>
         </q-card-section>
       </q-card>
 
-      <!-- STATE 2b: Kelas sudah dipilih -->
+      <!-- STATE 2a: Belum pilih mapel -->
+      <!-- <q-card v-if="!selectedSubjectId" flat bordered class="bg-white">
+        <q-card-section class="text-center q-pa-xl text-grey-6">
+          <q-icon name="menu_book" size="60px" color="grey-4" />
+          <div class="text-h6 q-mt-md">Pilih Mata Pelajaran</div>
+          <div class="text-caption q-mt-sm">
+            Setelah memilih mata pelajaran, daftar kelas yang mengikuti akan muncul.
+          </div>
+        </q-card-section>
+      </q-card> -->
+
+      <!-- STATE 2b: Mapel sudah dipilih -->
       <SubjectQuestionTable v-else :rows="subjectTable" :loading="loading" :stats="stats" @edit="onEdit"
         @preview="onPreview" @delete="onDelete" />
     </template>
@@ -84,7 +106,6 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { useQuestionsV2 } from '@/composables/admin/useQuestionsV2'
 import ExamTypePickerDialog from '@/components/admin/ExamTypePickerDialog.vue'
@@ -92,7 +113,7 @@ import SubjectQuestionTable from '@/components/admin/SubjectQuestionTable.vue'
 import { useRouter } from 'vue-router'
 import { useAcademicStore } from '@/stores/academic'
 import { ExamService } from '@/services/admin/ExamService'
-// ...
+
 const router = useRouter()
 const $q = useQuasar()
 
@@ -101,40 +122,35 @@ const {
   errorState,
   examTypes,
   examTypeId,
-  tingkat,
-  classId,
+  classOptions,
+  // selectedClass,
+  selectedTingkat,
+  selectedClassId,
   examTypePickerOpen,
   selectedExamType,
-  classOptions,
-  selectedClass,
   subjectTable,
   stats,
   selectExamType,
   changeExamType,
+  selectTingkat,
   onClassChange,
 } = useQuestionsV2()
 
 const academicStore = useAcademicStore()
-const filteredClassCount = computed(() => {
-  if (!tingkat.value) return 0
-  return classOptions.value.length
-})
 
-// ── Aksi (placeholder — Fase 2b)
+// ── Aksi
 const onEdit = async (row) => {
-  // Find-or-create exam untuk mapel ini
   if (row.exam_id) {
     router.push({ name: 'admin-question-editor', params: { examId: row.exam_id } })
     return
   }
-  // Belum ada exam → create dulu
+
   try {
     const res = await ExamService.findOrCreate({
       jenis_ujian_id: examTypeId.value,
       subject_id: row.subject_id,
-      class_id: classId.value,
+      class_id: row.class_id, // Diambil dari baris tabel
       academic_period_id: academicStore.active_period_id,
-      
     })
     const exam = res?.data?.data
     if (exam?.id) {
@@ -146,26 +162,19 @@ const onEdit = async (row) => {
 }
 
 const onPreview = (row) => {
-  $q.notify({
-    type: 'info',
-    icon: 'construction',
-    message: `Preview soal "${row.nama}" akan tersedia di Fase 2b.`,
-  })
+  $q.notify({ type: 'info', icon: 'construction', message: `Preview soal "${row.nama}" akan tersedia di Fase 2b.` })
 }
 
 const onDelete = (row) => {
   $q.dialog({
     title: 'Hapus Soal',
-    message: `Hapus semua soal untuk <b>${row.nama}</b>?`,
+    message: `Hapus semua soal untuk <b>${row.nama}</b> di kelas <b>${row.class_nama}</b>?`,
     html: true,
     cancel: { label: 'Batal', flat: true },
     ok: { label: 'Hapus', color: 'negative', flat: true },
     persistent: true,
   }).onOk(() => {
-    $q.notify({
-      type: 'info',
-      message: 'Fitur hapus soal akan tersedia di Fase 2b.',
-    })
+    $q.notify({ type: 'info', message: 'Fitur hapus soal akan tersedia di Fase 2b.' })
   })
 }
 </script>

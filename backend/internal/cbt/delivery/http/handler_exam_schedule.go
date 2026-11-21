@@ -2,6 +2,8 @@ package http
 
 import (
 	"cbt-engine-service/internal/cbt/domain"
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -12,10 +14,14 @@ func (h *CBTHandler) HandleListExamSchedules(c *fiber.Ctx) error {
 	}
 	pid := c.Query("academic_period_id")
 	var list []domain.ExamSchedule
+	var errList error
 	if pid != "" {
-		list, _ = uc.ExamScheduleUC.ListByPeriodID(c.Context(), pid)
+		list, errList = uc.ExamScheduleUC.ListByPeriodID(c.Context(), pid)
 	} else {
-		list, _ = uc.ExamScheduleUC.List(c.Context())
+		list, errList = uc.ExamScheduleUC.List(c.Context())
+	}
+	if errList != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "error": "internal_error", "detail": errList.Error()})
 	}
 	if list == nil {
 		list = []domain.ExamSchedule{}
@@ -56,7 +62,8 @@ func (h *CBTHandler) HandleUpdateExamSchedule(c *fiber.Ctx) error {
 	}
 
 	if err := uc.ExamScheduleUC.Update(c.Context(), c.Params("id"), req); err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "internal_error"})
+		log.Printf("[Handler] UpdateExamSchedule error: %v", err)
+		return c.Status(500).JSON(fiber.Map{"status": "error", "error": "internal_error", "detail": err.Error()})
 	}
 	return c.JSON(fiber.Map{"status": "ok"})
 }

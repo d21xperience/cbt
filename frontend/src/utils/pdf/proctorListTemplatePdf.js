@@ -1,5 +1,5 @@
 // src/utils/pdf/proctorListTemplatePdf.js
-// Template pdfmake untuk Daftar Pengawas Ujian.
+// Template pdfmake untuk Daftar Pengawas ulangan.
 // Landscape A4, flat table sort jam, kolom ruang + mapel + pengawas 1&2 + TTD.
 
 import pdfMake from 'pdfmake/build/pdfmake'
@@ -69,7 +69,7 @@ export const buildProctorListPdfDefinition = ({
   })
 
   content.push({
-    text: 'DAFTAR PENGAWAS UJIAN',
+    text: 'DAFTAR PENGAWAS ulangan',
     fontSize: 13,
     bold: true,
     alignment: 'center',

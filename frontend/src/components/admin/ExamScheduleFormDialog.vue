@@ -13,9 +13,14 @@
           <template v-slot:avatar><q-icon name="assignment" color="primary" /></template>
           Mode Ujian Aktif: <b>{{ academicStore.exam_mode || 'Belum Dipilih' }}</b>
         </q-banner>
-        
-        <q-select v-model="form.lesson_id" :options="lessonOptions" label="Pembelajaran (Mapel - Kelas - Guru)" outlined dense emit-value map-options use-input input-debounce="200" :disable="isEditing" />
-        
+        <div class="row q-col-gutter-x-sm">
+          <div class="col-12">
+
+            <q-select v-model="form.lesson_id" :options="lessonOptions" label="Pembelajaran (Mapel - Kelas - Guru)"
+              outlined dense emit-value map-options use-input input-debounce="200" :disable="isEditing" />
+          </div>
+        </div>
+
         <div class="row q-col-gutter-sm">
           <div class="col-12 col-sm-6">
             <q-input v-model="form.tanggal" type="date" label="Tanggal" outlined dense />
@@ -27,27 +32,31 @@
 
         <div class="row q-col-gutter-sm">
           <div class="col-12 col-sm-6">
-            <q-input v-model.number="form.durasi_menit" type="number" label="Durasi (menit)" outlined dense />          </div>
+            <q-input v-model.number="form.durasi_menit" type="number" label="Durasi (menit)" outlined dense />
+          </div>
           <div class="col-12 col-sm-6">
-            <q-select v-model="form.status" :options="[{label:'DRAFT',value:'DRAFT'},{label:'PUBLISHED',value:'PUBLISHED'}]" label="Status" outlined dense emit-value map-options />
+            <q-select v-model="form.status"
+              :options="[{ label: 'DRAFT', value: 'DRAFT' }, { label: 'PUBLISHED', value: 'PUBLISHED' }]" label="Status"
+              outlined dense emit-value map-options />
           </div>
         </div>
 
-        <q-select v-model="form.ruang_id" :options="roomOptions" label="Ruang Ujian (Opsional)" outlined dense emit-value map-options clearable />
-        
         <div class="row q-col-gutter-sm">
           <div class="col-12 col-sm-6">
-            <q-select v-model="form.pengawas1_id" :options="teacherOptions" label="Pengawas 1 (Opsional)" outlined dense emit-value map-options clearable />
+            <q-select v-model="form.pengawas1_id" :options="teacherOptions" label="Pengawas 1 (Opsional)" outlined dense
+              emit-value map-options clearable />
           </div>
           <div class="col-12 col-sm-6">
-            <q-select v-model="form.pengawas2_id" :options="teacherOptions" label="Pengawas 2 (Opsional)" outlined dense emit-value map-options clearable />
+            <q-select v-model="form.pengawas2_id" :options="teacherOptions" label="Pengawas 2 (Opsional)" outlined dense
+              emit-value map-options clearable />
           </div>
         </div>
       </q-card-section>
 
       <q-card-actions align="right" class="q-pb-md q-pr-md">
         <q-btn flat label="Batal" color="grey-7" v-close-popup />
-        <q-btn color="primary" label="Simpan" :loading="submitting" @click="onSubmit" :disable="!academicStore.exam_mode" />
+        <q-btn color="primary" label="Simpan" :loading="submitting" @click="onSubmit"
+          :disable="!academicStore.exam_mode" />
       </q-card-actions>
     </q-card>
   </q-dialog>

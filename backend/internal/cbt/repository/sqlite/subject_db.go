@@ -23,6 +23,9 @@ func (r *SubjectDB) List(ctx context.Context) ([]domain.Subject, error) {
 		rows.Scan(&s.ID, &s.Kode, &s.Nama, &s.NamaSingkat, &s.Kelompok, &s.Tingkat, &s.JurusanID)
 		list = append(list, s)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err // sesuaikan nilai return dengan signature fungsi masing-masing
+	}
 	return list, nil
 }
 

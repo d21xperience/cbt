@@ -2,7 +2,7 @@
 import { AuthService } from '@/services/AuthService'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { LocalStorage } from 'quasar'
-import { useAcademicStore } from '@/stores/academic' // ✅ IMPORT DITAMBAHKAN DI SINI
+import { useAcademicStore } from '@/stores/academic'
 
 const normalizeRole = (role) => String(role || '').toUpperCase()
 

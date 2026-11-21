@@ -93,7 +93,7 @@
             <q-input v-model="form.admin_password" :type="showPassword ? 'text' : 'password'" label="Password Admin"
               outlined dense :rules="[
                 (v) => !!v || 'Password wajib',
-                (v) => (v && v.length >= 6) || 'Minimal 6 karakter',
+                (v) => (v && v.length >= 8) || 'Minimal 8 karakter', ,
               ]">
               <template v-slot:append>
                 <q-icon :name="showPassword ? 'visibility_off' : 'visibility'" class="cursor-pointer"
@@ -119,7 +119,7 @@
           <div class="col-12 col-sm-6">
             <q-select v-model="form.billing_type" :options="billingTypeOptions" label="Tipe Billing" outlined dense
               emit-value map-options :rules="[(v) => !!v || 'Tipe billing wajib dipilih']">
-              <template v-slot:hint>Bulanan / Per Ujian</template>
+              <template v-slot:hint>Bulanan / Per ulangan</template>
             </q-select>
           </div>
         </div>
@@ -128,7 +128,7 @@
           :min="50" :rules="[
             (v) => (v >= 50 && v <= 10000) || 'Kuota antara 50-10.000 siswa',
           ]">
-          <template v-slot:hint>Jumlah maksimal peserta ujian aktif</template>
+          <template v-slot:hint>Jumlah maksimal peserta ulangan aktif</template>
         </q-input>
       </q-card-section>
 
@@ -200,7 +200,7 @@ const tierOptions = [
 
 const billingTypeOptions = [
   { label: 'Bulanan (recurring)', value: 'MONTHLY' },
-  { label: 'Per Ujian (one-off)', value: 'PER_EXAM' },
+  { label: 'Per ulangan (one-off)', value: 'PER_EXAM' },
 ]
 
 // Sinkronisasi buka/tutup + pre-fill saat edit

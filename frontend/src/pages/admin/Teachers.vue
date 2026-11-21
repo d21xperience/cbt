@@ -160,10 +160,11 @@ const togglePassword = (id) => { visiblePasswords.value[id] = !visiblePasswords.
 
 const columns = [
   { name: 'nama', label: 'Nama / NIP', field: 'nama', align: 'left', style: 'min-width: 240px' },
+  { name: 'status', label: 'Status', field: 'status', align: 'center', style: 'width: 100px' },
+  { name: 'jenis_kelamin', label: 'JK', field: 'jenis_kelamin', align: 'center', style: 'width: 100px' },
   { name: 'username', label: 'Username', field: 'username', align: 'left' },
   { name: 'password', label: 'Password', field: 'password', align: 'left' },
-  { name: 'status', label: 'Status', field: 'status', align: 'center', style: 'width: 100px' },
-  { name: 'role', label: 'Peran', align: 'left', style: 'min-width: 220px' },
+  // { name: 'role', label: 'Peran', align: 'left', style: 'min-width: 220px' },
   { name: 'actions', label: 'Aksi', align: 'center', style: 'width: 110px' },
 ]
 

@@ -2,6 +2,8 @@ package http
 
 import (
 	"cbt-engine-service/internal/cbt/domain"
+	"cbt-engine-service/internal/tenant"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
@@ -39,7 +41,19 @@ func (h *CBTHandler) HandleToggleExamMode(c *fiber.Ctx) error {
 	}
 
 	// 2. Jalankan transaksi reset & save mode
-	if err := uc.ParticipantUC.ToggleExamMode(c.UserContext(), req.Mode, students); err != nil {
+	// Resolve tenant dari context (resolver) — JANGAN hardcode 'default'.
+	tenantID := ""
+	if info := tenant.FromContext(c.UserContext()); info != nil {
+		tenantID = info.TenantID
+	}
+	if tenantID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status": "error",
+			"error":  "tenant_not_resolved",
+		})
+	}
+
+	if err := uc.ParticipantUC.ToggleExamMode(c.UserContext(), req.Mode, students, tenantID); err != nil {
 		log.Error().Err(err).Msg("[Handler] HandleToggleExamMode - Toggle")
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "error": "failed_toggle_mode", "detail": err.Error()})
 	}
@@ -139,5 +153,70 @@ func (h *CBTHandler) HandleGenerateQrToken(c *fiber.Ctx) error {
 		"status":   "ok",
 		"message":  "QR token berhasil dibuat",
 		"qr_token": newToken,
+	})
+}
+
+// HandleQrLogin — login peserta via QR token (kartu ujian).
+// Meniru pola response HandleLogin agar frontend AuthService.qrLogin kompatibel.
+func (h *CBTHandler) HandleQrLogin(c *fiber.Ctx) error {
+	var req struct {
+		Token string `json:"token"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+	if strings.TrimSpace(req.Token) == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Token QR wajib diisi"})
+	}
+
+	// Resolve tenant (sama seperti HandleLogin)
+	info := tenant.FromContext(c.UserContext())
+	if info == nil || info.TenantID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "tenant_not_resolved",
+			"message": "Akses melalui subdomain tenant atau X-Tenant-Slug",
+		})
+	}
+
+	if h.factory == nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "factory_unavailable"})
+	}
+	uc, err := h.factory.Usecases(c.UserContext())
+	if err != nil {
+		log.Printf("[Handler] factory.Usecases (qr-login): %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "tenant_db_unavailable"})
+	}
+
+	siswa, jwtToken, err := uc.ParticipantUC.LoginByQrToken(c.Context(), strings.TrimSpace(req.Token), info.TenantID)
+	if err != nil {
+		// Pesan dari usecase sudah informatif: "token QR tidak valid..." / "kartu ini telah dicabut"
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	tenantSlug := info.Subdomain
+	if tenantSlug == "" {
+		tenantSlug = "default"
+	}
+
+	// D.2: Ambil Exam Mode untuk response (konsisten dengan HandleLogin)
+	examMode := ""
+	if mode, mErr := uc.ParticipantUC.GetExamMode(c.Context()); mErr == nil {
+		examMode = mode
+	}
+
+	// Response IDENTIK dengan HandleLogin (kecuali eligible_exams tetap disertakan)
+	return c.JSON(fiber.Map{
+		"role":  "PARTICIPANT",
+		"token": jwtToken,
+		"user": fiber.Map{
+			"id":     siswa.ID,
+			"name":   siswa.Nama,
+			"nis":    siswa.NIS,
+			"nisn":   siswa.NISN,
+			"class":  siswa.KelasNama,
+			"tenant": tenantSlug,
+		},
+		"exam_mode":      examMode,
+		"eligible_exams": []string{},
 	})
 }

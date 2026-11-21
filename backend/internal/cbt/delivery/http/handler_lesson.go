@@ -20,10 +20,14 @@ func (h *CBTHandler) HandleListLessons(c *fiber.Ctx) error {
 	pid := c.Query("academic_period_id")
 
 	var list []domain.Lesson
+	var errList error
 	if pid != "" {
-		list, _ = uc.LessonUC.ListByPeriodID(c.Context(), pid)
+		list, errList = uc.LessonUC.ListByPeriodID(c.Context(), pid)
 	} else {
-		list, _ = uc.LessonUC.List(c.Context())
+		list, errList = uc.LessonUC.List(c.Context())
+	}
+	if errList != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "error": "internal_error", "detail": errList.Error()})
 	}
 	if list == nil {
 		list = []domain.Lesson{}

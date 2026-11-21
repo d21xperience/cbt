@@ -1,10 +1,14 @@
 <template>
   <div>
     <div class="row items-center q-mb-md">
-      <div class="text-subtitle2 text-weight-bold col">
+      <!-- <div class="text-subtitle2 text-weight-bold col">
         <q-icon name="checklist" color="primary" class="q-mr-xs" />
         Opsi Jawaban
+      </div> -->
+      <div class="text-caption text-grey-7 q-mb-xs col">
+        <q-icon name="list" size="xs" class="q-mr-xs" /> Opsi Jawaban
       </div>
+
       <div class="text-caption text-grey-7">
         Klik {{ multiCorrect ? 'checkbox (multi jawaban)' : 'radio' }} untuk menandai jawaban benar · Drag ⠿ untuk
         reorder

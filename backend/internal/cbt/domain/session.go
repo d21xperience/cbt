@@ -36,6 +36,13 @@ func (s *ExamSession) DeriveStatus(now time.Time, alreadySubmitted bool) ExamSta
 	if alreadySubmitted {
 		return ExamSubmitted
 	}
+	// Override manual dari admin (Tombol Start di UI)
+	if s.Status == "ACTIVE" {
+		return ExamActive
+	}
+	if s.Status == "CLOSED" {
+		return ExamExpired
+	}
 	if now.Before(s.StartTime) {
 		return ExamNotStarted
 	}
@@ -75,12 +82,16 @@ type TimerResponse struct {
 
 // SessionListItem — DTO untuk proctor panel
 type SessionListItem struct {
-	ID           string `json:"id"`
-	ExamID       string `json:"exam_id"`
-	ExamTitle    string `json:"exam_title"`
-	SessionType  string `json:"session_type"`
-	StartTime    string `json:"start_time"`
-	EndTime      string `json:"end_time"`
-	Status       string `json:"status"`
-	HasActiveTok bool   `json:"has_active_token"`
+	ID               string `json:"id"`
+	ExamID           string `json:"exam_id"`
+	SubjectNama      string `json:"subject_nama"`
+	ClassNama        string `json:"class_nama"`
+	RuangNama        string `json:"ruang_nama"`
+	Tanggal          string `json:"tanggal"`
+	JamMulai         string `json:"jam_mulai"`
+	DurasiMenit      int    `json:"durasi_menit"`
+	Status           string `json:"status"`
+	Token            string `json:"token"`
+	ParticipantCount int    `json:"participant_count"`
+	CompletedCount   int    `json:"completed_count"`
 }

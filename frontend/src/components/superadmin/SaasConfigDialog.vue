@@ -24,7 +24,7 @@
               emit-value map-options />
           </div>
           <div class="col-12 col-sm-6">
-            <q-input v-model.number="config.max_active_students" type="number" label="Maksimal Siswa Aktif Ujian"
+            <q-input v-model.number="config.max_active_students" type="number" label="Maksimal Siswa Aktif ulangan"
               outlined dense :min="50" :max="10000" :step="50" :rules="[
                 (v) => (v >= 50 && v <= 10000) || 'Kuota antara 50-10.000',
               ]" hint="50 – 10.000 siswa" />
@@ -38,7 +38,7 @@
               emit-value map-options />
           </div>
           <div class="col-12 col-sm-6">
-            <q-input :model-value="config.billing_type === 'PER_EXAM' ? 'Per Ujian' : 'Bulanan'" label="Tipe Billing"
+            <q-input :model-value="config.billing_type === 'PER_EXAM' ? 'Per ulangan' : 'Bulanan'" label="Tipe Billing"
               outlined dense readonly hint="Ubah tipe billing via form registrasi/edit" />
           </div>
         </div>

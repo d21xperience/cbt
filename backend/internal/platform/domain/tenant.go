@@ -38,8 +38,15 @@ type Tenant struct {
 	PendingAdminUsername string     `json:"pending_admin_username,omitempty"`
 	Jenjang              string     `json:"jenjang"`
 	ProgramDurationYears int        `json:"program_duration_years"`
-	CreatedAt            time.Time  `json:"created_at"`
-	UpdatedAt            time.Time  `json:"updated_at"`
+
+	// ── NEW (FASE 2): Operational fields ──
+	PackageTier     string `json:"package_tier"`
+	BillingType     string `json:"billing_type"`
+	MaxParticipants int    `json:"max_participants"`
+	SyncLocked      bool   `json:"sync_locked"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // ============================================
@@ -123,6 +130,51 @@ type RegisterSchoolRequest struct {
 	ContactPhone         string `json:"contact_phone"`
 	AdminUsername        string `json:"admin_username"`
 	AdminPassword        string `json:"admin_password"`
-	Jenjang              string `json:"jenjang,omitempty"`                // optional,default SMA
-	ProgramDurationYears int    `json:"program_duration_years,omitempty"` // optional, default 3
+	Jenjang              string `json:"jenjang,omitempty"`
+	ProgramDurationYears int    `json:"program_duration_years,omitempty"`
+}
+
+// ============================================
+// NEW (FASE 2): SuperAdmin operational requests
+// ============================================
+
+// SuperRegisterSchoolRequest — superadmin direct-create.
+// Extends RegisterSchoolRequest dengan operational fields.
+type SuperRegisterSchoolRequest struct {
+	RegisterSchoolRequest
+
+	PackageTier     string `json:"package_tier,omitempty"`
+	BillingType     string `json:"billing_type,omitempty"`
+	MaxParticipants int    `json:"max_participants,omitempty"`
+}
+
+// UpdateSchoolRequest — partial update tenant.
+// Nil pointer = tidak diubah.
+type UpdateSchoolRequest struct {
+	NPSN                 *string `json:"npsn,omitempty"`
+	SchoolName           *string `json:"school_name,omitempty"`
+	Subdomain            *string `json:"subdomain,omitempty"`
+	ContactEmail         *string `json:"contact_email,omitempty"`
+	ContactPhone         *string `json:"contact_phone,omitempty"`
+	Jenjang              *string `json:"jenjang,omitempty"`
+	ProgramDurationYears *int    `json:"program_duration_years,omitempty"`
+	PackageTier          *string `json:"package_tier,omitempty"`
+	BillingType          *string `json:"billing_type,omitempty"`
+	MaxParticipants      *int    `json:"max_participants,omitempty"`
+	LogoURL              *string `json:"logo_url,omitempty"`
+}
+
+// SuspendSchoolRequest — suspend tenant.
+type SuspendSchoolRequest struct {
+	Reason string `json:"reason"`
+}
+
+// UnsuspendSchoolRequest — reaktivasi tenant.
+type UnsuspendSchoolRequest struct {
+	Note string `json:"note,omitempty"`
+}
+
+// SetSyncLockRequest — toggle sync-lock.
+type SetSyncLockRequest struct {
+	Locked bool `json:"locked"`
 }

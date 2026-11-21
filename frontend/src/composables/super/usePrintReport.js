@@ -32,7 +32,7 @@ export function usePrintReport(options = {}) {
 
   const billingTypeLabel = (t) => {
     if (t === 'MONTHLY') return 'Bulanan'
-    if (t === 'PER_EXAM') return 'Per Ujian'
+    if (t === 'PER_EXAM') return 'Per ulangan'
     return '-'
   }
 
@@ -77,7 +77,7 @@ export function usePrintReport(options = {}) {
       billingTypeFilter === 'MONTHLY'
         ? 'Bulanan'
         : billingTypeFilter === 'PER_EXAM'
-          ? 'Per Ujian'
+          ? 'Per ulangan'
           : 'Semua Tipe'
 
     const rowsHtml = data

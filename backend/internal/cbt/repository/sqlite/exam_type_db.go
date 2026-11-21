@@ -23,6 +23,9 @@ func (r *ExamTypeDB) List(ctx context.Context) ([]domain.ExamType, error) {
 		rows.Scan(&e.ID, &e.Kode, &e.Nama, &e.Deskripsi)
 		list = append(list, e)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err // sesuaikan nilai return dengan signature fungsi masing-masing
+	}
 	return list, nil
 }
 

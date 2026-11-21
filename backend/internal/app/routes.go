@@ -73,8 +73,44 @@ func newCBTHandler(infra *Infrastructure) *cbtHttp.CBTHandler {
 // ============================================
 func registerPlatformRoutes(api fiber.Router, handler *cbtHttp.CBTHandler) {
 	platformPub := api.Group("/super")
-	platformPub.Get("/schools", handler.HandleListSchools)
+
+	// ── FASE 2: List schools — sekarang WAJIB auth SUPER_ADMIN
+	platformPub.Get("/schools",
+		middleware.RequireRole("SUPER_ADMIN"),
+		handler.HandleListSchools,
+	)
 	platformPub.Get("/schools/:slug/config", handler.HandleGetTenantConfig)
+
+	// ── FASE 2: SuperAdmin direct register (register + provision)
+	platformPub.Post("/schools/register",
+		middleware.RequireRole("SUPER_ADMIN"),
+		middleware.RateLimiter(middleware.RateGeneral),
+		handler.HandleSuperRegisterSchool,
+	)
+
+	// ── FASE 2: Update tenant
+	platformPub.Put("/schools/:tenant_id",
+		middleware.RequireRole("SUPER_ADMIN"),
+		middleware.RateLimiter(middleware.RateGeneral),
+		handler.HandleSuperUpdateSchool,
+	)
+
+	// ── FASE 2: Suspend / Unsuspend / Sync-lock
+	platformPub.Post("/schools/:tenant_id/suspend",
+		middleware.RequireRole("SUPER_ADMIN"),
+		middleware.RateLimiter(middleware.RateGeneral),
+		handler.HandleSuperSuspendSchool,
+	)
+	platformPub.Post("/schools/:tenant_id/unsuspend",
+		middleware.RequireRole("SUPER_ADMIN"),
+		middleware.RateLimiter(middleware.RateGeneral),
+		handler.HandleSuperUnsuspendSchool,
+	)
+	platformPub.Post("/schools/:tenant_id/sync-lock",
+		middleware.RequireRole("SUPER_ADMIN"),
+		middleware.RateLimiter(middleware.RateGeneral),
+		handler.HandleSuperSetSyncLock,
+	)
 
 	// === NEW BE-P1: Super admin approval queue ===
 	platformPub.Get("/schools/pending",
@@ -89,6 +125,7 @@ func registerPlatformRoutes(api fiber.Router, handler *cbtHttp.CBTHandler) {
 		middleware.RequireRole("SUPER_ADMIN"),
 		handler.HandleRejectSchool,
 	)
+
 	// VER-009: Super admin program management (platform-scoped)
 	platformPub.Get("/schools/:tenant_id/programs",
 		middleware.RequireRole("SUPER_ADMIN"),
@@ -147,6 +184,14 @@ func registerTenantRoutes(tenantAPI fiber.Router, handler *cbtHttp.CBTHandler, i
 	authTenant.Post("/proctor/login",
 		middleware.RateLimiter(middleware.RateLogin),
 		handler.HandleProctorLogin,
+	)
+
+	// QR login: 2 lapis limiter (per-token + per-IP longgar).
+	// Massal di balik NAT sekolah tidak saling memblokir; spam 1 token tetap dibatasi.
+	authTenant.Post("/qr-login",
+		middleware.RateLimiterWithKey(middleware.RateQrLoginToken, middleware.QrLoginTokenKey()),
+		middleware.RateLimiterWithKey(middleware.RateQrLoginIP, middleware.IPKey()),
+		handler.HandleQrLogin,
 	)
 
 	// ---- Admin routes ----

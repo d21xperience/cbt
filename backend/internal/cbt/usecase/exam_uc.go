@@ -718,3 +718,54 @@ func (uc *ExamUseCase) UpdateQuestion(ctx context.Context, id string, q domain.Q
 func (uc *ExamUseCase) DeleteQuestion(ctx context.Context, id string) error {
 	return uc.questionRepo.DeleteQuestion(ctx, id)
 }
+
+// EnsureParticipantSession memastikan peserta memiliki sesi aktif untuk ujian.
+func (uc *ExamUseCase) EnsureParticipantSession(ctx context.Context, participantID, examID string, sessRepo repository.SessionRepository) error {
+	sess, err := sessRepo.GetParticipantSession(ctx, participantID, examID)
+	if err == nil && sess != nil {
+		return nil // Sudah punya sesi
+	}
+
+	activeSess, err := sessRepo.GetActiveSessionByExam(ctx, examID)
+	if err != nil {
+		return fmt.Errorf("gagal cek sesi aktif: %w", err)
+	}
+
+	if activeSess == nil {
+		exam, err := uc.questionRepo.GetExamByID(ctx, examID)
+		if err != nil {
+			return fmt.Errorf("gagal ambil exam: %w", err)
+		}
+
+		start := time.Now()
+		end := start.Add(time.Duration(exam.DurationMinutes) * time.Minute)
+		if exam.StartTime != "" {
+			if parsed, e := time.Parse(time.RFC3339, exam.StartTime); e == nil {
+				start = parsed
+			}
+		}
+		if exam.EndTime != "" {
+			if parsed, e := time.Parse(time.RFC3339, exam.EndTime); e == nil {
+				end = parsed
+			}
+		}
+
+		activeSess = &domain.ExamSession{
+			ID:          fmt.Sprintf("sess-%d", time.Now().UnixNano()),
+			ExamID:      examID,
+			SemesterID:  exam.AcademicPeriodID,
+			SessionType: "REGULER",
+			StartTime:   start,
+			EndTime:     end,
+			Status:      "SCHEDULED",
+		}
+		if err := sessRepo.CreateSession(ctx, activeSess); err != nil {
+			return fmt.Errorf("gagal buat sesi: %w", err)
+		}
+	}
+
+	if err := sessRepo.AssignParticipantToSession(ctx, participantID, activeSess.ID); err != nil {
+		return fmt.Errorf("gagal assign peserta ke sesi: %w", err)
+	}
+	return nil
+}

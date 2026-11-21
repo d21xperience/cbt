@@ -1,5 +1,5 @@
 // src/utils/pdf/examScheduleTemplatePdf.js
-// Template pdfmake untuk Jadwal Ujian.
+// Template pdfmake untuk Jadwal ulangan.
 // Layout: header sekolah → section per TINGKAT → sub-section per HARI → table.
 
 import pdfMake from 'pdfmake/build/pdfmake'
@@ -80,7 +80,7 @@ export const buildExamSchedulePdfDefinition = ({
   })
 
   content.push({
-    text: 'JADWAL UJIAN',
+    text: 'JADWAL ulangan',
     fontSize: 14,
     bold: true,
     alignment: 'center',
@@ -263,5 +263,5 @@ export const buildExamSchedulePdfDefinition = ({
 }
 
 export const openExamSchedulePdf = (def) => pdfMake.createPdf(def).open()
-export const downloadExamSchedulePdf = (def, filename = 'jadwal-ujian.pdf') =>
+export const downloadExamSchedulePdf = (def, filename = 'jadwal-ulangan.pdf') =>
   pdfMake.createPdf(def).download(filename)

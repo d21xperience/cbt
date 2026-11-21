@@ -17,6 +17,7 @@
 000010_add_proctor_assignments.up.sql        tenant
 000011_add_attendance_makeup_payment.up.sql  tenant
 000012_add_tenant_id_columns.up.sql          tenant
+000018_create_siswa.up.sql                   tenant
 
 # ----- Platform DB -----
 000014_add_tenant_status.up.sql              platform

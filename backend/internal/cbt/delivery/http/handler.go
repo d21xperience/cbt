@@ -1256,39 +1256,48 @@ func (h *CBTHandler) HandleListSchools(c *fiber.Ctx) error {
 	data := make([]fiber.Map, 0, len(tenants))
 	for _, t := range tenants {
 		// ── Fetch Logo Langsung dari File SQLite (Bypass Context)
-		logoURL := ""
-		if h.tenantUC != nil {
-			resolution, err := h.tenantUC.ResolveBySubdomain(c.Context(), t.Subdomain)
-			if err == nil && resolution != nil && resolution.DBPath != "" {
-				// Buka DB langsung
+		logoURL := t.LogoURL
+		if h.tenantUC != nil && t.Subdomain != "" {
+			if resolution, err := h.tenantUC.ResolveBySubdomain(c.Context(), t.Subdomain); err == nil && resolution != nil && resolution.DBPath != "" {
 				db, errDB := sql.Open("sqlite3", resolution.DBPath)
 				if errDB == nil {
 					var logo string
-					// Query langsung ke tabel
 					_ = db.QueryRow("SELECT logo_url FROM school_profile WHERE id='singleton'").Scan(&logo)
 					if logo != "" {
 						logoURL = logo
 					}
 					db.Close()
-				} else {
-					log.Printf("[DEBUG] Gagal buka DB %s: %v", resolution.DBPath, errDB)
 				}
 			}
 		}
 
+		// ── FASE 2: Sertakan field operasional (package_tier, billing_type,
+		//    max_participants, sync_locked) + alias `id` agar frontend
+		//    `findIndex((s) => s.id === ...)` berfungsi.
 		data = append(data, fiber.Map{
-			"tenant_id":    t.TenantID,
-			"slug":         t.Subdomain,
-			"subdomain":    t.Subdomain,
-			"name":         t.SchoolName,
-			"school_name":  t.SchoolName,
-			"npsn":         t.NPSN,
-			"jenjang":      t.Jenjang,
-			"is_active":    t.IsActive && !t.IsSuspended,
-			"is_suspended": t.IsSuspended,
-			"logo_url":     logoURL,
-			"portal_url":   "/auth/participant",
-			"created_at":   t.CreatedAt,
+			"id":                     t.TenantID, // alias untuk frontend
+			"tenant_id":              t.TenantID,
+			"slug":                   t.Subdomain,
+			"subdomain":              t.Subdomain,
+			"name":                   t.SchoolName,
+			"school_name":            t.SchoolName,
+			"npsn":                   t.NPSN,
+			"contact_email":          t.ContactEmail,
+			"contact_phone":          t.ContactPhone,
+			"jenjang":                t.Jenjang,
+			"program_duration_years": t.ProgramDurationYears,
+			"status":                 t.Status,
+			"is_active":              t.IsActive && !t.IsSuspended,
+			"is_suspended":           t.IsSuspended,
+			"suspended_reason":       t.SuspendReason,
+			"package_tier":           t.PackageTier,
+			"billing_type":           t.BillingType,
+			"max_participants":       t.MaxParticipants,
+			"sync_locked":            t.SyncLocked,
+			"logo_url":               logoURL,
+			"portal_url":             "/auth/participant",
+			"created_at":             t.CreatedAt,
+			"updated_at":             t.UpdatedAt,
 		})
 	}
 

@@ -136,7 +136,7 @@ Verify tidak ada PRAGMA global yang override
 Status: 🟢 Low risk
 
 Question Snapshot 🔴 P0 (Sebelum Purge)
-Issue: questions table tidak ada snapshot. Kalau dihapus → hasil ujian tidak auditable.
+Issue: questions table tidak ada snapshot. Kalau dihapus → hasil ulangan tidak auditable.
 
 Decision: ADR-008 — WAJIB ada answer_snapshots sebelum purge.
 

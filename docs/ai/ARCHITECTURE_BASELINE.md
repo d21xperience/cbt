@@ -10,7 +10,7 @@
 
 ┌─────────────────────────────────────────────┐
 │ PLATFORM │
-│ ujian.pw │
+│ ujian │
 │ │
 │ ┌──────────────────────────────────────┐ │
 │ │ Platform DB (platform.db) │ │
@@ -21,7 +21,7 @@
 │ └──────────────────────────────────────┘ │
 │ │
 │ ┌──────────────────────────────────────┐ │
-│ │ Tenant A (smkjaya.ujian.pw) │ │
+│ │ Tenant A (smkjaya.ujian) │ │
 │ │ └── Tenant DB A (cbt.db) │ │
 │ │ - admins, proctors │ │
 │ │ - participants │ │
@@ -30,7 +30,7 @@
 │ └──────────────────────────────────────┘ │
 │ │
 │ ┌──────────────────────────────────────┐ │
-│ │ Tenant B (smkpasja.ujian.pw) │ │
+│ │ Tenant B (smkpasja.ujian) │ │
 │ │ └── Tenant DB B (cbt.db) │ │
 │ └──────────────────────────────────────┘ │
 └─────────────────────────────────────────────┘
@@ -63,15 +63,15 @@
 
 SUPER_ADMIN
 ↓
-Platform scope (ujian.pw)
+Platform scope (ujian)
 Platform DB
 Kelola tenants, subscriptions, billing
 
 ADMIN (sekolah)
 ↓
-Tenant scope (smkjaya.ujian.pw)
+Tenant scope (smkjaya.ujian)
 Tenant DB sekolah tersebut
-Kelola ujian, peserta, sesi, soal, proktor
+Kelola ulangan, peserta, sesi, soal, proktor
 
 PROCTOR / TEACHER
 ↓
@@ -81,7 +81,7 @@ Awasi kelas, unlock peserta (max 3x)
 PARTICIPANT
 ↓
 Self scope
-Ikut ujian, jawab soal, submit
+Ikut ulangan, jawab soal, submit
 
 
 
@@ -111,12 +111,12 @@ Tenant DB tables (11 dengan tenant_id):
 
 
 admins                    — admin sekolah + proctor + teacher
-exam_results              — hasil ujian
-exam_sessions             — sesi ujian (REGULER/SUSULAN)
+exam_results              — hasil ulangan
+exam_sessions             — sesi ulangan (REGULER/SUSULAN)
 participant_sessions      — mapping peserta-sesi + attendance
-eligible_participants     — daftar peserta ujian (SIAKAD + EXTERNAL)
+eligible_participants     — daftar peserta ulangan (SIAKAD + EXTERNAL)
 questions                 — bank soal
-exams                     — metadata ujian
+exams                     — metadata ulangan
 participant_credentials   — login peserta (username+password encrypted)
 payment_gates             — blokir siswa (SPP)
 exam_tokens               — token rotating proctor
@@ -254,7 +254,7 @@ Deployment: Static build → /var/www/cbt/frontend/ → served by Nginx
 
 9. Request Flow (Contoh: Admin Login)
 
-1. User buka https://default.ujian.pw/#/auth/admin
+1. User buka https://default.ujian/#/auth/admin
 2. Frontend: POST /api/v1/cbt/auth/admin/login
    Body: { username, password }  ← TIDAK ada tenant_id
    Header: X-Tenant-Slug: default (auto-inject oleh axios)

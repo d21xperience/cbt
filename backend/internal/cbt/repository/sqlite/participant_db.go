@@ -110,11 +110,17 @@ func (r *ParticipantDB) ToggleExamModeAndReset(ctx context.Context, mode string,
 	}
 
 	// 4. Insert kredensial baru yang sudah digenerate (passing dari Usecase)
+	//    — sertakan tenant_id (UUID) & qr_token agar tidak bergantung lazy-gen.
 	for _, cred := range encryptedCreds {
+		tenantID := cred.TenantID
+		if tenantID == "" {
+			tenantID = "default" // fallback defensif
+		}
 		_, err = tx.ExecContext(ctx, `
-			INSERT INTO participant_credentials (nisn, username, password_enc, password_iv, is_active, tenant_id)
-			VALUES (?, ?, ?, ?, 1, 'default')
-		`, cred.NISN, cred.Username, cred.EncryptedPass, cred.IV)
+				INSERT INTO participant_credentials
+					(nisn, username, password_enc, password_iv, is_active, tenant_id, qr_token)
+				VALUES (?, ?, ?, ?, 1, ?, ?)
+			`, cred.NISN, cred.Username, cred.EncryptedPass, cred.IV, tenantID, cred.QrToken)
 		if err != nil {
 			return fmt.Errorf("gagal insert credential baru untuk %s: %w", cred.NISN, err)
 		}
@@ -129,6 +135,8 @@ type EncryptedCredential struct {
 	Username      string
 	EncryptedPass []byte
 	IV            []byte
+	TenantID      string // UUID tenant (bukan 'default')
+	QrToken       string // QR token baru (regenerate massal)
 }
 
 // UpdateParticipantPassword digunakan untuk Reset Password manual (tombol ikon refresh di UI)

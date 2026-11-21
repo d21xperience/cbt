@@ -15,7 +15,9 @@ func (r *LessonDB) List(ctx context.Context) ([]domain.Lesson, error) {
 		SELECT l.id, l.subject_id, l.class_id, l.teacher_id,
 		       COALESCE(s.kode, ''), COALESCE(s.nama, ''),
 		       COALESCE(c.nama, ''), COALESCE(t.nama, ''),
-		       COALESCE(l.academic_period_id, '')
+		       COALESCE(l.academic_period_id, ''),
+		       COALESCE((SELECT id FROM exams e WHERE e.subject_id = l.subject_id AND e.class_id = l.class_id AND e.academic_period_id = l.academic_period_id LIMIT 1), '') AS exam_id,
+		       COALESCE((SELECT COUNT(*) FROM questions q WHERE q.exam_id = (SELECT id FROM exams e WHERE e.subject_id = l.subject_id AND e.class_id = l.class_id AND e.academic_period_id = l.academic_period_id LIMIT 1)), 0) AS total_questions
 		FROM lessons l
 		LEFT JOIN subjects s ON s.id = l.subject_id
 		LEFT JOIN classes c ON c.id = l.class_id
@@ -26,14 +28,20 @@ func (r *LessonDB) List(ctx context.Context) ([]domain.Lesson, error) {
 		return nil, err
 	}
 	defer rows.Close()
+
 	var list []domain.Lesson
 	for rows.Next() {
 		var l domain.Lesson
-		rows.Scan(&l.ID, &l.SubjectID, &l.ClassID, &l.TeacherID,
-			&l.SubjectKode, &l.SubjectNama, &l.ClassName, &l.TeacherNama, &l.AcademicPeriodID)
+		if err := rows.Scan(
+			&l.ID, &l.SubjectID, &l.ClassID, &l.TeacherID,
+			&l.SubjectKode, &l.SubjectNama, &l.ClassName, &l.TeacherNama, &l.AcademicPeriodID,
+			&l.ExamID, &l.TotalQuestions,
+		); err != nil {
+			return nil, err
+		}
 		list = append(list, l)
 	}
-	return list, nil
+	return list, rows.Err()
 }
 
 func (r *LessonDB) ListByPeriodID(ctx context.Context, periodID string) ([]domain.Lesson, error) {
@@ -41,7 +49,9 @@ func (r *LessonDB) ListByPeriodID(ctx context.Context, periodID string) ([]domai
 		SELECT l.id, l.subject_id, l.class_id, l.teacher_id,
 		       COALESCE(s.kode, ''), COALESCE(s.nama, ''),
 		       COALESCE(c.nama, ''), COALESCE(t.nama, ''),
-		       COALESCE(l.academic_period_id, '')
+		       COALESCE(l.academic_period_id, ''),
+		       COALESCE((SELECT id FROM exams e WHERE e.subject_id = l.subject_id AND e.class_id = l.class_id AND e.academic_period_id = l.academic_period_id LIMIT 1), '') AS exam_id,
+		       COALESCE((SELECT COUNT(*) FROM questions q WHERE q.exam_id = (SELECT id FROM exams e WHERE e.subject_id = l.subject_id AND e.class_id = l.class_id AND e.academic_period_id = l.academic_period_id LIMIT 1)), 0) AS total_questions
 		FROM lessons l
 		LEFT JOIN subjects s ON s.id = l.subject_id
 		LEFT JOIN classes c ON c.id = l.class_id
@@ -53,14 +63,20 @@ func (r *LessonDB) ListByPeriodID(ctx context.Context, periodID string) ([]domai
 		return nil, err
 	}
 	defer rows.Close()
+
 	var list []domain.Lesson
 	for rows.Next() {
 		var l domain.Lesson
-		rows.Scan(&l.ID, &l.SubjectID, &l.ClassID, &l.TeacherID,
-			&l.SubjectKode, &l.SubjectNama, &l.ClassName, &l.TeacherNama, &l.AcademicPeriodID)
+		if err := rows.Scan(
+			&l.ID, &l.SubjectID, &l.ClassID, &l.TeacherID,
+			&l.SubjectKode, &l.SubjectNama, &l.ClassName, &l.TeacherNama, &l.AcademicPeriodID,
+			&l.ExamID, &l.TotalQuestions,
+		); err != nil {
+			return nil, err
+		}
 		list = append(list, l)
 	}
-	return list, nil
+	return list, rows.Err()
 }
 
 func (r *LessonDB) GetByID(ctx context.Context, id string) (*domain.Lesson, error) {

@@ -123,6 +123,7 @@ func autoAssignMakeup(ctx context.Context, db *sql.DB, regulerSessionID, examID 
 	if err != nil {
 		return
 	}
+
 	defer rows.Close()
 
 	var absentIDs []string

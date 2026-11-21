@@ -1,5 +1,5 @@
 // src/utils/pdf/beritaAcaraTemplatePdf.js
-// Template pdfmake untuk lembar isian Berita Acara Ujian.
+// Template pdfmake untuk lembar isian Berita Acara ulangan.
 // Portrait A4. Auto-fill data jadwal; blank untuk input manual pengawas.
 
 import pdfMake from 'pdfmake/build/pdfmake'
@@ -210,7 +210,7 @@ const buildBeritaAcaraPage = ({ template, ctx, school, daftarSiswa = [] }) => {
   const checklist = (template.checklist_kejadian || []).filter((c) => c.enabled)
   if (checklist.length > 0) {
     content.push({
-      text: template.label_catatan || 'Catatan selama pelaksanaan Ujian:',
+      text: template.label_catatan || 'Catatan selama pelaksanaan ulangan:',
       fontSize: 10,
       margin: [0, 10, 0, 4],
     })
@@ -318,7 +318,7 @@ const buildBeritaAcaraPage = ({ template, ctx, school, daftarSiswa = [] }) => {
     content.push({ text: '', pageBreak: 'before' })
 
     content.push({
-      text: 'DAFTAR HADIR PESERTA UJIAN',
+      text: 'DAFTAR HADIR PESERTA ulangan',
       fontSize: 12,
       bold: true,
       alignment: 'center',

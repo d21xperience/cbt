@@ -27,6 +27,9 @@ func (r *AcademicPeriodDB) ListAll(ctx context.Context) ([]domain.AcademicPeriod
 		p.IsActive = active == 1
 		list = append(list, p)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err // sesuaikan nilai return dengan signature fungsi masing-masing
+	}
 	return list, nil
 }
 

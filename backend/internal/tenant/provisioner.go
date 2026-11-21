@@ -120,14 +120,6 @@ func (p *Provisioner) Provision(
 	return nil
 }
 
-// skipInProvisioner — migrations yang TIDAK boleh di-apply saat provisioning fresh tenant.
-//
-// Alasan:
-//
-//	000013 — backfill untuk MIGRATED existing DB, fresh DB tidak punya row untuk backfill
-//	000014 — platform-only (ALTER tenants — tidak ada di tenant DB)
-//	000015 — platform-only (ALTER tenants — tidak ada di tenant DB)
-//
 // Reference: scripts/migrations-manifest.txt
 var skipInProvisioner = map[string]bool{
 	"000013_backfill_tenant_id.up.sql":         true,
@@ -135,6 +127,25 @@ var skipInProvisioner = map[string]bool{
 	"000015_add_pending_admin_username.up.sql": true,
 	"000016_add_tenant_jenjang.up.sql":         true,
 	"000017_add_master_keahlian.up.sql":        true,
+
+	// FASE 2 FIX: migration legacy seed yang mengasumsikan kolom
+	// academic_period_id di tabel exam_sessions DAN exams — padahal
+	// kolom itu TIDAK PERNAH ditambahkan oleh migration manapun
+	// (lihat: 000002 hanya menambah semester_id; 000012 hanya tenant_id;
+	//  tidak ada ALTER TABLE ... ADD COLUMN academic_period_id).
+	//
+	// Migration ini hanya relevan untuk DB lama (dev) yang sudah punya
+	// data seed — TIDAK untuk fresh provisioning. Fresh tenant mulai
+	// dari schema bersih; seed data akan diisi oleh aplikasi saat
+	// admin sekolah membuat ujian pertamanya.
+	//
+	// Lihat riwayat: 000039, 000041 (INSERT exam_sessions.academic_period_id),
+	//                000042 (INSERT exams.academic_period_id),
+	//                000045 (UPDATE exams WHERE academic_period_id).
+	"000039_seed_exam_sessions.up.sql":      true,
+	"000041_seed_exam_sessions.up.sql":      true,
+	"000042_sync_legacy_schedules.up.sql":   true,
+	"000045_backfill_exam_relations.up.sql": true,
 }
 
 // applyMigrations — run embedded tenant migrations only.

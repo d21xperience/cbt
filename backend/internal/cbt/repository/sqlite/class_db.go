@@ -32,6 +32,9 @@ func (r *ClassDB) ListByPeriodID(ctx context.Context, periodID string) ([]domain
 			&c.AcademicPeriodID, &c.CreatedAt, &c.UpdatedAt)
 		list = append(list, c)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err // sesuaikan nilai return dengan signature fungsi masing-masing
+	}
 	return list, nil
 }
 
@@ -54,6 +57,9 @@ func (r *ClassDB) List(ctx context.Context) ([]domain.Class, error) {
 			&c.RuangID, &c.RuangNama, &c.JumlahSiswa,
 			&c.AcademicPeriodID, &c.CreatedAt, &c.UpdatedAt)
 		list = append(list, c)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err // sesuaikan nilai return dengan signature fungsi masing-masing
 	}
 	return list, nil
 }

@@ -71,6 +71,7 @@ type Usecases struct {
 	CredentialsUC     *schedulingUC.CredentialsUseCase
 	ProctorUC         *schedulingUC.ProctorUseCase
 	SiswaUC           *cbtUc.SiswaUseCase
+	ParticipantUC     *cbtUc.ParticipantUseCase
 
 	SchoolProfileUC *cbtUc.SchoolProfileUseCase
 
@@ -97,7 +98,7 @@ type Usecases struct {
 	PaymentUC *cbtUc.PaymentUseCase
 
 	// Repos yang dipakai langsung oleh handler (tanpa usecase wrapper)
-	SessionRepo interface{} // *cbtSqliteRepo.SessionDB
+	SessionRepo *cbtSqliteRepo.SessionDB
 	// ... lainnya di Phase 3B
 
 	// Archive
@@ -134,6 +135,9 @@ func (f *Factory) Usecases(ctx context.Context) (*Usecases, error) {
 	paymentDB := cbtSqliteRepo.NewPaymentDB(db)
 	siswaDB := cbtSqliteRepo.NewSiswaDB(db)
 	siswaUC := cbtUc.NewSiswaUseCase(siswaDB, credRepo, f.credCipher)
+
+	participantDB := cbtSqliteRepo.NewParticipantDB(db)
+	participantUC := cbtUc.NewParticipantUseCase(participantDB, f.credCipher)
 
 	schoolProfileDB := cbtSqliteRepo.NewSchoolProfileDB(db)
 
@@ -187,10 +191,11 @@ func (f *Factory) Usecases(ctx context.Context) (*Usecases, error) {
 		CredentialsUC:     schedulingUC.NewCredentialsUseCase(credRepo, f.credCipher),
 		ProctorUC:         schedulingUC.NewProctorUseCase(proctorDB),
 
-		ExamUC:    cbtUc.NewExamUseCase(examDB, examCache, examDB, examCache),
-		TokenUC:   cbtUc.NewTokenUseCase(tokenDB, sessionDB),
-		PaymentUC: cbtUc.NewPaymentUseCase(paymentDB),
-		SiswaUC:   siswaUC,
+		ExamUC:        cbtUc.NewExamUseCase(examDB, examCache, examDB, examCache),
+		TokenUC:       cbtUc.NewTokenUseCase(tokenDB, sessionDB),
+		PaymentUC:     cbtUc.NewPaymentUseCase(paymentDB),
+		SiswaUC:       siswaUC,
+		ParticipantUC: participantUC,
 
 		SchoolProfileUC: schoolProfileUC,
 

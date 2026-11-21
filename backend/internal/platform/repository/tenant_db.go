@@ -37,6 +37,10 @@ const tenantColumns = `
 	COALESCE(pending_admin_username, '') AS pending_admin_username,
 	COALESCE(jenjang, 'SMA') AS jenjang,
 	COALESCE(program_duration_years, 3) AS program_duration_years,
+	COALESCE(package_tier, 'BASIC') AS package_tier,
+	COALESCE(billing_type, 'MONTHLY') AS billing_type,
+	COALESCE(max_participants, 500) AS max_participants,
+	COALESCE(sync_locked, 0) AS sync_locked,
 	created_at, updated_at
 `
 
@@ -119,13 +123,25 @@ func (r *TenantDB) Create(ctx context.Context, t *domain.Tenant) error {
 		}
 	}
 
+	// ── Default operational fields ──
+	if t.PackageTier == "" {
+		t.PackageTier = "BASIC"
+	}
+	if t.BillingType == "" {
+		t.BillingType = "MONTHLY"
+	}
+	if t.MaxParticipants <= 0 {
+		t.MaxParticipants = 500
+	}
+
 	const q = `
-    INSERT INTO tenants (
-        tenant_id, npsn, subdomain, school_name,
-        contact_email, contact_phone, address,
-        is_active, is_suspended, db_path, status, logo_url,
-        pending_admin_username, jenjang, program_duration_years
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+INSERT INTO tenants (
+	tenant_id, npsn, subdomain, school_name,
+	contact_email, contact_phone, address,
+	is_active, is_suspended, db_path, status, logo_url,
+	pending_admin_username, jenjang, program_duration_years,
+	package_tier, billing_type, max_participants, sync_locked
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := r.DB.ExecContext(ctx, q,
 		t.TenantID, t.NPSN, t.Subdomain, t.SchoolName,
@@ -133,6 +149,7 @@ func (r *TenantDB) Create(ctx context.Context, t *domain.Tenant) error {
 		boolToInt(t.IsActive), boolToInt(t.IsSuspended),
 		t.DBPath, t.Status, t.LogoURL,
 		t.PendingAdminUsername, t.Jenjang, t.ProgramDurationYears,
+		t.PackageTier, t.BillingType, t.MaxParticipants, boolToInt(t.SyncLocked),
 	)
 	if err != nil {
 		return fmt.Errorf("create tenant: %w", err)
@@ -141,7 +158,7 @@ func (r *TenantDB) Create(ctx context.Context, t *domain.Tenant) error {
 }
 
 // ============================================
-// Update
+// Update (existing — general)
 // ============================================
 
 func (r *TenantDB) Update(ctx context.Context, t *domain.Tenant) error {
@@ -156,6 +173,104 @@ func (r *TenantDB) Update(ctx context.Context, t *domain.Tenant) error {
 		boolToInt(t.IsActive), boolToInt(t.IsSuspended), t.SuspendReason, t.LogoURL,
 		t.TenantID,
 	)
+	return err
+}
+
+// ============================================
+// NEW (FASE 2): UpdateSchool — partial update operational fields
+// ============================================
+
+// UpdateSchool — update field-field tenant dari UpdateSchoolRequest.
+// Nil pointer = tidak diubah.
+func (r *TenantDB) UpdateSchool(ctx context.Context, tenantID string, req *domain.UpdateSchoolRequest) error {
+	// Build dynamic SET clause
+	sets := []string{}
+	args := []any{}
+
+	if req.SchoolName != nil {
+		sets = append(sets, "school_name = ?")
+		args = append(args, *req.SchoolName)
+	}
+	if req.NPSN != nil {
+		sets = append(sets, "npsn = ?")
+		args = append(args, *req.NPSN)
+	}
+	if req.Subdomain != nil {
+		sets = append(sets, "subdomain = ?")
+		args = append(args, *req.Subdomain)
+	}
+	if req.ContactEmail != nil {
+		sets = append(sets, "contact_email = ?")
+		args = append(args, *req.ContactEmail)
+	}
+	if req.ContactPhone != nil {
+		sets = append(sets, "contact_phone = ?")
+		args = append(args, *req.ContactPhone)
+	}
+	if req.Jenjang != nil {
+		sets = append(sets, "jenjang = ?")
+		args = append(args, *req.Jenjang)
+	}
+	if req.ProgramDurationYears != nil {
+		sets = append(sets, "program_duration_years = ?")
+		args = append(args, *req.ProgramDurationYears)
+	}
+	if req.PackageTier != nil {
+		sets = append(sets, "package_tier = ?")
+		args = append(args, *req.PackageTier)
+	}
+	if req.BillingType != nil {
+		sets = append(sets, "billing_type = ?")
+		args = append(args, *req.BillingType)
+	}
+	if req.MaxParticipants != nil {
+		sets = append(sets, "max_participants = ?")
+		args = append(args, *req.MaxParticipants)
+	}
+	if req.LogoURL != nil {
+		sets = append(sets, "logo_url = ?")
+		args = append(args, *req.LogoURL)
+	}
+
+	if len(sets) == 0 {
+		return nil // no-op
+	}
+
+	sets = append(sets, "updated_at = CURRENT_TIMESTAMP")
+	args = append(args, tenantID)
+
+	q := "UPDATE tenants SET " + joinStrings(sets, ", ") + " WHERE tenant_id = ?"
+	_, err := r.DB.ExecContext(ctx, q, args...)
+	return err
+}
+
+// ============================================
+// NEW (FASE 2): UpdateSuspend
+// ============================================
+
+// UpdateSuspend — set is_suspended + reason.
+func (r *TenantDB) UpdateSuspend(ctx context.Context, tenantID string, suspended bool, reason string) error {
+	const q = `
+		UPDATE tenants SET
+			is_suspended = ?, suspended_reason = ?,
+			updated_at = CURRENT_TIMESTAMP
+		WHERE tenant_id = ?`
+	_, err := r.DB.ExecContext(ctx, q, boolToInt(suspended), reason, tenantID)
+	return err
+}
+
+// ============================================
+// NEW (FASE 2): UpdateSyncLock
+// ============================================
+
+// UpdateSyncLock — set sync_locked flag.
+func (r *TenantDB) UpdateSyncLock(ctx context.Context, tenantID string, locked bool) error {
+	const q = `
+		UPDATE tenants SET
+			sync_locked = ?,
+			updated_at = CURRENT_TIMESTAMP
+		WHERE tenant_id = ?`
+	_, err := r.DB.ExecContext(ctx, q, boolToInt(locked), tenantID)
 	return err
 }
 
@@ -243,7 +358,7 @@ func (r *TenantDB) scanMany(ctx context.Context, query string, args ...any) ([]d
 
 func (r *TenantDB) scanRowFields(src rowScanner) (*domain.Tenant, error) {
 	var t domain.Tenant
-	var isActive, isSuspended int
+	var isActive, isSuspended, syncLocked int
 	var createdAt, updatedAt string
 	var approvedAt sql.NullString
 	var approvedBy, rejectedReason, pendingAdminUsername sql.NullString
@@ -255,7 +370,8 @@ func (r *TenantDB) scanRowFields(src rowScanner) (*domain.Tenant, error) {
 		&t.DBPath, &t.Status, &t.LogoURL,
 		&approvedAt, &approvedBy, &rejectedReason,
 		&pendingAdminUsername,
-		&t.Jenjang, &t.ProgramDurationYears, // ← NEW
+		&t.Jenjang, &t.ProgramDurationYears,
+		&t.PackageTier, &t.BillingType, &t.MaxParticipants, &syncLocked,
 		&createdAt, &updatedAt,
 	)
 	if err != nil {
@@ -266,6 +382,7 @@ func (r *TenantDB) scanRowFields(src rowScanner) (*domain.Tenant, error) {
 	}
 	t.IsActive = isActive == 1
 	t.IsSuspended = isSuspended == 1
+	t.SyncLocked = syncLocked == 1
 
 	if approvedAt.Valid && approvedAt.String != "" {
 		parsed := parseTime(approvedAt.String)
@@ -285,12 +402,23 @@ func (r *TenantDB) scanRowFields(src rowScanner) (*domain.Tenant, error) {
 	return &t, nil
 }
 
+// joinStrings — helper untuk dynamic SET clause.
+// (karena tidak import "strings" untuk menghindari konflik nama)
+func joinStrings(parts []string, sep string) string {
+	if len(parts) == 0 {
+		return ""
+	}
+	out := parts[0]
+	for i := 1; i < len(parts); i++ {
+		out += sep + parts[i]
+	}
+	return out
+}
+
 func parseTime(s string) time.Time {
-	// Try RFC3339 first (from Go-inserted values)
 	if t, err := time.Parse(time.RFC3339, s); err == nil {
 		return t
 	}
-	// Try SQLite CURRENT_TIMESTAMP format
 	if t, err := time.Parse("2006-01-02 15:04:05", s); err == nil {
 		return t
 	}

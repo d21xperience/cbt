@@ -31,4 +31,7 @@ export const ParticipantService = {
       school_name,
     })
   },
+  toggleExamMode(mode, periodId) {
+    return api.post('/admin/exam-mode', { mode }, { params: { period_id: periodId } })
+  },
 }

@@ -53,11 +53,57 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+// api.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     const status = error.response?.status
+//     const errCode = error.response?.data?.error
+
+//     // ── 401: clear all auth state
+//     if (status === 401) {
+//       LocalStorage.remove('cbt_token')
+//       LocalStorage.remove('cbt_role')
+//       LocalStorage.remove('cbt_user')
+//       LocalStorage.remove('cbt_eligible_exams')
+//       LocalStorage.remove('cbt_exam_id')
+//       LocalStorage.remove('cbt_exam_token') // ← NEW
+//     }
+
+//     // ── 403 tenant_mismatch (VER-002)
+//     if (status === 403 && errCode === 'tenant_mismatch') {
+//       // Clear auth + tenant
+//       LocalStorage.remove('cbt_token')
+//       LocalStorage.remove('cbt_role')
+//       LocalStorage.remove('cbt_user')
+//       LocalStorage.remove('cbt_eligible_exams')
+//       LocalStorage.remove('cbt_exam_id')
+//       LocalStorage.remove('cbt_exam_token') // ← NEW
+//       clearTenantSlug()
+
+//       // Notif + redirect ke landing
+//       Notify.create({
+//         type: 'negative',
+//         icon: 'error',
+//         message: 'Sesi tenant tidak cocok. Silakan pilih sekolah kembali.',
+//         position: 'top',
+//         timeout: 2000,
+//       })
+
+//       setTimeout(() => {
+//         window.location.href = window.location.origin + window.location.pathname + '#/'
+//       }, 800)
+//     }
+
+//     return Promise.reject(error)
+//   },
+// )
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status
     const errCode = error.response?.data?.error
+    const isSilent = error.config?.silentError === true
 
     // ── 401: clear all auth state
     if (status === 401) {
@@ -66,21 +112,19 @@ api.interceptors.response.use(
       LocalStorage.remove('cbt_user')
       LocalStorage.remove('cbt_eligible_exams')
       LocalStorage.remove('cbt_exam_id')
-      LocalStorage.remove('cbt_exam_token') // ← NEW
+      LocalStorage.remove('cbt_exam_token')
     }
 
     // ── 403 tenant_mismatch (VER-002)
     if (status === 403 && errCode === 'tenant_mismatch') {
-      // Clear auth + tenant
       LocalStorage.remove('cbt_token')
       LocalStorage.remove('cbt_role')
       LocalStorage.remove('cbt_user')
       LocalStorage.remove('cbt_eligible_exams')
       LocalStorage.remove('cbt_exam_id')
-      LocalStorage.remove('cbt_exam_token') // ← NEW
+      LocalStorage.remove('cbt_exam_token')
       clearTenantSlug()
 
-      // Notif + redirect ke landing
       Notify.create({
         type: 'negative',
         icon: 'error',
@@ -92,6 +136,38 @@ api.interceptors.response.use(
       setTimeout(() => {
         window.location.href = window.location.origin + window.location.pathname + '#/'
       }, 800)
+
+      return Promise.reject(error)
+    }
+
+    // ── Penanganan Global Error Koneksi & Server (500, 502, 503, Timeout)
+    if (!isSilent) {
+      if (!error.response) {
+        // Backend mati, tidak ada internet, atau request timeout (15s)
+        const isTimeout = error.code === 'ECONNABORTED'
+        Notify.create({
+          type: 'negative',
+          icon: isTimeout ? 'schedule' : 'wifi_off',
+          message: isTimeout
+            ? 'Koneksi ke server terlalu lambat (Timeout)'
+            : 'Tidak dapat terhubung ke server',
+          caption: 'Periksa koneksi internet Anda atau coba beberapa saat lagi.',
+          position: 'top',
+          timeout: 5000,
+          group: 'network-error', // Mencegah spam notifikasi menumpuk jika banyak API gagal bersamaan
+        })
+      } else if (status >= 500) {
+        // 500 Internal Server Error, 502 Bad Gateway (seperti di screenshot), dll.
+        Notify.create({
+          type: 'negative',
+          icon: 'dns',
+          message: 'Server sedang mengalami gangguan',
+          caption: 'Silakan coba beberapa saat lagi.',
+          position: 'top',
+          timeout: 5000,
+          group: 'server-error', // Mencegah notifikasi ganda jika beberapa endpoint error sekaligus
+        })
+      }
     }
 
     return Promise.reject(error)

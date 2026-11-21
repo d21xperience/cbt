@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"strings"
 	"time"
 
 	"cbt-engine-service/internal/cbt/domain"
@@ -59,7 +60,7 @@ func (uc *TokenUseCase) Rotate(ctx context.Context, sessionID, generatedBy strin
 
 // Verify — cek apakah token valid saat ini untuk session tertentu
 func (uc *TokenUseCase) Verify(ctx context.Context, sessionID, token string) (bool, error) {
-	now := time.Now()
+	now := time.Now().UTC() // Pastikan pakai UTC
 	t, err := uc.tokenDB.FindActiveBySession(ctx, sessionID)
 	if err != nil {
 		return false, err
@@ -67,7 +68,8 @@ func (uc *TokenUseCase) Verify(ctx context.Context, sessionID, token string) (bo
 	if t == nil {
 		return false, nil
 	}
-	if t.Token != token {
+	// Case-insensitive & trim spasi
+	if !strings.EqualFold(strings.TrimSpace(t.Token), strings.TrimSpace(token)) {
 		return false, nil
 	}
 	if !t.IsValidAt(now) {

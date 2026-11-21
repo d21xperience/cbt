@@ -160,21 +160,35 @@ func (r *SessionDB) parseTimes(s *domain.ExamSession, startStr, endStr, createdS
 
 // ListSessions — untuk proctor panel. activeOnly=true → hanya sesi yang sedang berjalan.
 func (r *SessionDB) ListSessions(ctx context.Context, examID string, activeOnly bool) ([]domain.SessionListItem, error) {
-	now := time.Now().UTC().Format(time.RFC3339)
-
+	now := time.Now().Format(time.RFC3339)
 	var (
 		args []any
 		q    string
 	)
-
 	base := `
-		SELECT es.id, es.exam_id, COALESCE(e.title, es.exam_id),
-		       es.session_type, es.start_time, es.end_time, es.status,
-		       COALESCE((SELECT 1 FROM exam_tokens t WHERE t.session_id = es.id AND t.is_active = 1 LIMIT 1), 0) AS has_tok
+		SELECT
+			es.id, es.exam_id,
+			COALESCE(s.nama, '') AS subject_nama,
+			COALESCE(c.nama, '') AS class_nama,
+			COALESCE((SELECT r.nama FROM exam_schedules sch
+					  JOIN rooms r ON r.id = sch.ruang_id
+					  WHERE sch.lesson_id IN (SELECT id FROM lessons WHERE subject_id = e.subject_id AND class_id = e.class_id)
+					  AND sch.jenis_ujian_id = e.jenis_ujian_id
+					  AND sch.academic_period_id = e.academic_period_id
+					  AND sch.tanggal = SUBSTR(es.start_time, 1, 10)
+					  LIMIT 1), '') AS ruang_nama,
+			SUBSTR(es.start_time, 1, 10) AS tanggal,
+			SUBSTR(es.start_time, 12, 5) AS jam_mulai,
+			COALESCE(e.duration_minutes, 0) AS durasi_menit,
+			es.status,
+			COALESCE((SELECT token FROM exam_tokens WHERE session_id = es.id AND is_active = 1 LIMIT 1), '') AS token,
+			(SELECT COUNT(*) FROM participant_sessions WHERE session_id = es.id) AS participant_count,
+			(SELECT COUNT(*) FROM participant_sessions WHERE session_id = es.id AND status = 'COMPLETED') AS completed_count
 		FROM exam_sessions es
 		LEFT JOIN exams e ON e.id = es.exam_id
+		LEFT JOIN subjects s ON s.id = e.subject_id
+		LEFT JOIN classes c ON c.id = e.class_id
 		WHERE 1=1`
-
 	if examID != "" {
 		base += ` AND es.exam_id = ?`
 		args = append(args, examID)
@@ -185,23 +199,56 @@ func (r *SessionDB) ListSessions(ctx context.Context, examID string, activeOnly 
 	}
 	base += ` ORDER BY es.start_time DESC LIMIT 100`
 	q = base
-
 	rows, err := r.DB.QueryContext(ctx, q, args...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-
 	var out []domain.SessionListItem
 	for rows.Next() {
 		var s domain.SessionListItem
-		var hasTok int
-		if err := rows.Scan(&s.ID, &s.ExamID, &s.ExamTitle, &s.SessionType,
-			&s.StartTime, &s.EndTime, &s.Status, &hasTok); err != nil {
+		if err := rows.Scan(
+			&s.ID, &s.ExamID,
+			&s.SubjectNama, &s.ClassNama, &s.RuangNama,
+			&s.Tanggal, &s.JamMulai, &s.DurasiMenit,
+			&s.Status, &s.Token,
+			&s.ParticipantCount, &s.CompletedCount,
+		); err != nil {
 			return nil, err
 		}
-		s.HasActiveTok = hasTok == 1
 		out = append(out, s)
 	}
 	return out, rows.Err()
+}
+
+// UpdateSessionStartAndStatus menggeser start_time dan end_time berdasarkan durasi ujian, lalu mengubah status.
+func (r *SessionDB) UpdateSessionStartAndStatus(ctx context.Context, sessionID, status string) error {
+	var duration int
+	err := r.DB.QueryRowContext(ctx, `
+		SELECT e.duration_minutes 
+		FROM exam_sessions es 
+		JOIN exams e ON e.id = es.exam_id 
+		WHERE es.id = ?`, sessionID).Scan(&duration)
+	if err != nil {
+		return err
+	}
+
+	// Gunakan zona waktu lokal (WIB) agar sinkron dengan UI
+	now := time.Now()
+	endTime := now.Add(time.Duration(duration) * time.Minute)
+
+	// SQLite menggunakan format standar RFC3339
+	startStr := now.Format(time.RFC3339)
+	endStr := endTime.Format(time.RFC3339)
+
+	_, err = r.DB.ExecContext(ctx,
+		`UPDATE exam_sessions SET start_time = ?, end_time = ?, status = ? WHERE id = ?`,
+		startStr, endStr, status, sessionID)
+
+	// Opsional: Update juga tabel exams agar sinkron
+	_, _ = r.DB.ExecContext(ctx,
+		`UPDATE exams SET start_time = ?, end_time = ? WHERE id = (SELECT exam_id FROM exam_sessions WHERE id = ?)`,
+		startStr, endStr, sessionID)
+
+	return err
 }

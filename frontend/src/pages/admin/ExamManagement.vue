@@ -83,11 +83,11 @@ const {
 } = useExamSchedules()
 
 const columns = [
+  { name: 'subject_nama', label: 'Mata Pelajaran & Jenis', align: 'left' },
+  { name: 'tingkat', label: 'Tingkat', field: 'tingkat', align: 'center', style: 'width: 80px' },
+  { name: 'class_nama', label: 'Kelas', align: 'left' },
   { name: 'tanggal', label: 'Tanggal', field: 'tanggal', align: 'left', style: 'width: 120px' },
   { name: 'jam_mulai', label: 'Jam', field: 'jam_mulai', align: 'left', style: 'width: 80px' },
-  { name: 'tingkat', label: 'Tingkat', field: 'tingkat', align: 'center', style: 'width: 80px' },
-  { name: 'subject_nama', label: 'Mata Pelajaran & Jenis', align: 'left' },
-  { name: 'class_nama', label: 'Kelas', align: 'left' },
   { name: 'pengawas', label: 'Pengawas', align: 'left' },
   { name: 'actions', label: 'Aksi', align: 'center', style: 'width: 100px' },
 ]

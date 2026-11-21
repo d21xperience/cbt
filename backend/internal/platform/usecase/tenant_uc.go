@@ -31,13 +31,9 @@ var (
 	ErrProvisioningFailed = errors.New("provisioning_failed")
 )
 
-// Subdomain regex: 3-30 chars, lowercase alphanumeric + hyphen, must start alphanumeric
 var subdomainRegex = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{2,29}$`)
-
-// NPSN: exactly 8 digits
 var npsnRegex = regexp.MustCompile(`^\d{8}$`)
 
-// Reserved words — cannot be used as subdomain
 var reservedSubdomains = map[string]bool{
 	"www": true, "api": true, "admin": true, "super": true,
 	"auth": true, "exam": true, "proctor": true, "platform": true,
@@ -58,8 +54,7 @@ type TenantUseCase struct {
 	basePath    string
 }
 
-// NewTenantUseCase — legacy constructor (dipakai existing main.go).
-// Akan di-upgrade dengan NewTenantUseCaseFull di app/infra.go.
+// NewTenantUseCase — legacy constructor.
 func NewTenantUseCase(repo *repository.TenantDB, basePath string) *TenantUseCase {
 	return &TenantUseCase{
 		tenantRepo: repo,
@@ -67,7 +62,7 @@ func NewTenantUseCase(repo *repository.TenantDB, basePath string) *TenantUseCase
 	}
 }
 
-// NewTenantUseCaseFull — full constructor dengan provisioner + subscription + redis.
+// NewTenantUseCaseFull — full constructor.
 func NewTenantUseCaseFull(
 	repo *repository.TenantDB,
 	subRepo *repository.SubscriptionDB,
@@ -166,14 +161,11 @@ func (uc *TenantUseCase) GetTenantBySubdomain(ctx context.Context, subdomain str
 // ============================================
 
 // RegisterSchool — public registration, save as PENDING.
-// No provisioning yet — just save metadata.
 func (uc *TenantUseCase) RegisterSchool(ctx context.Context, req domain.RegisterSchoolRequest) (*domain.Tenant, error) {
-	// 1. Validate format
 	if err := uc.validateRegistration(req); err != nil {
 		return nil, err
 	}
 
-	// 2. Normalize
 	req.NPSN = strings.TrimSpace(req.NPSN)
 	req.Subdomain = strings.ToLower(strings.TrimSpace(req.Subdomain))
 	req.SchoolName = strings.TrimSpace(req.SchoolName)
@@ -181,7 +173,6 @@ func (uc *TenantUseCase) RegisterSchool(ctx context.Context, req domain.Register
 	req.ContactPhone = strings.TrimSpace(req.ContactPhone)
 	req.AdminUsername = strings.TrimSpace(req.AdminUsername)
 
-	// 3. Check duplicates
 	exists, err := uc.tenantRepo.ExistsNPSN(ctx, req.NPSN)
 	if err != nil {
 		return nil, err
@@ -197,7 +188,7 @@ func (uc *TenantUseCase) RegisterSchool(ctx context.Context, req domain.Register
 	if exists {
 		return nil, ErrSubdomainExists
 	}
-	// VER-007 — set default jenjang kalau kosong
+
 	jenjang := req.Jenjang
 	if jenjang == "" {
 		jenjang = "SMA"
@@ -206,7 +197,7 @@ func (uc *TenantUseCase) RegisterSchool(ctx context.Context, req domain.Register
 	if duration <= 0 {
 		duration = 3
 	}
-	// 4. Build tenant record (status = PENDING)
+
 	tenantID := uuid.NewString()
 	relDBPath := filepath.Join("tenants", tenantID, "cbt.db")
 
@@ -222,8 +213,11 @@ func (uc *TenantUseCase) RegisterSchool(ctx context.Context, req domain.Register
 		DBPath:               relDBPath,
 		Status:               domain.TenantStatusPending,
 		PendingAdminUsername: req.AdminUsername,
-		Jenjang:              jenjang, // ← NEW
+		Jenjang:              jenjang,
 		ProgramDurationYears: duration,
+		PackageTier:          "BASIC",
+		BillingType:          "MONTHLY",
+		MaxParticipants:      500,
 	}
 
 	if err := uc.tenantRepo.Create(ctx, t); err != nil {
@@ -234,19 +228,177 @@ func (uc *TenantUseCase) RegisterSchool(ctx context.Context, req domain.Register
 	return t, nil
 }
 
-// ListPendingSchools — super admin queue.
+// ============================================
+// NEW (FASE 2): SuperRegisterSchool
+// ============================================
+
+// SuperRegisterSchool — superadmin direct-create: register + approve (provisioning
+// langsung) + apply operational fields dari form. Return (tenant, tempPassword, error).
+func (uc *TenantUseCase) SuperRegisterSchool(
+	ctx context.Context,
+	req domain.SuperRegisterSchoolRequest,
+	actorID string,
+) (*domain.Tenant, string, error) {
+	// 1. Register dulu sebagai PENDING
+	t, err := uc.RegisterSchool(ctx, req.RegisterSchoolRequest)
+	if err != nil {
+		return nil, "", err
+	}
+
+	// 2. Approve langsung (provisioning)
+	tempPassword, err := uc.ApproveSchool(ctx, t.TenantID, actorID)
+	if err != nil {
+		return nil, "", err
+	}
+
+	// 3. Apply operational fields (jika ada)
+	updateReq := &domain.UpdateSchoolRequest{}
+	if req.PackageTier != "" {
+		updateReq.PackageTier = &req.PackageTier
+	}
+	if req.BillingType != "" {
+		updateReq.BillingType = &req.BillingType
+	}
+	if req.MaxParticipants > 0 {
+		updateReq.MaxParticipants = &req.MaxParticipants
+	}
+	if err := uc.tenantRepo.UpdateSchool(ctx, t.TenantID, updateReq); err != nil {
+		log.Printf("[ONBOARDING] Warning: operational update failed for %s: %v", t.TenantID, err)
+	}
+
+	// 4. Reload tenant
+	updated, err := uc.tenantRepo.GetByID(ctx, t.TenantID)
+	if err != nil || updated == nil {
+		updated = t
+	}
+
+	log.Printf("[ONBOARDING] SuperAdmin direct-registered tenant %s (%s) by %s",
+		updated.Subdomain, updated.TenantID, actorID)
+
+	return updated, tempPassword, nil
+}
+
+// ============================================
+// NEW (FASE 2): UpdateSchool / Suspend / Unsuspend / SyncLock
+// ============================================
+
+// UpdateSchool — partial update operational fields.
+func (uc *TenantUseCase) UpdateSchool(ctx context.Context, tenantID string, req *domain.UpdateSchoolRequest, actorID string) error {
+	t, err := uc.tenantRepo.GetByID(ctx, tenantID)
+	if err != nil {
+		return err
+	}
+	if t == nil {
+		return ErrTenantNotFound
+	}
+
+	// Validasi format jika ada
+	if req.NPSN != nil {
+		if !npsnRegex.MatchString(*req.NPSN) {
+			return fmt.Errorf("%w: NPSN harus 8 digit angka", ErrInvalidFormat)
+		}
+		exists, err := uc.tenantRepo.ExistsNPSN(ctx, *req.NPSN)
+		if err != nil {
+			return err
+		}
+		if exists && *req.NPSN != t.NPSN {
+			return ErrNPSNExists
+		}
+	}
+	if req.Subdomain != nil {
+		sub := strings.ToLower(strings.TrimSpace(*req.Subdomain))
+		if !subdomainRegex.MatchString(sub) {
+			return fmt.Errorf("%w: subdomain invalid", ErrInvalidFormat)
+		}
+		if reservedSubdomains[sub] {
+			return fmt.Errorf("%w: subdomain reserved", ErrInvalidFormat)
+		}
+		exists, err := uc.tenantRepo.ExistsSubdomain(ctx, sub)
+		if err != nil {
+			return err
+		}
+		if exists && sub != t.Subdomain {
+			return ErrSubdomainExists
+		}
+		req.Subdomain = &sub
+	}
+
+	if err := uc.tenantRepo.UpdateSchool(ctx, tenantID, req); err != nil {
+		return err
+	}
+
+	log.Printf("[ONBOARDING] Tenant %s updated by %s", tenantID, actorID)
+	uc.invalidatePublicCache(ctx)
+	return nil
+}
+
+// SuspendSchool — set is_suspended + reason.
+func (uc *TenantUseCase) SuspendSchool(ctx context.Context, tenantID, reason, actorID string) error {
+	if strings.TrimSpace(reason) == "" {
+		return fmt.Errorf("%w: reason wajib", ErrInvalidFormat)
+	}
+	t, err := uc.tenantRepo.GetByID(ctx, tenantID)
+	if err != nil {
+		return err
+	}
+	if t == nil {
+		return ErrTenantNotFound
+	}
+	if t.IsSuspended {
+		return nil // idempotent
+	}
+	if err := uc.tenantRepo.UpdateSuspend(ctx, tenantID, true, reason); err != nil {
+		return err
+	}
+	log.Printf("[ONBOARDING] Tenant %s SUSPENDED by %s (reason=%s)", tenantID, actorID, reason)
+	uc.invalidatePublicCache(ctx)
+	return nil
+}
+
+// UnsuspendSchool — reset is_suspended + clear reason.
+func (uc *TenantUseCase) UnsuspendSchool(ctx context.Context, tenantID, note, actorID string) error {
+	t, err := uc.tenantRepo.GetByID(ctx, tenantID)
+	if err != nil {
+		return err
+	}
+	if t == nil {
+		return ErrTenantNotFound
+	}
+	if !t.IsSuspended {
+		return nil // idempotent
+	}
+	if err := uc.tenantRepo.UpdateSuspend(ctx, tenantID, false, ""); err != nil {
+		return err
+	}
+	log.Printf("[ONBOARDING] Tenant %s UNSUSPENDED by %s (note=%s)", tenantID, actorID, note)
+	uc.invalidatePublicCache(ctx)
+	return nil
+}
+
+// SetSyncLock — toggle sync_locked flag.
+func (uc *TenantUseCase) SetSyncLock(ctx context.Context, tenantID string, locked bool, actorID string) error {
+	t, err := uc.tenantRepo.GetByID(ctx, tenantID)
+	if err != nil {
+		return err
+	}
+	if t == nil {
+		return ErrTenantNotFound
+	}
+	if err := uc.tenantRepo.UpdateSyncLock(ctx, tenantID, locked); err != nil {
+		return err
+	}
+	log.Printf("[ONBOARDING] Tenant %s sync-locked=%v by %s", tenantID, locked, actorID)
+	return nil
+}
+
+// ============================================
+// ListPendingSchools / ApproveSchool / RejectSchool (existing)
+// ============================================
+
 func (uc *TenantUseCase) ListPendingSchools(ctx context.Context) ([]domain.Tenant, error) {
 	return uc.tenantRepo.ListPending(ctx)
 }
 
-// ApproveSchool — super admin approves → provision tenant DB + activate.
-//
-// Returns: (tempPassword, error)
-//   - tempPassword: password sementara untuk admin sekolah (12 char random).
-//     Super Admin WAJIB menyalin dan memberikan ke sekolah.
-//   - Admin sekolah WAJIB ganti password setelah login pertama.
-//
-// Idempotent: provisioning ulang aman karena migration pakai IF NOT EXISTS.
 func (uc *TenantUseCase) ApproveSchool(
 	ctx context.Context,
 	tenantID, actorID string,
@@ -255,7 +407,6 @@ func (uc *TenantUseCase) ApproveSchool(
 		return "", errors.New("provisioner_not_configured")
 	}
 
-	// 1. Get tenant
 	t, err := uc.tenantRepo.GetByID(ctx, tenantID)
 	if err != nil {
 		return "", err
@@ -267,31 +418,26 @@ func (uc *TenantUseCase) ApproveSchool(
 		return "", ErrTenantNotPending
 	}
 
-	// 2. Tentukan admin username: dari registration (fallback 'admin')
 	adminUsername := t.PendingAdminUsername
 	if adminUsername == "" {
 		adminUsername = "admin"
 	}
 
-	// 3. Generate temp password (12 char random)
 	tempPassword, err := generateTempPassword(12)
 	if err != nil {
 		return "", fmt.Errorf("%w: generate password: %v", ErrProvisioningFailed, err)
 	}
 
-	// 4. Provision tenant DB
 	if err := uc.provisioner.Provision(ctx, t.TenantID, t.Subdomain, adminUsername, tempPassword); err != nil {
 		log.Printf("[ONBOARDING] Provisioning failed for %s: %v", tenantID, err)
 		return "", fmt.Errorf("%w: %v", ErrProvisioningFailed, err)
 	}
 
-	// 5. Update status → ACTIVE
 	if err := uc.tenantRepo.UpdateStatus(ctx, tenantID, domain.TenantStatusActive, actorID, ""); err != nil {
 		log.Printf("[ONBOARDING] Status update failed for %s: %v", tenantID, err)
 		return "", fmt.Errorf("%w: status update: %v", ErrProvisioningFailed, err)
 	}
 
-	// 6. Create TRIAL subscription (30 days)
 	if uc.subRepo != nil {
 		sub := &domain.Subscription{
 			TenantID:   tenantID,
@@ -307,7 +453,6 @@ func (uc *TenantUseCase) ApproveSchool(
 		}
 	}
 
-	// 7. Invalidate public cache
 	uc.invalidatePublicCache(ctx)
 
 	log.Printf("[ONBOARDING] Tenant %s (%s) APPROVED by %s — admin=%s",
@@ -316,7 +461,6 @@ func (uc *TenantUseCase) ApproveSchool(
 	return tempPassword, nil
 }
 
-// RejectSchool — super admin rejects pending tenant.
 func (uc *TenantUseCase) RejectSchool(ctx context.Context, tenantID, actorID, reason string) error {
 	t, err := uc.tenantRepo.GetByID(ctx, tenantID)
 	if err != nil {
@@ -337,29 +481,15 @@ func (uc *TenantUseCase) RejectSchool(ctx context.Context, tenantID, actorID, re
 }
 
 // ============================================
-// BE-P2: Public school list (landing page)
+// BE-P2: Public school list
 // ============================================
 
 const publicSchoolsCacheKey = "public:schools:list"
 
-// ListActivePublic — return list dari DB atau cache.
 func (uc *TenantUseCase) ListActivePublic(ctx context.Context) ([]domain.PublicSchoolDTO, error) {
-	// Try Redis cache first
-	if uc.rdb != nil {
-		if cached, err := uc.rdb.Get(ctx, publicSchoolsCacheKey).Result(); err == nil && cached != "" {
-			// Not deserializing JSON here — let handler do it
-			// Actually simpler: this function returns fresh data,
-			// cache is stored at handler level. Skip cache here.
-			_ = cached
-		}
-	}
-
-	// For simplicity: query DB directly.
-	// Cache di-invalidate on approve.
 	return uc.tenantRepo.ListActivePublic(ctx)
 }
 
-// invalidatePublicCache — dipanggil saat approve.
 func (uc *TenantUseCase) invalidatePublicCache(ctx context.Context) {
 	if uc.rdb == nil {
 		return
@@ -387,10 +517,8 @@ func (uc *TenantUseCase) validateRegistration(req domain.RegisterSchoolRequest) 
 		if !validJenjang[req.Jenjang] {
 			return fmt.Errorf("%w: jenjang '%s' tidak valid", ErrInvalidFormat, req.Jenjang)
 		}
-		return nil
 	}
 
-	// VER-007 — validate duration (optional)
 	if req.ProgramDurationYears < 0 || req.ProgramDurationYears > 6 {
 		return fmt.Errorf("%w: program_duration_years harus 1-6", ErrInvalidFormat)
 	}

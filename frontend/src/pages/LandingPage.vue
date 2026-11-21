@@ -32,28 +32,6 @@
         </div>
       </div>
 
-      <!-- <div v-else class="row q-col-gutter-md">
-        <div v-for="school in filteredSchools" :key="school.subdomain" class="col-12 col-sm-6 col-md-4">
-          <q-card flat bordered class="bg-indigo-50-hover cursor-pointer" @click="redirectToTenant(school.subdomain)">
-            <q-card-section>
-              <div class="flex items-center">
-                <q-avatar size="40px" class="q-mr-sm">
-                  <img :src="school.logo_url || 'https://cdn.quasar.dev/logo/svg/quasar-logo.svg'" alt="Logo" />
-                </q-avatar>
-                <div>
-                  <div class="text-weight-bold text-grey-9">{{ school.school_name }}</div>
-                  <div class="text-caption text-grey-6">
-                    NPSN: {{ school.npsn || '-' }}
-                  </div>
-                </div>
-              </div>
-            </q-card-section>
-            <q-card-actions align="right" class="q-pt-none">
-              <q-btn flat dense color="primary" label="Masuk Ujian" icon-right="arrow_forward" />
-            </q-card-actions>
-          </q-card>
-        </div>
-      </div> -->
       <div v-else class="row q-col-gutter-md">
         <!-- Tambahkan class 'column' pada pembungkus kolom agar tingginya sinkron -->
         <div v-for="school in filteredSchools" :key="school.subdomain" class="col-12 col-sm-6 col-md-4 column">

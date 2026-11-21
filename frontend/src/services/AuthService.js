@@ -7,7 +7,11 @@ export const AuthService = {
 
     switch (normalizedRole) {
       case 'SUPER_ADMIN':
-        return api.post('/auth/super/login', credentials)
+        // Platform-scoped: tidak terikat tenant, bypass header X-Tenant-Slug.
+        return api.post('/auth/super/login', credentials, {
+          skipTenant: true,
+          skipAuth: true,
+        })
       case 'ADMIN':
         return api.post('/auth/admin/login', credentials)
       case 'PROCTOR':

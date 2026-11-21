@@ -37,7 +37,7 @@ export function useExamSchedules() {
     try {
       const [schRes, lsRes, etRes, tchRes, rmRes] = await Promise.all([
         ExamScheduleService.list({ academic_period_id: academicStore.active_period_id }),
-        LessonService.list(),
+        LessonService.list({ academic_period_id: academicStore.active_period_id }),
         ExamTypeService.list(),
         TeacherService.list(),
         RoomService.list(),
@@ -93,7 +93,7 @@ export function useExamSchedules() {
         return { success: false }
       }
       
-      const finalPayload = { ...payload, jenis_ujian_id: type.id }
+      const finalPayload = { ...payload, jenis_ujian_id: type.id, academic_period_id: payload.academic_period_id || academicStore.active_period_id }
 
       if (isEditing.value) {
         await ExamScheduleService.update(finalPayload.id, finalPayload)

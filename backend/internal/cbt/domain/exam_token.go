@@ -14,7 +14,8 @@ type ExamToken struct {
 }
 
 func (t *ExamToken) IsValidAt(now time.Time) bool {
-	return t.IsActive && !now.Before(t.ValidFrom) && now.Before(t.ValidUntil)
+	n := now.UTC()
+	return n.After(t.ValidFrom.UTC()) && n.Before(t.ValidUntil.UTC())
 }
 
 // Config default

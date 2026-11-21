@@ -54,6 +54,7 @@ type SessionRepository interface {
 	GetActiveSessionByExam(ctx context.Context, examID string) (*domain.ExamSession, error)
 	ListSessionsByExam(ctx context.Context, examID string) ([]domain.ExamSession, error)
 	UpdateSessionStatus(ctx context.Context, sessionID, status string) error
+	UpdateSessionStartAndStatus(ctx context.Context, sessionID, status string) error
 
 	// ListSessions(ctx context.Context, examID string, activeOnly bool) ([]SessionListItem, error)
 	ListSessions(ctx context.Context, examID string, activeOnly bool) ([]domain.SessionListItem, error)

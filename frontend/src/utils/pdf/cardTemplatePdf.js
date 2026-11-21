@@ -114,7 +114,7 @@ const buildHeaderRow = (card, school, examModeLabel) => ({
       width: '*',
       stack: [
         { text: 'KARTU LOGIN', fontSize: 7, bold: true, alignment: 'center' },
-        { text: examModeLabel || 'UJIAN', fontSize: 8, alignment: 'center' },
+        { text: examModeLabel || 'ulangan', fontSize: 8, alignment: 'center' },
         { text: school.nama || 'SEKOLAH', fontSize: 8.5, bold: true, alignment: 'center' },
         {
           text: school.alamat_jalan || school.alamat_kabupaten || '',
@@ -307,7 +307,7 @@ const buildBackCell = (card, exams = []) => {
         [
           {
             stack: [
-              { text: 'JADWAL UJIAN', fontSize: 6.5, bold: true, alignment: 'center' },
+              { text: 'JADWAL ulangan', fontSize: 6.5, bold: true, alignment: 'center' },
               {
                 text: `${card.student_name} • ${card.class_nama}`,
                 fontSize: 5.5,
@@ -317,7 +317,7 @@ const buildBackCell = (card, exams = []) => {
               },
               jadwalTable,
               {
-                text: 'Hadir 15 menit sebelum ujian dimulai. Bawa kartu ini.',
+                text: 'Hadir 15 menit sebelum ulangan dimulai. Bawa kartu ini.',
                 fontSize: 4.5,
                 alignment: 'center',
                 color: '#777',
@@ -338,7 +338,7 @@ export const buildCardPdfDefinition = ({
   school = {},
   tenant = '',
   exams = [],
-  examMode = 'UJIAN',
+  examMode = 'ulangan',
   settings = {},
 }) => {
   // 1. Konversi dan variabel dinamis (AMAN DARI TDZ)
@@ -450,7 +450,7 @@ export const buildCardPdfDefinition = ({
   }
 }
 
-export const downloadCardPdf = (definition, filename = 'kartu-ujian.pdf') => {
+export const downloadCardPdf = (definition, filename = 'kartu-ulangan.pdf') => {
   pdfMake.createPdf(definition).download(filename)
 }
 
