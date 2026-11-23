@@ -6,12 +6,10 @@
           <q-icon name="menu_book" color="primary" size="sm" class="q-mr-sm" />
           Pembelajaran
         </div>
-        <div class="text-caption text-grey-7">
-          Jembatan Mapel × Kelas × Guru × Semester.
-        </div>
+        <div class="text-caption text-grey-7">Jembatan Mapel × Kelas × Guru × Semester.</div>
       </div>
       <div class="q-gutter-sm">
-        <q-btn outline color="primary" icon="upload_file" label="Import CSV" no-caps @click="openImportDialog" />
+        <q-btn outline color="primary" icon="upload_file" label="Import Data" no-caps @click="openImportDialog" />
         <q-btn color="primary" icon="add" label="Tambah Pembelajaran" no-caps @click="openCreateDialog" />
       </div>
     </div>
@@ -23,20 +21,14 @@
 
     <q-card flat bordered class="q-mb-md bg-white">
       <q-card-section class="row q-col-gutter-md items-center">
-        <div class="col-12 col-md-3">
+        <div class="col-12 col-md-8">
           <q-input v-model="searchQuery" label="Cari mapel / kelas / guru" outlined dense clearable>
             <template v-slot:prepend><q-icon name="search" /></template>
           </q-input>
         </div>
-        <div class="col-12 col-md-2">
-          <q-select v-model="filterClass" :options="classOptions" label="Kelas" outlined dense emit-value map-options clearable />
-        </div>
-        <div class="col-12 col-md-3">
-          <q-select v-model="filterTeacher" :options="teacherOptions" label="Guru" outlined dense emit-value map-options clearable />
-        </div>
-        
-        <div class="col-6 col-md-2">
-          <q-select v-model="filterSemester" :options="semesterOptions" label="Smt" outlined dense emit-value map-options clearable />
+        <div class="col-12 col-md-4">
+          <q-select v-model="filterClass" :options="classOptions" label="Kelas" outlined dense emit-value map-options
+            clearable />
         </div>
       </q-card-section>
     </q-card>
@@ -61,8 +53,13 @@
 
         <template v-slot:body-cell-teacher_nama="props">
           <q-td :props="props">
-            <q-icon name="person" size="xs" color="primary" class="q-mr-xs" />
-            {{ props.row.teacher_nama || '-' }}
+            <div class="row items-center no-wrap">
+              <q-icon name="person" size="xs" color="primary" class="q-mr-xs" />
+              {{ props.row.teacher_nama || '-' }}
+              <!-- ✅ Perbaikan deteksi tipe data SQLite (bisa 1 / true) -->
+              <q-badge v-if="Number(props.row.is_exam_author) === 1 || props.row.is_exam_author === true" color="orange"
+                class="q-ml-sm" label="Penyusun Soal" />
+            </div>
           </q-td>
         </template>
 
@@ -86,9 +83,10 @@
       </q-table>
     </q-card>
 
+    <!-- ✅ Tambahkan prop lessons -->
     <LessonFormDialog v-model="dialogOpen" :is-editing="isEditing" :initial-form="initialForm" :submitting="submitting"
       :subject-options="subjectOptions" :class-options="classOptions" :teacher-options="teacherOptions"
-      :semester-options="semesterOptions" @submit="submitForm" />
+      :semester-options="semesterOptions" :lessons="lessons" @submit="submitForm" />
 
     <LessonImportDialog v-model="importDialogOpen" :import-step="importStep" :import-preview="importPreview"
       :importing="importing" :downloading-template="downloadingTemplate" :import-valid-count="importValidCount"
@@ -106,17 +104,16 @@ import LessonImportDialog from '@/components/admin/LessonImportDialog.vue'
 const $q = useQuasar()
 
 const {
+  lessons, // ✅ Ambil raw data
   loading,
   errorState,
   searchQuery,
   filterClass,
-  filterTeacher,
-  filterSemester,
   filteredLessons,
-  semesterOptions,
-  subjectOptions,
   classOptions,
   teacherOptions,
+  subjectOptions,
+  semesterOptions,
   dialogOpen,
   isEditing,
   initialForm,
@@ -139,11 +136,10 @@ const {
 } = useLessons()
 
 const columns = [
-  { name: 'subject_nama', label: 'Mata Pelajaran', field: 'subject_nama', align: 'left', style: 'min-width: 200px' },
-  { name: 'class_nama', label: 'Kelas', field: 'class_nama', align: 'left', style: 'min-width: 160px' },
-  { name: 'teacher_nama', label: 'Guru Pengampu', field: 'teacher_nama', align: 'left', style: 'min-width: 200px' },
-  { name: 'semester', label: 'Semester', align: 'center', style: 'width: 140px' },
-  { name: 'actions', label: 'Aksi', align: 'center', style: 'width: 110px' },
+  { name: 'subject_nama', label: 'Mata Pelajaran', field: 'subject_nama', align: 'left', sortable: true },
+  { name: 'class_nama', label: 'Kelas', field: 'class_nama', align: 'left', sortable: true },
+  { name: 'teacher_nama', label: 'Guru Pengampu', field: 'teacher_nama', align: 'left', sortable: true },
+  { name: 'actions', label: 'Aksi', field: 'actions', align: 'center' },
 ]
 
 const confirmDelete = (row) => {
@@ -158,7 +154,7 @@ const confirmDelete = (row) => {
     await deleteLesson(row)
   })
 }
-// ── Parse import + auto-advance step 2
+
 const onParseImport = async (file) => {
   const result = await parseImport(file)
   if (result?.success) {

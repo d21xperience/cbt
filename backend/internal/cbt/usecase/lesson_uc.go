@@ -4,6 +4,7 @@ import (
 	"cbt-engine-service/internal/cbt/domain"
 	"cbt-engine-service/internal/cbt/repository/sqlite"
 	"context"
+
 	"github.com/google/uuid"
 )
 
@@ -49,6 +50,8 @@ func (uc *LessonUseCase) Update(ctx context.Context, id string, req domain.Lesso
 	if req.TeacherID != "" {
 		existing.TeacherID = req.TeacherID
 	}
+	// ✅ Update is_exam_author
+	existing.IsExamAuthor = req.IsExamAuthor
 
 	exists, _ := uc.repo.Exists(ctx, existing.SubjectID, existing.ClassID, existing.AcademicPeriodID, id)
 	if exists {

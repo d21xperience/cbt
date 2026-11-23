@@ -9,8 +9,9 @@ import { TeacherService } from '@/services/admin/TeacherService'
 
 const EMPTY_FORM = {
   subject_id: null,
-  class_id: null,
+  class_ids: [],
   teacher_id: null,
+  is_exam_author: false,
   academic_year: '2025/2026',
   semester: 'GANJIL',
 }
@@ -19,7 +20,6 @@ export function useLessons() {
   const $q = useQuasar()
   const academicStore = useAcademicStore()
 
-  // ── List + refs
   const lessons = ref([])
   const subjects = ref([])
   const classes = ref([])
@@ -27,20 +27,17 @@ export function useLessons() {
   const loading = ref(false)
   const errorState = ref(null)
 
-  // ── Filter
   const searchQuery = ref('')
   const filterClass = ref(null)
   const filterTeacher = ref(null)
-    const filterSemester = ref(null)
+  const filterSemester = ref(null)
 
-  // ── Dialog CRUD
   const dialogOpen = ref(false)
   const isEditing = ref(false)
   const editingId = ref(null)
   const initialForm = ref({ ...EMPTY_FORM })
   const submitting = ref(false)
 
-  // ── Import
   const importDialogOpen = ref(false)
   const importStep = ref(1)
   const importPreview = ref([])
@@ -48,67 +45,43 @@ export function useLessons() {
   const importing = ref(false)
   const downloadingTemplate = ref(false)
 
-  // ── Options
-
-  // const dummy_academicYearOptions = computed(() => {
-  //   const years = lessons.value.map((l) => l.academic_year).filter(Boolean)
-  //   return [...new Set(years)].sort().reverse()
-  // })
-
   const semesterOptions = [
     { label: 'Ganjil', value: 'GANJIL' },
     { label: 'Genap', value: 'GENAP' },
   ]
 
+  // ✅ FIX: Tampilkan SEMUA mapel. Filtering kelas dilakukan di dalam Dialog.
   const subjectOptions = computed(() => {
-    // 1. Ambil semua subject_id yang sudah dipakai di tabel lessons
-    const usedSubjectIds = lessons.value.map((l) => l.subject_id)
-
-    // 2. Filter subjects: buang yang sudah ada, KECUALI yang sedang diedit
-    const availableSubjects = subjects.value.filter((s) => {
-      if (isEditing.value && initialForm.value.subject_id === s.id) return true
-      return !usedSubjectIds.includes(s.id)
-    })
-
-    // 3. Format untuk dropdown
-    return availableSubjects.map((s) => ({ label: `${s.kode} — ${s.nama}`, value: s.id }))
+    return subjects.value.map((s) => ({ label: `${s.kode} — ${s.nama}`, value: s.id }))
   })
+  
   const classOptions = computed(() =>
     classes.value.map((c) => ({ label: `${c.nama} (Tingkat ${c.tingkat})`, value: c.id })),
   )
+  
   const teacherOptions = computed(() =>
     teachers.value.map((t) => ({ label: `${t.nama}${t.nip ? ` (${t.nip})` : ''}`, value: t.id })),
   )
 
-  // ── Computed
   const filteredLessons = computed(() => {
     const list = Array.isArray(lessons.value) ? lessons.value : []
-    const q = String(searchQuery.value || '')
-      .trim()
-      .toLowerCase()
+    const q = String(searchQuery.value || '').trim().toLowerCase()
 
     return list.filter((l) => {
       if (filterClass.value && l.class_id !== filterClass.value) return false
       if (filterTeacher.value && l.teacher_id !== filterTeacher.value) return false
-      
+
       if (!q) return true
       return (
-        String(l.subject_nama || '')
-          .toLowerCase()
-          .includes(q) ||
-        String(l.class_nama || '')
-          .toLowerCase()
-          .includes(q) ||
-        String(l.teacher_nama || '')
-          .toLowerCase()
-          .includes(q)
+        String(l.subject_nama || '').toLowerCase().includes(q) ||
+        String(l.class_nama || '').toLowerCase().includes(q) ||
+        String(l.teacher_nama || '').toLowerCase().includes(q)
       )
     })
   })
 
   const importValidCount = computed(() => importPreview.value.filter((p) => !p._error).length)
 
-  // ── Fetch
   const loadLessons = async () => {
     loading.value = true
     try {
@@ -133,11 +106,11 @@ export function useLessons() {
       loading.value = false
     }
   }
-  // Auto-refresh saat tahun ajaran di header diganti
-  watch(() => academicStore.active_period_id, () => {
-    loadLessons()
-  })
-
+  
+  watch(
+    () => academicStore.active_period_id,
+    () => { loadLessons() },
+  )
 
   const loadRefs = async () => {
     try {
@@ -154,7 +127,6 @@ export function useLessons() {
     }
   }
 
-  // ── Dialog
   const openCreateDialog = () => {
     isEditing.value = false
     editingId.value = null
@@ -167,8 +139,9 @@ export function useLessons() {
     editingId.value = row.id
     initialForm.value = {
       subject_id: row.subject_id || null,
-      class_id: row.class_id || null,
+      class_ids: [row.class_id], 
       teacher_id: row.teacher_id || null,
+      is_exam_author: Boolean(row.is_exam_author), // Antisipasi return 1/0 dari SQLite
       academic_year: row.academic_year || '2025/2026',
       semester: row.semester || 'GANJIL',
     }
@@ -184,15 +157,18 @@ export function useLessons() {
 
   const submitForm = async (payload) => {
     if (!payload) return { success: false }
-    
-    // ✅ AUTO-SYNC: Timpa field manual dengan Global Store
+
     payload.academic_period_id = academicStore.active_period_id
     delete payload.academic_year
     delete payload.semester
 
+    const classIds = payload.class_ids || []
+    delete payload.class_ids
+
     submitting.value = true
     try {
       if (isEditing.value && editingId.value) {
+        payload.class_id = classIds[0]
         const res = await LessonService.update(editingId.value, payload)
         const idx = lessons.value.findIndex((l) => l.id === editingId.value)
         if (idx !== -1) {
@@ -200,10 +176,12 @@ export function useLessons() {
         }
         $q.notify({ type: 'positive', message: 'Pembelajaran diperbarui.' })
       } else {
-        await LessonService.create(payload)
-        // ✅ FIX: Selalu muat ulang data dari server agar hasil JOIN (Nama Mapel, Kelas, Guru) langsung tampil
+        const promises = classIds.map(cid => {
+          return LessonService.create({ ...payload, class_id: cid })
+        })
+        await Promise.all(promises)
         await loadLessons()
-        $q.notify({ type: 'positive', message: 'Pembelajaran ditambahkan.' })
+        $q.notify({ type: 'positive', message: `${classIds.length} Pembelajaran berhasil ditambahkan.` })
       }
       closeDialog()
       return { success: true }
@@ -211,9 +189,9 @@ export function useLessons() {
       const errCode = err?.response?.data?.error
       let msg = 'Gagal menyimpan data.'
       if (errCode === 'duplicate_lesson') {
-        msg = 'Pembelajaran ini (Mapel & Kelas) sudah ada di Tahun Ajaran & Semester yang sama.'
+        msg = 'Beberapa kelas yang dipilih sudah diampu oleh guru lain untuk mapel ini.'
       } else if (errCode === 'validation_failed') {
-        msg = 'Semua field (Mapel, Kelas, Guru, Tahun, Semester) wajib diisi.'
+        msg = 'Semua field wajib diisi.'
       } else if (err?.response?.data?.message) {
         msg = err.response.data.message
       }
@@ -233,8 +211,7 @@ export function useLessons() {
       return true
     } catch (err) {
       const errCode = err?.response?.data?.error
-      const msg =
-        errCode === 'lesson_in_use'
+      const msg = errCode === 'lesson_in_use'
           ? 'Pembelajaran tidak dapat dihapus karena masih dipakai di ujian.'
           : err?.response?.data?.message || 'Gagal menghapus data.'
       $q.notify({ type: 'negative', message: msg })
@@ -242,7 +219,6 @@ export function useLessons() {
     }
   }
 
-  // ── Import
   const openImportDialog = () => {
     importDialogOpen.value = true
     importStep.value = 1
@@ -261,10 +237,7 @@ export function useLessons() {
     try {
       const res = await LessonService.downloadTemplate(format)
       const blob = new Blob([res.data], {
-        type:
-          format === 'csv'
-            ? 'text/csv;charset=utf-8'
-            : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        type: format === 'csv' ? 'text/csv;charset=utf-8' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -297,7 +270,7 @@ export function useLessons() {
       importErrors.value = Array.isArray(payload.errors) ? payload.errors : []
       return { success: true }
     } catch (err) {
-      $q.notify({ type: 'negative', message: err?.response?.data?.error || 'Gagal parse file.' })
+      $q.notify({ type: 'negative', message: `Gagal membaca file import: ${err}` })
       return { success: false }
     } finally {
       importing.value = false
@@ -305,50 +278,43 @@ export function useLessons() {
   }
 
   const confirmImport = async () => {
-    const valid = importPreview.value.filter((p) => !p._error)
-    if (valid.length === 0) {
-      $q.notify({ type: 'warning', message: 'Tidak ada baris valid.' })
-      return { success: false }
+    const validRows = importPreview.value.filter((p) => !p._error)
+    if (validRows.length === 0) {
+      $q.notify({ type: 'warning', message: 'Tidak ada baris valid untuk diimport.' })
+      return
     }
     importing.value = true
     try {
-      const res = await LessonService.confirmImport(valid)
-      const count = res?.data?.imported_count ?? valid.length
+      const res = await LessonService.confirmImport(validRows)
+      const count = res?.data?.imported_count || 0
       $q.notify({ type: 'positive', message: `${count} pembelajaran berhasil diimport.` })
-      await loadLessons()
       closeImportDialog()
-      return { success: true }
+      await loadLessons()
     } catch (err) {
-      $q.notify({ type: 'negative', message: err?.response?.data?.error || 'Gagal import.' })
-      return { success: false }
+      $q.notify({ type: 'negative', message: `Gagal import: ${err?.message || err}` })
     } finally {
       importing.value = false
     }
   }
 
-  watch(() => [academicStore.academic_year, academicStore.semester], () => { loadLessons() })
-
   onMounted(() => {
-    loadLessons()
     loadRefs()
+    loadLessons()
   })
 
   return {
     lessons,
-    subjects,
-    classes,
-    teachers,
+    filteredLessons,
     loading,
     errorState,
     searchQuery,
     filterClass,
     filterTeacher,
     filterSemester,
-    filteredLessons,
-    semesterOptions,
-    subjectOptions,
     classOptions,
     teacherOptions,
+    subjectOptions,
+    semesterOptions,
     dialogOpen,
     isEditing,
     initialForm,
@@ -358,7 +324,6 @@ export function useLessons() {
     closeDialog,
     submitForm,
     deleteLesson,
-    loadLessons,
     importDialogOpen,
     importStep,
     importPreview,

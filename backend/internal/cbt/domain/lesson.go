@@ -20,8 +20,9 @@ type Lesson struct {
 	Semester         string `json:"semester,omitempty"`
 
 	// Derived fields (hasil JOIN)
-	SubjectKode string `json:"subject_kode,omitempty"`
-	SubjectNama string `json:"subject_nama,omitempty"`
-	ClassName   string `json:"class_nama,omitempty"`
-	TeacherNama string `json:"teacher_nama,omitempty"`
+	SubjectKode  string `json:"subject_kode,omitempty"`
+	SubjectNama  string `json:"subject_nama,omitempty"`
+	ClassName    string `json:"class_nama,omitempty"`
+	TeacherNama  string `json:"teacher_nama,omitempty"`
+	IsExamAuthor bool   `json:"is_exam_author"`
 }
