@@ -52,9 +52,6 @@ func LoadConfig(path string) (config Config, err error) {
 	if config.TenantIdleTTLMinutes == 0 {
 		config.TenantIdleTTLMinutes = 30
 	}
-	if config.DefaultTenantSubdomain == "" {
-		config.DefaultTenantSubdomain = "default"
-	}
 	return
 }
 func (c Config) IsProduction() bool {

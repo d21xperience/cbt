@@ -35,8 +35,15 @@
 
         <!-- DEV helper -->
         <div v-if="isDev" class="q-mt-lg">
-          <q-btn flat dense size="sm" color="grey-6" icon="build" label="Simulasi Unlock (dev)"
-            @click="$emit('dev-unlock')" />
+          <q-btn
+            flat
+            dense
+            size="sm"
+            color="grey-6"
+            icon="build"
+            label="Simulasi Unlock (dev)"
+            @click="$emit('dev-unlock')"
+          />
         </div>
       </q-card-section>
     </q-card>

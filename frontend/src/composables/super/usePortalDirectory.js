@@ -22,10 +22,10 @@ export function usePortalDirectory() {
   const filteredSchools = computed(() => {
     const list = Array.isArray(schools.value) ? schools.value : []
     if (!searchQuery.value.trim()) return list
-
     const query = searchQuery.value.toLowerCase()
     return list.filter(
       (school) =>
+        (school?.jenjang || '').toLowerCase().includes(query) ||
         (school?.school_name || '').toLowerCase().includes(query) ||
         (school?.npsn || '').toLowerCase().includes(query) ||
         (school?.subdomain || '').toLowerCase().includes(query),
@@ -38,7 +38,7 @@ export function usePortalDirectory() {
       const response = await PortalService.getPublicSchools()
       const extracted = normalizeSchools(response?.data)
       schools.value = extracted
-      console.info(`[PortalDirectory] Loaded ${extracted.length} schools`)
+      // console.info(`[PortalDirectory] Loaded ${extracted} schools`)
     } catch (error) {
       console.error('[PortalDirectory] loadSchools error:', error)
       schools.value = []

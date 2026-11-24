@@ -20,12 +20,12 @@
         <q-icon name="construction" />
       </template>
       <span v-if="isAdminView">
-        Fitur ini akan menampilkan <b>tunggakan semua kelas</b>.
-        Backend: <b>CR-001 (filter by rombel — optional)</b>.
+        Fitur ini akan menampilkan <b>tunggakan semua kelas</b>. Backend:
+        <b>CR-001 (filter by rombel — optional)</b>.
       </span>
       <span v-else>
-        Fitur ini akan menampilkan <b>tunggakan kelas yang Anda ampu</b>.
-        Backend: <b>CR-001 (Tunggakan filter by rombel)</b>.
+        Fitur ini akan menampilkan <b>tunggakan kelas yang Anda ampu</b>. Backend:
+        <b>CR-001 (Tunggakan filter by rombel)</b>.
       </span>
       <b>Implementasi di Batch C2.</b>
     </q-banner>
@@ -35,9 +35,11 @@
         <q-icon name="school" size="xl" />
         <div class="text-subtitle1 q-mt-md">Daftar Tunggakan</div>
         <div class="text-caption q-mt-sm">
-          {{ isAdminView
-            ? 'Menampilkan semua siswa dengan tunggakan di semua kelas.'
-            : 'Menampilkan siswa kelas yang Anda ampu dengan tunggakan SPP / block.' }}
+          {{
+            isAdminView
+              ? 'Menampilkan semua siswa dengan tunggakan di semua kelas.'
+              : 'Menampilkan siswa kelas yang Anda ampu dengan tunggakan SPP / block.'
+          }}
         </div>
       </q-card-section>
     </q-card>

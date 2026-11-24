@@ -8,22 +8,47 @@
       </q-card-section>
 
       <q-card-section class="q-gutter-md q-pt-md">
-        <q-input v-model="localForm.kode" label="Kode" outlined dense :rules="[
-          (v) => !!v || 'Kode wajib diisi',
-          (v) => /^[A-Z0-9_-]+$/.test(v) || 'Hanya huruf besar, angka, - dan _',
-        ]" hint="Contoh: UTS, UAS, UH, SUSULAN" @update:model-value="onKodeChange" />
+        <q-input
+          v-model="localForm.kode"
+          label="Kode"
+          outlined
+          dense
+          :rules="[
+            (v) => !!v || 'Kode wajib diisi',
+            (v) => /^[A-Z0-9_-]+$/.test(v) || 'Hanya huruf besar, angka, - dan _',
+          ]"
+          hint="Contoh: UTS, UAS, UH, SUSULAN"
+          @update:model-value="onKodeChange"
+        />
 
-        <q-input v-model="localForm.nama" label="Nama Jenis Ujian" outlined dense
-          :rules="[(v) => !!v || 'Nama wajib diisi']" hint="Contoh: Ujian Tengah Semester" />
+        <q-input
+          v-model="localForm.nama"
+          label="Nama Jenis Ujian"
+          outlined
+          dense
+          :rules="[(v) => !!v || 'Nama wajib diisi']"
+          hint="Contoh: Ujian Tengah Semester"
+        />
 
-        <q-input v-model="localForm.deskripsi" label="Deskripsi (opsional)" type="textarea" outlined autogrow
-          :rows="2" />
+        <q-input
+          v-model="localForm.deskripsi"
+          label="Deskripsi (opsional)"
+          type="textarea"
+          outlined
+          autogrow
+          :rows="2"
+        />
       </q-card-section>
 
       <q-card-actions align="right" class="q-pb-md q-pr-md">
         <q-btn flat label="Batal" color="grey-7" v-close-popup />
-        <q-btn color="primary" :label="isEditing ? 'Simpan Perubahan' : 'Simpan'" :loading="submitting"
-          :disable="!canSubmitInternal" @click="onSubmit" />
+        <q-btn
+          color="primary"
+          :label="isEditing ? 'Simpan Perubahan' : 'Simpan'"
+          :loading="submitting"
+          :disable="!canSubmitInternal"
+          @click="onSubmit"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>

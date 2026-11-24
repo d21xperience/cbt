@@ -22,11 +22,17 @@ const (
 )
 
 type AdminLoginUseCase struct {
-	adminDB *repository.AdminDB
+	adminDB         *repository.AdminDB // tenant DB (legacy)
+	platformAdminDB *repository.AdminDB // FASE 3: platform DB (cross-tenant)
 }
 
 func NewAdminLoginUseCase(adminDB *repository.AdminDB) *AdminLoginUseCase {
 	return &AdminLoginUseCase{adminDB: adminDB}
+}
+
+// NewAdminLoginUseCaseFull — FASE 3: dengan platform DB fallback.
+func NewAdminLoginUseCaseFull(adminDB, platformAdminDB *repository.AdminDB) *AdminLoginUseCase {
+	return &AdminLoginUseCase{adminDB: adminDB, platformAdminDB: platformAdminDB}
 }
 
 type AdminLoginResult struct {
@@ -37,12 +43,22 @@ type AdminLoginResult struct {
 }
 
 func (uc *AdminLoginUseCase) Login(ctx context.Context, tenantID, username, password string) (*AdminLoginResult, error) {
+	// 1. Coba tenant DB dulu (kompatibilitas dev tenant)
 	admin, err := uc.adminDB.FindByUsername(ctx, tenantID, username)
 	if err != nil {
 		return nil, err
 	}
+
+	// 2. Fallback ke platform DB jika tidak ditemukan & platformAdminDB tersedia
+	if admin == nil && uc.platformAdminDB != nil {
+		admin, err = uc.platformAdminDB.FindByUsername(ctx, tenantID, username)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if admin == nil {
-		// tetap jalankan bcrypt dummy untuk timing-attack mitigation
+		// timing-attack mitigation
 		_ = bcrypt.CompareHashAndPassword([]byte("$2a$10$xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"), []byte(password))
 		return nil, ErrInvalidCredentials
 	}
@@ -71,7 +87,6 @@ func (uc *AdminLoginUseCase) LoginSuperAdmin(ctx context.Context, username, pass
 	return res, nil
 }
 
-// Dipakai oleh cmd/seed
 func HashPassword(plain string) (string, error) {
 	b, err := bcrypt.GenerateFromPassword([]byte(plain), bcrypt.DefaultCost)
 	return string(b), err

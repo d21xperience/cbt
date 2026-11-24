@@ -9,7 +9,7 @@ export const mockVps = [
     package: 'VPS 4GB / 2 vCPU',
     biaya_bulanan: 400000,
     tanggal_sewa: '2026-01-15',
-    durasi_sewa: 12,                    // ← BARU (1 tahun)
+    durasi_sewa: 12, // ← BARU (1 tahun)
     tanggal_expiry: '2027-01-15',
     notes: 'Server utama CBT Engine',
   },
@@ -19,7 +19,7 @@ export const mockVps = [
     package: 'VPS 2GB / 1 vCPU',
     biaya_bulanan: 200000,
     tanggal_sewa: '2026-07-10',
-    durasi_sewa: 3,                     // ← BARU (3 bulan)
+    durasi_sewa: 3, // ← BARU (3 bulan)
     tanggal_expiry: '2026-10-10',
     notes: 'Backup & staging',
   },
@@ -29,7 +29,7 @@ export const mockVps = [
     package: 'VPS 1GB / 1 vCPU',
     biaya_bulanan: 150000,
     tanggal_sewa: '2026-06-15',
-    durasi_sewa: 3,                     // ← BARU
+    durasi_sewa: 3, // ← BARU
     tanggal_expiry: '2026-09-15',
     notes: 'Expired — perlu perpanjangan atau migrasi',
   },
@@ -42,7 +42,7 @@ export const mockDomains = [
     registrar: 'Namecheap',
     biaya_tahunan: 180000,
     tanggal_registrasi: '2025-03-01',
-    durasi_sewa: 24,                    // ← BARU (2 tahun)
+    durasi_sewa: 24, // ← BARU (2 tahun)
     tanggal_expiry: '2027-03-01',
     notes: 'Domain utama platform',
   },
@@ -52,7 +52,7 @@ export const mockDomains = [
     registrar: 'IDCloudHost',
     biaya_tahunan: 150000,
     tanggal_registrasi: '2024-11-10',
-    durasi_sewa: 24,                    // ← BARU (2 tahun)
+    durasi_sewa: 24, // ← BARU (2 tahun)
     tanggal_expiry: '2026-11-10',
     notes: 'Backup domain',
   },
@@ -65,7 +65,7 @@ export const mockTlsCerts = [
     issuer: "Let's Encrypt",
     tipe: 'wildcard',
     tanggal_issue: '2026-06-25',
-    durasi_sewa: 3,                     // ← BARU (3 bulan)
+    durasi_sewa: 3, // ← BARU (3 bulan)
     tanggal_expiry: '2026-09-25',
     notes: 'Auto-renew via certbot',
   },
@@ -75,7 +75,7 @@ export const mockTlsCerts = [
     issuer: "Let's Encrypt",
     tipe: 'single',
     tanggal_issue: '2026-08-15',
-    durasi_sewa: 3,                     // ← BARU
+    durasi_sewa: 3, // ← BARU
     tanggal_expiry: '2026-11-15',
     notes: '',
   },
@@ -85,7 +85,7 @@ export const mockTlsCerts = [
     issuer: 'Cloudflare Origin CA',
     tipe: 'single',
     tanggal_issue: '2026-06-10',
-    durasi_sewa: 3,                     // ← BARU
+    durasi_sewa: 3, // ← BARU
     tanggal_expiry: '2026-09-10',
     notes: 'Expired — perlu reissue',
   },

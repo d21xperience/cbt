@@ -7,7 +7,13 @@
           <q-icon name="shield" class="q-mr-sm" color="primary" />
           Dashboard Proktor
         </div>
-        <q-chip dense color="blue-grey-1" text-color="blue-grey-9" icon="assignment_ind" class="q-ml-md">
+        <q-chip
+          dense
+          color="blue-grey-1"
+          text-color="blue-grey-9"
+          icon="assignment_ind"
+          class="q-ml-md"
+        >
           Sesi yang ditugaskan
         </q-chip>
       </div>
@@ -15,8 +21,13 @@
     </div>
 
     <!-- Profile Card -->
-    <q-card v-if="profile" flat bordered class="q-mb-md"
-      style="background: linear-gradient(135deg, #1976d2 0%, #0d47a1 100%)">
+    <q-card
+      v-if="profile"
+      flat
+      bordered
+      class="q-mb-md"
+      style="background: linear-gradient(135deg, #1976d2 0%, #0d47a1 100%)"
+    >
       <q-card-section class="text-white">
         <div class="row items-center">
           <q-avatar size="56px" color="white" text-color="primary" icon="person" />
@@ -24,19 +35,23 @@
             <div class="text-h6 text-weight-bold">{{ profile.name || 'Guru' }}</div>
             <div class="text-caption text-blue-2 q-mt-xs">
               <q-icon name="school" size="xs" class="q-mr-xs" />
-              <span v-if="isHomeroomTeacher">
-                Wali Kelas {{ homeroomClass?.name }}
-              </span>
+              <span v-if="isHomeroomTeacher"> Wali Kelas {{ homeroomClass?.name }} </span>
               <span v-else>Guru Mata Pelajaran</span>
               <template v-if="teachingSubjects.length > 0">
                 <span> · </span>
-                <span>Guru {{teachingSubjects.map((s) => s.name).join(', ')}}</span>
+                <span>Guru {{ teachingSubjects.map((s) => s.name).join(', ') }}</span>
               </template>
             </div>
           </div>
           <q-space />
-          <q-chip v-if="isHomeroomTeacher" color="white" text-color="primary" icon="verified" dense
-            class="text-weight-bold">
+          <q-chip
+            v-if="isHomeroomTeacher"
+            color="white"
+            text-color="primary"
+            icon="verified"
+            dense
+            class="text-weight-bold"
+          >
             WALI KELAS
           </q-chip>
         </div>
@@ -90,20 +105,48 @@
         </div>
         <div class="row q-col-gutter-sm">
           <div class="col-6 col-md-3">
-            <q-btn color="primary" icon="lock_open" label="Buka Blok" :to="{ name: 'proctor-unlock' }"
-              class="full-width" no-caps unelevated />
+            <q-btn
+              color="primary"
+              icon="lock_open"
+              label="Buka Blok"
+              :to="{ name: 'proctor-unlock' }"
+              class="full-width"
+              no-caps
+              unelevated
+            />
           </div>
           <div class="col-6 col-md-3">
-            <q-btn color="teal" icon="quiz" label="Kelola Soal" :to="{ name: 'admin-questions' }" class="full-width"
-              no-caps unelevated />
+            <q-btn
+              color="teal"
+              icon="quiz"
+              label="Kelola Soal"
+              :to="{ name: 'admin-questions' }"
+              class="full-width"
+              no-caps
+              unelevated
+            />
           </div>
           <div class="col-6 col-md-3">
-            <q-btn color="indigo" icon="vpn_key" label="Token Ujian" :to="{ name: 'admin-token-display' }"
-              class="full-width" no-caps unelevated />
+            <q-btn
+              color="indigo"
+              icon="vpn_key"
+              label="Token Ujian"
+              :to="{ name: 'admin-token-display' }"
+              class="full-width"
+              no-caps
+              unelevated
+            />
           </div>
           <div v-if="isHomeroomTeacher" class="col-6 col-md-3">
-            <q-btn color="deep-purple" icon="payments" label="Tunggakan" :to="{ name: 'proctor-tunggakan' }"
-              class="full-width" no-caps unelevated />
+            <q-btn
+              color="deep-purple"
+              icon="payments"
+              label="Tunggakan"
+              :to="{ name: 'proctor-tunggakan' }"
+              class="full-width"
+              no-caps
+              unelevated
+            />
           </div>
         </div>
       </q-card-section>
@@ -122,12 +165,26 @@
         </div>
         <div class="row q-col-gutter-sm">
           <div class="col-12 col-md-6">
-            <q-btn color="deep-purple" icon="payments" label="Lihat Tunggakan Kelas" :to="{ name: 'proctor-tunggakan' }"
-              class="full-width" no-caps outline />
+            <q-btn
+              color="deep-purple"
+              icon="payments"
+              label="Lihat Tunggakan Kelas"
+              :to="{ name: 'proctor-tunggakan' }"
+              class="full-width"
+              no-caps
+              outline
+            />
           </div>
           <div class="col-12 col-md-6">
-            <q-btn color="indigo" icon="checklist" label="Peserta & Non-Peserta Ujian"
-              :to="{ name: 'proctor-peserta-kelas' }" class="full-width" no-caps outline />
+            <q-btn
+              color="indigo"
+              icon="checklist"
+              label="Peserta & Non-Peserta Ujian"
+              :to="{ name: 'proctor-peserta-kelas' }"
+              class="full-width"
+              no-caps
+              outline
+            />
           </div>
         </div>
       </q-card-section>
@@ -169,11 +226,21 @@
           <q-separator />
 
           <q-card-actions>
-            <q-btn flat color="primary" icon="visibility" label="Monitor Kelas"
-              :to="{ name: 'proctor-monitoring', params: { sessionId: s.session_id } }" />
+            <q-btn
+              flat
+              color="primary"
+              icon="visibility"
+              label="Monitor Kelas"
+              :to="{ name: 'proctor-monitoring', params: { sessionId: s.session_id } }"
+            />
             <q-space />
-            <q-btn flat color="warning" icon="vpn_key" label="Lihat Token"
-              :to="{ name: 'admin-token-display', query: { session_id: s.session_id } }" />
+            <q-btn
+              flat
+              color="warning"
+              icon="vpn_key"
+              label="Lihat Token"
+              :to="{ name: 'admin-token-display', query: { session_id: s.session_id } }"
+            />
           </q-card-actions>
         </q-card>
       </div>
@@ -189,13 +256,8 @@ import { useProctorProfile } from '@/composables/proctor/useProctorProfile'
 const loading = ref(false)
 const sessions = ref([])
 
-const {
-  fetchProfile,
-  profile,
-  isHomeroomTeacher,
-  homeroomClass,
-  teachingSubjects,
-} = useProctorProfile()
+const { fetchProfile, profile, isHomeroomTeacher, homeroomClass, teachingSubjects } =
+  useProctorProfile()
 
 // ── Computed
 const activeSessionCount = computed(

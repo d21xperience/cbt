@@ -12,11 +12,23 @@
             <q-input v-model="form.nisn" label="NISN" outlined dense />
           </div>
           <div class="col-12 col-md-5">
-            <q-input v-model="form.reason" label="Alasan blokir" outlined dense placeholder="Tunggakan SPP 2 bulan" />
+            <q-input
+              v-model="form.reason"
+              label="Alasan blokir"
+              outlined
+              dense
+              placeholder="Tunggakan SPP 2 bulan"
+            />
           </div>
           <div class="col-12 col-md-3">
-            <q-btn color="negative" icon="lock" label="Blokir" class="full-width" :loading="submitting"
-              @click="block" />
+            <q-btn
+              color="negative"
+              icon="lock"
+              label="Blokir"
+              class="full-width"
+              :loading="submitting"
+              @click="block"
+            />
           </div>
         </div>
       </q-card-section>
@@ -28,7 +40,14 @@
         <q-table :rows="list" :columns="columns" row-key="nisn" flat dense :loading="loading">
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
-              <q-btn flat color="positive" icon="lock_open" label="Unblock" size="sm" @click="unblock(props.row)" />
+              <q-btn
+                flat
+                color="positive"
+                icon="lock_open"
+                label="Unblock"
+                size="sm"
+                @click="unblock(props.row)"
+              />
             </q-td>
           </template>
         </q-table>
@@ -60,7 +79,11 @@ const load = async () => {
   try {
     const { data } = await PaymentService.getBlockedList()
     list.value = data.data || []
-  } catch (e) { console.error(e) } finally { loading.value = false }
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loading.value = false
+  }
 }
 
 const block = async () => {
@@ -73,7 +96,9 @@ const block = async () => {
     await load()
   } catch (e) {
     $q.notify({ type: 'negative', message: e.response?.data?.error || 'Gagal' })
-  } finally { submitting.value = false }
+  } finally {
+    submitting.value = false
+  }
 }
 
 const unblock = async (row) => {

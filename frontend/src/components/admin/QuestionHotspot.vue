@@ -13,8 +13,14 @@
     <!-- Upload image -->
     <q-card flat bordered class="bg-white q-mb-md">
       <q-card-section>
-        <q-input :model-value="imageUrl" label="URL Gambar" outlined dense
-          hint="Upload base64 (max 1 MB) atau masukkan URL" @update:model-value="$emit('update:imageUrl', $event)">
+        <q-input
+          :model-value="imageUrl"
+          label="URL Gambar"
+          outlined
+          dense
+          hint="Upload base64 (max 1 MB) atau masukkan URL"
+          @update:model-value="$emit('update:imageUrl', $event)"
+        >
           <template v-slot:prepend>
             <q-icon name="image" />
           </template>
@@ -22,7 +28,15 @@
             <q-btn flat round dense icon="upload_file" color="primary" @click="pickFile">
               <q-tooltip>Upload gambar</q-tooltip>
             </q-btn>
-            <q-btn v-if="imageUrl" flat round dense icon="clear" color="grey-6" @click="$emit('update:imageUrl', '')">
+            <q-btn
+              v-if="imageUrl"
+              flat
+              round
+              dense
+              icon="clear"
+              color="grey-6"
+              @click="$emit('update:imageUrl', '')"
+            >
               <q-tooltip>Clear</q-tooltip>
             </q-btn>
           </template>
@@ -36,13 +50,19 @@
         <img :src="imageUrl" class="hotspot-image" />
 
         <!-- Markers -->
-        <div v-for="(m, idx) in modelValue" :key="m.id" class="hotspot-marker"
-          :class="m.is_correct ? 'hotspot-marker--correct' : 'hotspot-marker--wrong'" :style="{
+        <div
+          v-for="(m, idx) in modelValue"
+          :key="m.id"
+          class="hotspot-marker"
+          :class="m.is_correct ? 'hotspot-marker--correct' : 'hotspot-marker--wrong'"
+          :style="{
             left: `${m.x}%`,
             top: `${m.y}%`,
             width: `${m.radius * 2}%`,
             height: `${m.radius * 2}%`,
-          }" @click.stop="onMarkerClick(m.id)">
+          }"
+          @click.stop="onMarkerClick(m.id)"
+        >
           <div class="hotspot-marker-label">{{ m.label || idx + 1 }}</div>
         </div>
       </div>
@@ -69,15 +89,29 @@
             <q-badge :color="m.is_correct ? 'positive' : 'negative'" :label="idx + 1" />
           </q-item-section>
           <q-item-section>
-            <q-input :model-value="m.label" placeholder="Label (mis. Jantung)" outlined dense
-              @update:model-value="(v) => onUpdateLabel(m.id, v)" />
+            <q-input
+              :model-value="m.label"
+              placeholder="Label (mis. Jantung)"
+              outlined
+              dense
+              @update:model-value="(v) => onUpdateLabel(m.id, v)"
+            />
           </q-item-section>
           <q-item-section side style="min-width: 130px">
-            <q-btn-toggle :model-value="m.is_correct" :options="[
-              { label: 'BENAR', value: true },
-              { label: 'SALAH', value: false },
-            ]" no-caps dense unelevated toggle-color="positive" color="grey-3" text-color="grey-8"
-              @update:model-value="(v) => onSetCorrect(m.id, v)" />
+            <q-btn-toggle
+              :model-value="m.is_correct"
+              :options="[
+                { label: 'BENAR', value: true },
+                { label: 'SALAH', value: false },
+              ]"
+              no-caps
+              dense
+              unelevated
+              toggle-color="positive"
+              color="grey-3"
+              text-color="grey-8"
+              @update:model-value="(v) => onSetCorrect(m.id, v)"
+            />
           </q-item-section>
           <q-item-section side>
             <q-btn flat round dense icon="close" color="grey-6" @click="onRemove(m.id)">
@@ -88,7 +122,13 @@
       </q-list>
     </div>
 
-    <input ref="fileInput" type="file" accept="image/png,image/jpeg,image/webp" hidden @change="onFileSelected" />
+    <input
+      ref="fileInput"
+      type="file"
+      accept="image/png,image/jpeg,image/webp"
+      hidden
+      @change="onFileSelected"
+    />
   </div>
 </template>
 
@@ -109,9 +149,7 @@ const canvasRef = ref(null)
 const MAX_SIZE = 1 * 1024 * 1024
 const DEFAULT_RADIUS = 4 // persen
 
-const correctCount = computed(() =>
-  props.modelValue.filter((m) => m.is_correct).length,
-)
+const correctCount = computed(() => props.modelValue.filter((m) => m.is_correct).length)
 
 const pickFile = () => fileInput.value?.click()
 
@@ -154,21 +192,20 @@ const onMarkerClick = (id) => {
 }
 
 const onUpdateLabel = (id, label) => {
-  const updated = props.modelValue.map((m) =>
-    m.id === id ? { ...m, label } : m,
-  )
+  const updated = props.modelValue.map((m) => (m.id === id ? { ...m, label } : m))
   emit('update:modelValue', updated)
 }
 
 const onSetCorrect = (id, value) => {
-  const updated = props.modelValue.map((m) =>
-    m.id === id ? { ...m, is_correct: value } : m,
-  )
+  const updated = props.modelValue.map((m) => (m.id === id ? { ...m, is_correct: value } : m))
   emit('update:modelValue', updated)
 }
 
 const onRemove = (id) => {
-  emit('update:modelValue', props.modelValue.filter((m) => m.id !== id))
+  emit(
+    'update:modelValue',
+    props.modelValue.filter((m) => m.id !== id),
+  )
 }
 </script>
 

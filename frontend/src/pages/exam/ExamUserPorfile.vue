@@ -6,10 +6,15 @@
       <q-card flat bordered class="shadow-1 q-mb-md">
         <q-card-section class="row items-center q-pb-none">
           <q-avatar size="60px" class="q-mr-md shadow-1">
-            <img :src="student.avatar || 'https://cdn.quasar.dev/img/avatar.png'" alt="Foto Siswa">
+            <img
+              :src="student.avatar || 'https://cdn.quasar.dev/img/avatar.png'"
+              alt="Foto Siswa"
+            />
           </q-avatar>
           <div>
-            <div class="text-subtitle1 text-weight-bold text-grey-9">{{ student?.name || 'Siswa' }}</div>
+            <div class="text-subtitle1 text-weight-bold text-grey-9">
+              {{ student?.name || 'Siswa' }}
+            </div>
             <div class="text-caption text-grey-7">NIS: {{ student?.nisn || '-' }}</div>
             <q-badge color="blue-2" text-color="blue-9" class="q-mt-xs q-px-sm text-weight-bold">
               {{ student?.class || 'Kelas' }}
@@ -56,6 +61,4 @@ import { useAuthStore } from '@/stores/auth'
 const authStore = useAuthStore()
 
 const student = computed(() => authStore.getStudent)
-
-
 </script>

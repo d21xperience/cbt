@@ -19,7 +19,11 @@ export const examTypesHandlers = (mock) => {
 
   // List
   mock.onGet('/admin/exam-types').reply(() => {
-    return [200, { status: 'ok', data: cloneMock(examTypes), count: examTypes.length }, { delay: DELAY }]
+    return [
+      200,
+      { status: 'ok', data: cloneMock(examTypes), count: examTypes.length },
+      { delay: DELAY },
+    ]
   })
 
   // Create
@@ -31,7 +35,11 @@ export const examTypesHandlers = (mock) => {
       return [400, { error: 'validation_failed', message: 'kode & nama wajib' }, { delay: DELAY }]
     }
     if (examTypes.find((t) => t.kode.toLowerCase() === body.kode.toLowerCase())) {
-      return [409, { error: 'kode_taken', message: `Kode '${body.kode}' sudah ada` }, { delay: DELAY }]
+      return [
+        409,
+        { error: 'kode_taken', message: `Kode '${body.kode}' sudah ada` },
+        { delay: DELAY },
+      ]
     }
 
     const newType = {
@@ -54,8 +62,15 @@ export const examTypesHandlers = (mock) => {
     if (idx === -1) return [404, { error: 'not_found' }, { delay: DELAY }]
 
     if (body.kode) {
-      const dup = examTypes.find((t) => t.id !== id && t.kode.toLowerCase() === body.kode.toLowerCase())
-      if (dup) return [409, { error: 'kode_taken', message: `Kode '${body.kode}' sudah ada` }, { delay: DELAY }]
+      const dup = examTypes.find(
+        (t) => t.id !== id && t.kode.toLowerCase() === body.kode.toLowerCase(),
+      )
+      if (dup)
+        return [
+          409,
+          { error: 'kode_taken', message: `Kode '${body.kode}' sudah ada` },
+          { delay: DELAY },
+        ]
     }
 
     examTypes[idx] = {
@@ -79,7 +94,10 @@ export const examTypesHandlers = (mock) => {
     if (['UAS', 'UTS'].includes(examTypes[idx].kode)) {
       return [
         409,
-        { error: 'type_in_use', message: `Jenis ujian '${examTypes[idx].kode}' adalah default dan tidak dapat dihapus.` },
+        {
+          error: 'type_in_use',
+          message: `Jenis ujian '${examTypes[idx].kode}' adalah default dan tidak dapat dihapus.`,
+        },
         { delay: DELAY },
       ]
     }
@@ -96,16 +114,31 @@ export const examTypesHandlers = (mock) => {
 
     if (isPreview) {
       const preview = [
-        { _rowNumber: 1, kode: 'PTS', nama: 'Penilaian Tengah Semester', deskripsi: 'PTS Kurikulum Merdeka', _error: null },
-        { _rowNumber: 2, kode: 'PAS', nama: 'Penilaian Akhir Semester',  deskripsi: 'PAS Kurikulum Merdeka', _error: null },
-        { _rowNumber: 3, kode: '',    nama: 'Tanpa Kode',                deskripsi: '',                       _error: 'Kode wajib' },
+        {
+          _rowNumber: 1,
+          kode: 'PTS',
+          nama: 'Penilaian Tengah Semester',
+          deskripsi: 'PTS Kurikulum Merdeka',
+          _error: null,
+        },
+        {
+          _rowNumber: 2,
+          kode: 'PAS',
+          nama: 'Penilaian Akhir Semester',
+          deskripsi: 'PAS Kurikulum Merdeka',
+          _error: null,
+        },
+        { _rowNumber: 3, kode: '', nama: 'Tanpa Kode', deskripsi: '', _error: 'Kode wajib' },
       ]
       return [200, { status: 'ok', data: preview, errors: [] }, { delay: DELAY }]
     }
 
     let body = {}
-    try { body = typeof config.data === 'string' ? JSON.parse(config.data) : config.data || {} }
-    catch { return [400, { error: 'invalid_json' }, { delay: DELAY }] }
+    try {
+      body = typeof config.data === 'string' ? JSON.parse(config.data) : config.data || {}
+    } catch {
+      return [400, { error: 'invalid_json' }, { delay: DELAY }]
+    }
 
     const rows = Array.isArray(body.rows) ? body.rows : []
     let imported = 0

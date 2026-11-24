@@ -2,11 +2,9 @@
 .thumbs.db
 node_modules
 loadtest/results/
-*.json
 # .env files
 .env*
 .exe
-.sh
 # Quasar core related directories
 .quasar
 /dist
@@ -31,8 +29,6 @@ backend/data/
 *.db-wal
 /tmp
 *.txt
-Makefile# Ignore backup, scripts, and db files
 *.bak*
-*.db
 *.sh
 backend/bin/

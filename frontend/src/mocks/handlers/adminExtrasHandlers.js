@@ -13,7 +13,6 @@ let paymentBlocked = []
 export const resetAdminExtrasMockData = () => {
   schedules = []
   paymentBlocked = []
-  
 }
 
 export const adminExtrasHandlers = (mock) => {
@@ -108,7 +107,7 @@ export const adminExtrasHandlers = (mock) => {
     },
     { delay: DELAY },
   ])
-    // ── Archive (Batch B1) — password verification
+  // ── Archive (Batch B1) — password verification
   let archiveHistory = [
     {
       id: 'arch-001',

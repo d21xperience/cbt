@@ -6,8 +6,14 @@
       <q-btn color="primary" icon="add" :label="addLabel" no-caps dense @click="$emit('add')" />
     </q-card-section>
 
-    <q-table :rows="items" :columns="columns" row-key="id" flat :loading="loading"
-      :no-data-label="emptyLabel">
+    <q-table
+      :rows="items"
+      :columns="columns"
+      row-key="id"
+      flat
+      :loading="loading"
+      :no-data-label="emptyLabel"
+    >
       <template v-slot:body-cell-biaya="props">
         <q-td :props="props">
           {{ formatRupiah(props.row.biaya_bulanan ?? props.row.biaya_tahunan) }}
@@ -35,7 +41,10 @@
       <template v-slot:body-cell-expiry="props">
         <q-td :props="props">
           <div class="text-caption">{{ formatDate(props.row.tanggal_expiry) }}</div>
-          <q-badge :color="expiryColor(props.row.tanggal_expiry)" :label="expiryLabel(props.row.tanggal_expiry)" />
+          <q-badge
+            :color="expiryColor(props.row.tanggal_expiry)"
+            :label="expiryLabel(props.row.tanggal_expiry)"
+          />
         </q-td>
       </template>
 
@@ -44,7 +53,14 @@
           <q-btn flat round dense icon="edit" color="primary" @click="$emit('edit', props.row)">
             <q-tooltip>Edit</q-tooltip>
           </q-btn>
-          <q-btn flat round dense icon="delete" color="negative" @click="$emit('delete', props.row)">
+          <q-btn
+            flat
+            round
+            dense
+            icon="delete"
+            color="negative"
+            @click="$emit('delete', props.row)"
+          >
             <q-tooltip>Hapus</q-tooltip>
           </q-btn>
         </q-td>

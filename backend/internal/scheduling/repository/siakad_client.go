@@ -11,7 +11,7 @@ import (
 )
 
 type SiakadClient struct {
-	BaseURL    string // URL Cloudflare Tunnel SIAKAD, misal: https://siakad.smkn1.sch.id
+	BaseURL    string
 	HTTPClient *http.Client
 }
 

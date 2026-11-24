@@ -11,14 +11,23 @@
         </div>
       </div>
       <div class="q-gutter-sm">
-        <q-btn outline color="primary" icon="upload_file" label="Import CSV" no-caps @click="openImportDialog" />
+        <q-btn
+          outline
+          color="primary"
+          icon="upload_file"
+          label="Import CSV"
+          no-caps
+          @click="openImportDialog"
+        />
         <q-btn color="primary" icon="add" label="Tambah Siswa" no-caps @click="openCreateDialog" />
       </div>
     </div>
 
     <q-banner
       v-if="errorState === 'endpoint_not_ready'"
-      dense rounded class="bg-blue-grey-2 text-blue-grey-9 q-mb-md"
+      dense
+      rounded
+      class="bg-blue-grey-2 text-blue-grey-9 q-mb-md"
     >
       <template v-slot:avatar><q-icon name="construction" /></template>
       Endpoint belum tersedia di backend. Menampilkan data mock.
@@ -31,15 +40,47 @@
             <template v-slot:prepend><q-icon name="search" /></template>
           </q-input>
         </div>
-        <div class="col-12 col-md-3">
-          <q-select v-model="filterKelas" :options="classOptions" label="Kelas" outlined dense emit-value map-options clearable />
-        </div>
+
         <div class="col-12 col-md-2">
-          <q-select v-model="filterGender" :options="genderOptions" label="JK" outlined dense emit-value map-options clearable />
+          <q-select
+            v-model="filterTingkat"
+            :options="tingkatOptions"
+            label="Tingkat"
+            outlined
+            dense
+            emit-value
+            map-options
+            clearable
+          />
         </div>
         <div class="col-12 col-md-3">
-          <q-select v-model="filterStatus" :options="statusOptions" label="Status" outlined dense emit-value map-options clearable />
+          <q-select
+            v-model="filterKelas"
+            :options="classOptions"
+            label="Kelas"
+            outlined
+            dense
+            emit-value
+            map-options
+            clearable
+          />
         </div>
+        <!-- <div class="col-12 col-md-2">
+          <q-select v-model="filterGender" :options="genderOptions" label="JK" outlined dense emit-value map-options
+            clearable />
+        </div> -->
+        <!-- <div class="col-12 col-md-3">
+          <q-select
+            v-model="filterStatus"
+            :options="statusOptions"
+            label="Status"
+            outlined
+            dense
+            emit-value
+            map-options
+            clearable
+          />
+        </div> -->
       </q-card-section>
     </q-card>
 
@@ -56,14 +97,18 @@
           <q-td :props="props">
             <div class="text-weight-medium">{{ props.row.nama }}</div>
             <div class="text-caption text-grey-6">
-              NISN: {{ props.row.nisn }}<span v-if="props.row.nis"> · NIS: {{ props.row.nis }}</span>
+              NISN: {{ props.row.nisn
+              }}<span v-if="props.row.nis"> · NIS: {{ props.row.nis }}</span>
             </div>
           </q-td>
         </template>
 
         <template v-slot:body-cell-jenis_kelamin="props">
           <q-td :props="props" class="text-center">
-            <q-badge :color="props.row.jenis_kelamin === 'L' ? 'blue' : 'pink'" :label="props.row.jenis_kelamin || '-'" />
+            <q-badge
+              :color="props.row.jenis_kelamin === 'L' ? 'blue' : 'pink'"
+              :label="props.row.jenis_kelamin || '-'"
+            />
           </q-td>
         </template>
 
@@ -77,7 +122,10 @@
 
         <template v-slot:body-cell-status="props">
           <q-td :props="props" class="text-center">
-            <q-badge :color="props.row.status === 'AKTIF' ? 'positive' : 'grey-6'" :label="props.row.status" />
+            <q-badge
+              :color="props.row.status === 'AKTIF' ? 'positive' : 'grey-6'"
+              :label="props.row.status"
+            />
           </q-td>
         </template>
 
@@ -86,7 +134,14 @@
             <q-btn flat round dense icon="edit" color="primary" @click="openEditDialog(props.row)">
               <q-tooltip>Edit</q-tooltip>
             </q-btn>
-            <q-btn flat round dense icon="delete" color="negative" @click="confirmDelete(props.row)">
+            <q-btn
+              flat
+              round
+              dense
+              icon="delete"
+              color="negative"
+              @click="confirmDelete(props.row)"
+            >
               <q-tooltip>Hapus</q-tooltip>
             </q-btn>
           </q-td>
@@ -134,11 +189,13 @@ const {
   errorState,
   searchQuery,
   filterKelas,
-  filterStatus,
-  filterGender,
+  // filterStatus,
+  // filterGender,
+  filterTingkat, // cek
   filteredStudents,
   statusOptions,
   genderOptions,
+  tingkatOptions, //cek
   classOptions,
   dialogOpen,
   isEditing,
@@ -162,10 +219,24 @@ const {
 } = useStudents()
 
 const columns = [
-  { name: 'nama', label: 'Nama / NISN', field: 'nama', align: 'left', style: 'min-width: 240px' },
-  { name: 'jenis_kelamin', label: 'JK', field: 'jenis_kelamin', align: 'center', style: 'width: 80px' },
-  { name: 'kelas_nama', label: 'Kelas', field: 'kelas_nama', align: 'left', style: 'min-width: 160px' },
-  { name: 'status', label: 'Status', field: 'status', align: 'center', style: 'width: 100px' },
+  { name: 'nama', label: 'Nama / NISN', field: 'nama', align: 'left', style: 'max-width: 190px' },
+  // { name: 'tanggal_lahir', label: 'Tanggal Lahir', field: 'tanggal_lahir', align: 'center', style: 'width: 100px' },
+  {
+    name: 'jenis_kelamin',
+    label: 'JK',
+    field: 'jenis_kelamin',
+    align: 'center',
+    style: 'width: 80px',
+  },
+  { name: 'tingkat', label: 'Tingkat', field: 'tingkat', align: 'center' },
+
+  {
+    name: 'kelas_nama',
+    label: 'Kelas',
+    field: 'kelas_nama',
+    align: 'left',
+    style: 'min-width: 160px',
+  },
   { name: 'actions', label: 'Aksi', align: 'center', style: 'width: 110px' },
 ]
 

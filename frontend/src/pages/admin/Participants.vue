@@ -9,19 +9,34 @@
     </div>
 
     <!-- Error banner -->
-    <q-banner v-if="errorState === 'endpoint_not_ready'" dense rounded class="bg-blue-grey-2 text-blue-grey-9 q-mb-md">
+    <q-banner
+      v-if="errorState === 'endpoint_not_ready'"
+      dense
+      rounded
+      class="bg-blue-grey-2 text-blue-grey-9 q-mb-md"
+    >
       <template v-slot:avatar>
         <q-icon name="construction" />
       </template>
       Endpoint data peserta belum tersedia di backend (Phase 6). Menampilkan data mock.
     </q-banner>
-    <q-banner v-else-if="errorState === 'network_error'" dense rounded class="bg-orange-1 text-orange-9 q-mb-md">
+    <q-banner
+      v-else-if="errorState === 'network_error'"
+      dense
+      rounded
+      class="bg-orange-1 text-orange-9 q-mb-md"
+    >
       <template v-slot:avatar>
         <q-icon name="wifi_off" color="orange" />
       </template>
       Koneksi terputus. Data terakhir tetap ditampilkan.
     </q-banner>
-    <q-banner v-else-if="errorState === 'server_error'" dense rounded class="bg-red-1 text-red-9 q-mb-md">
+    <q-banner
+      v-else-if="errorState === 'server_error'"
+      dense
+      rounded
+      class="bg-red-1 text-red-9 q-mb-md"
+    >
       <template v-slot:avatar>
         <q-icon name="error" color="red" />
       </template>
@@ -49,8 +64,15 @@
 
     <!-- Table -->
     <q-card>
-      <q-table :rows="filteredParticipants" :columns="columns" row-key="id" flat bordered :loading="loading"
-        no-data-label="Belum ada data peserta">
+      <q-table
+        :rows="filteredParticipants"
+        :columns="columns"
+        row-key="id"
+        flat
+        bordered
+        :loading="loading"
+        no-data-label="Belum ada data peserta"
+      >
         <template v-slot:body-cell-nama="props">
           <q-td :props="props">
             <div class="text-weight-medium">{{ props.row.nama || '-' }}</div>
@@ -71,8 +93,14 @@
 
         <template v-slot:body-cell-exam_password="props">
           <q-td :props="props" class="text-center">
-            <q-btn flat dense size="sm" color="primary" :icon="shownPwd[props.row.id] ? 'visibility_off' : 'visibility'"
-              @click="togglePwd(props.row.id)">
+            <q-btn
+              flat
+              dense
+              size="sm"
+              color="primary"
+              :icon="shownPwd[props.row.id] ? 'visibility_off' : 'visibility'"
+              @click="togglePwd(props.row.id)"
+            >
               <q-tooltip>{{ shownPwd[props.row.id] ? 'Sembunyikan' : 'Tampilkan' }}</q-tooltip>
             </q-btn>
             <code v-if="shownPwd[props.row.id]" class="q-ml-sm text-primary">
@@ -82,14 +110,27 @@
           </q-td>
         </template>
 
-
         <template v-slot:body-cell-actions="props">
           <q-td :props="props" class="text-center">
-            <q-btn flat round dense icon="lock_reset" color="orange" @click="confirmReset(props.row)">
+            <q-btn
+              flat
+              round
+              dense
+              icon="lock_reset"
+              color="orange"
+              @click="confirmReset(props.row)"
+            >
               <q-tooltip>Reset password</q-tooltip>
             </q-btn>
-            <q-btn v-if="props.row.source === 'EXTERNAL'" flat round dense icon="delete" color="negative"
-              @click="confirmDelete(props.row)">
+            <q-btn
+              v-if="props.row.source === 'EXTERNAL'"
+              flat
+              round
+              dense
+              icon="delete"
+              color="negative"
+              @click="confirmDelete(props.row)"
+            >
               <q-tooltip>Hapus peserta</q-tooltip>
             </q-btn>
           </q-td>
@@ -98,7 +139,6 @@
     </q-card>
 
     <!-- Import Dialog -->
-
   </q-page>
 </template>
 
@@ -109,14 +149,8 @@ import { useParticipants } from '@/composables/admin/useParticipants'
 
 const $q = useQuasar()
 
-const {
-  participants,
-  loading,
-  errorState,
-  filterSearch,
-  filteredParticipants,
-  resetPassword,
-} = useParticipants()
+const { participants, loading, errorState, filterSearch, filteredParticipants, resetPassword } =
+  useParticipants()
 
 const shownPwd = ref({})
 const togglePwd = (id) => {
@@ -126,7 +160,13 @@ const togglePwd = (id) => {
 const columns = [
   { name: 'nama', label: 'Nama / NISN', field: 'nama', align: 'left', style: 'min-width: 200px' },
   { name: 'kelas_nama', label: 'Kelas', field: 'kelas_nama', align: 'left', style: 'width: 140px' },
-  { name: 'exam_password', label: 'Password', field: 'exam_password', align: 'center', style: 'min-width: 160px' },
+  {
+    name: 'exam_password',
+    label: 'Password',
+    field: 'exam_password',
+    align: 'center',
+    style: 'min-width: 160px',
+  },
   { name: 'actions', label: 'Aksi', align: 'center', style: 'width: 110px' },
 ]
 

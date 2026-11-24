@@ -9,12 +9,30 @@
         <div class="text-caption text-grey-7">Jembatan Mapel × Kelas × Guru × Semester.</div>
       </div>
       <div class="q-gutter-sm">
-        <q-btn outline color="primary" icon="upload_file" label="Import Data" no-caps @click="openImportDialog" />
-        <q-btn color="primary" icon="add" label="Tambah Pembelajaran" no-caps @click="openCreateDialog" />
+        <q-btn
+          outline
+          color="primary"
+          icon="upload_file"
+          label="Import Data"
+          no-caps
+          @click="openImportDialog"
+        />
+        <q-btn
+          color="primary"
+          icon="add"
+          label="Tambah Pembelajaran"
+          no-caps
+          @click="openCreateDialog"
+        />
       </div>
     </div>
 
-    <q-banner v-if="errorState === 'endpoint_not_ready'" dense rounded class="bg-blue-grey-2 text-blue-grey-9 q-mb-md">
+    <q-banner
+      v-if="errorState === 'endpoint_not_ready'"
+      dense
+      rounded
+      class="bg-blue-grey-2 text-blue-grey-9 q-mb-md"
+    >
       <template v-slot:avatar><q-icon name="construction" /></template>
       Endpoint belum tersedia di backend. Menampilkan data mock.
     </q-banner>
@@ -27,15 +45,29 @@
           </q-input>
         </div>
         <div class="col-12 col-md-4">
-          <q-select v-model="filterClass" :options="classOptions" label="Kelas" outlined dense emit-value map-options
-            clearable />
+          <q-select
+            v-model="filterClass"
+            :options="classOptions"
+            label="Kelas"
+            outlined
+            dense
+            emit-value
+            map-options
+            clearable
+          />
         </div>
       </q-card-section>
     </q-card>
 
     <q-card flat bordered class="bg-white">
-      <q-table :rows="filteredLessons" :columns="columns" row-key="id" flat :loading="loading"
-        no-data-label="Belum ada pembelajaran">
+      <q-table
+        :rows="filteredLessons"
+        :columns="columns"
+        row-key="id"
+        flat
+        :loading="loading"
+        no-data-label="Belum ada pembelajaran"
+      >
         <template v-slot:body-cell-subject_nama="props">
           <q-td :props="props">
             <div class="text-weight-medium">{{ props.row.subject_nama || '-' }}</div>
@@ -57,15 +89,22 @@
               <q-icon name="person" size="xs" color="primary" class="q-mr-xs" />
               {{ props.row.teacher_nama || '-' }}
               <!-- ✅ Perbaikan deteksi tipe data SQLite (bisa 1 / true) -->
-              <q-badge v-if="Number(props.row.is_exam_author) === 1 || props.row.is_exam_author === true" color="orange"
-                class="q-ml-sm" label="Penyusun Soal" />
+              <q-badge
+                v-if="Number(props.row.is_exam_author) === 1 || props.row.is_exam_author === true"
+                color="orange"
+                class="q-ml-sm"
+                label="Penyusun Soal"
+              />
             </div>
           </q-td>
         </template>
 
         <template v-slot:body-cell-semester="props">
           <q-td :props="props" class="text-center">
-            <q-badge :color="props.row.semester === 'GANJIL' ? 'blue' : 'teal'" :label="props.row.semester" />
+            <q-badge
+              :color="props.row.semester === 'GANJIL' ? 'blue' : 'teal'"
+              :label="props.row.semester"
+            />
             <div class="text-caption text-grey-6 q-mt-xs">{{ props.row.academic_year }}</div>
           </q-td>
         </template>
@@ -75,7 +114,14 @@
             <q-btn flat round dense icon="edit" color="primary" @click="openEditDialog(props.row)">
               <q-tooltip>Edit</q-tooltip>
             </q-btn>
-            <q-btn flat round dense icon="delete" color="negative" @click="confirmDelete(props.row)">
+            <q-btn
+              flat
+              round
+              dense
+              icon="delete"
+              color="negative"
+              @click="confirmDelete(props.row)"
+            >
               <q-tooltip>Hapus</q-tooltip>
             </q-btn>
           </q-td>
@@ -84,14 +130,32 @@
     </q-card>
 
     <!-- ✅ Tambahkan prop lessons -->
-    <LessonFormDialog v-model="dialogOpen" :is-editing="isEditing" :initial-form="initialForm" :submitting="submitting"
-      :subject-options="subjectOptions" :class-options="classOptions" :teacher-options="teacherOptions"
-      :semester-options="semesterOptions" :lessons="lessons" @submit="submitForm" />
+    <LessonFormDialog
+      v-model="dialogOpen"
+      :is-editing="isEditing"
+      :initial-form="initialForm"
+      :submitting="submitting"
+      :subject-options="subjectOptions"
+      :class-options="classOptions"
+      :teacher-options="teacherOptions"
+      :semester-options="semesterOptions"
+      :lessons="lessons"
+      @submit="submitForm"
+    />
 
-    <LessonImportDialog v-model="importDialogOpen" :import-step="importStep" :import-preview="importPreview"
-      :importing="importing" :downloading-template="downloadingTemplate" :import-valid-count="importValidCount"
-      @update:import-step="importStep = $event" @download-template="downloadTemplate" @parse-import="onParseImport"
-      @confirm-import="confirmImport" @close="closeImportDialog" />
+    <LessonImportDialog
+      v-model="importDialogOpen"
+      :import-step="importStep"
+      :import-preview="importPreview"
+      :importing="importing"
+      :downloading-template="downloadingTemplate"
+      :import-valid-count="importValidCount"
+      @update:import-step="importStep = $event"
+      @download-template="downloadTemplate"
+      @parse-import="onParseImport"
+      @confirm-import="confirmImport"
+      @close="closeImportDialog"
+    />
   </q-page>
 </template>
 
@@ -136,9 +200,21 @@ const {
 } = useLessons()
 
 const columns = [
-  { name: 'subject_nama', label: 'Mata Pelajaran', field: 'subject_nama', align: 'left', sortable: true },
+  {
+    name: 'subject_nama',
+    label: 'Mata Pelajaran',
+    field: 'subject_nama',
+    align: 'left',
+    sortable: true,
+  },
   { name: 'class_nama', label: 'Kelas', field: 'class_nama', align: 'left', sortable: true },
-  { name: 'teacher_nama', label: 'Guru Pengampu', field: 'teacher_nama', align: 'left', sortable: true },
+  {
+    name: 'teacher_nama',
+    label: 'Guru Pengampu',
+    field: 'teacher_nama',
+    align: 'left',
+    sortable: true,
+  },
   { name: 'actions', label: 'Aksi', field: 'actions', align: 'center' },
 ]
 

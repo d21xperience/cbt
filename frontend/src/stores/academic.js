@@ -54,7 +54,7 @@ export const useAcademicStore = defineStore('academic', {
         const res = await AcademicPeriodService.list()
         const list = res?.data?.data || []
         const active = list.find((p) => p.is_active === true)
-        
+
         if (active) {
           // Paksa update ke periode aktif yang sebenarnya, abaikan cache lama
           this.setPeriod(active.academic_year, active.semester, active.id)

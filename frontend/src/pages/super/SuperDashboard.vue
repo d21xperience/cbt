@@ -8,34 +8,62 @@
           Monitoring beban komputasi VPS global dan lalu lintas Cloudflare Tunnel sekolah.
         </div>
       </div>
-      <q-btn flat dense round icon="refresh" color="primary" :loading="isRefreshing" @click="manualRefresh">
+      <q-btn
+        flat
+        dense
+        round
+        icon="refresh"
+        color="primary"
+        :loading="isRefreshing"
+        @click="manualRefresh"
+      >
         <q-tooltip>Refresh manual</q-tooltip>
       </q-btn>
     </div>
 
     <!-- Error state banner — muncul kalau errorState !== null -->
-    <q-banner v-if="errorState === 'endpoint_not_ready'" dense rounded class="bg-blue-grey-2 text-blue-grey-9 q-mb-md">
+    <q-banner
+      v-if="errorState === 'endpoint_not_ready'"
+      dense
+      rounded
+      class="bg-blue-grey-2 text-blue-grey-9 q-mb-md"
+    >
       <template v-slot:avatar>
         <q-icon name="construction" />
       </template>
       Dashboard stats belum tersedia dari backend (Phase 7+). Menampilkan data default.
     </q-banner>
 
-    <q-banner v-else-if="errorState === 'network_error'" dense rounded class="bg-orange-1 text-orange-9 q-mb-md">
+    <q-banner
+      v-else-if="errorState === 'network_error'"
+      dense
+      rounded
+      class="bg-orange-1 text-orange-9 q-mb-md"
+    >
       <template v-slot:avatar>
         <q-icon name="wifi_off" color="orange" />
       </template>
       Koneksi terputus. Data terakhir tetap ditampilkan. Polling akan mencoba lagi.
     </q-banner>
 
-    <q-banner v-else-if="errorState === 'server_error'" dense rounded class="bg-red-1 text-red-9 q-mb-md">
+    <q-banner
+      v-else-if="errorState === 'server_error'"
+      dense
+      rounded
+      class="bg-red-1 text-red-9 q-mb-md"
+    >
       <template v-slot:avatar>
         <q-icon name="error" color="red" />
       </template>
       Server error. Data terakhir tetap ditampilkan. Klik refresh untuk coba lagi.
     </q-banner>
 
-    <q-banner v-else-if="errorState === 'contract_mismatch'" dense rounded class="bg-purple-1 text-purple-9 q-mb-md">
+    <q-banner
+      v-else-if="errorState === 'contract_mismatch'"
+      dense
+      rounded
+      class="bg-purple-1 text-purple-9 q-mb-md"
+    >
       <template v-slot:avatar>
         <q-icon name="report" color="purple" />
       </template>
@@ -43,8 +71,11 @@
     </q-banner>
 
     <!-- Banner kritikal RAM / CPU -->
-    <q-banner v-if="cpuCritical || ramPercentage > 85" inline-actions
-      class="text-white bg-red-9 q-mb-lg rounded-borders flat">
+    <q-banner
+      v-if="cpuCritical || ramPercentage > 85"
+      inline-actions
+      class="text-white bg-red-9 q-mb-lg rounded-borders flat"
+    >
       <template v-slot:avatar>
         <q-icon name="report_problem" color="white" />
       </template>
@@ -112,7 +143,9 @@
     <div class="row q-col-gutter-md">
       <div class="col-12 col-md-6">
         <q-card flat bordered class="fit">
-          <q-card-section class="bg-white text-grey-9 text-weight-bold row items-center border-bottom">
+          <q-card-section
+            class="bg-white text-grey-9 text-weight-bold row items-center border-bottom"
+          >
             <q-icon name="memory" color="primary" size="sm" class="q-mr-xs" />
             Metrik Server Komputasi VPS
           </q-card-section>
@@ -126,8 +159,13 @@
                   {{ num(stats.vps_cpu_estimate) }}%
                 </span>
               </div>
-              <q-linear-progress :value="cpuPercent / 100" size="12px" :color="cpuCritical ? 'red' : 'primary'" stripe
-                rounded />
+              <q-linear-progress
+                :value="cpuPercent / 100"
+                size="12px"
+                :color="cpuCritical ? 'red' : 'primary'"
+                stripe
+                rounded
+              />
             </div>
 
             <!-- RAM Progress -->
@@ -135,12 +173,16 @@
               <div class="row justify-between text-caption text-weight-medium q-mb-xs">
                 <span>Alokasi Memori (RAM)</span>
                 <span>
-                  {{ num(stats.vps_ram_used_mb) }}MB /
-                  {{ num(stats.vps_ram_total_mb) }}MB
+                  {{ num(stats.vps_ram_used_mb) }}MB / {{ num(stats.vps_ram_total_mb) }}MB
                 </span>
               </div>
-              <q-linear-progress :value="ramPercentage / 100" size="12px" :color="ramPercentage > 85 ? 'red' : 'orange'"
-                stripe rounded />
+              <q-linear-progress
+                :value="ramPercentage / 100"
+                size="12px"
+                :color="ramPercentage > 85 ? 'red' : 'orange'"
+                stripe
+                rounded
+              />
               <div class="text-right text-caption text-grey-6 q-mt-xs">
                 Tersisa: {{ num(ramFree) }} MB Beban Kosong
               </div>
@@ -151,7 +193,9 @@
 
       <div class="col-12 col-md-6">
         <q-card flat bordered class="fit">
-          <q-card-section class="bg-white text-grey-9 text-weight-bold row items-center border-bottom">
+          <q-card-section
+            class="bg-white text-grey-9 text-weight-bold row items-center border-bottom"
+          >
             <q-icon name="history_toggle_off" color="primary" size="sm" class="q-mr-xs" />
             Aktivitas Masuk Tenant Terbaru
           </q-card-section>
@@ -165,8 +209,15 @@
 
             <!-- Timeline -->
             <q-timeline v-else color="primary">
-              <q-timeline-entry v-for="log in systemLogs" :key="log.id" :title="log.event"
-                :subtitle="`${log.time} - ${log.school}`" :color="log.status || 'primary'" icon="done" side="right">
+              <q-timeline-entry
+                v-for="log in systemLogs"
+                :key="log.id"
+                :title="log.event"
+                :subtitle="`${log.time} - ${log.school}`"
+                :color="log.status || 'primary'"
+                icon="done"
+                side="right"
+              >
                 <div class="text-caption text-grey-6">
                   Operasi terpantau dari interseptor Cloudflare.
                 </div>

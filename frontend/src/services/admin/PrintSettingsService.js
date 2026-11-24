@@ -6,5 +6,5 @@ export const PrintSettingsService = {
   },
   update(payload) {
     return api.put('/admin/settings/print-preferences', payload)
-  }
+  },
 }

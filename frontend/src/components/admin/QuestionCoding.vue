@@ -5,22 +5,38 @@
         <q-icon name="code" color="primary" class="q-mr-xs" />
         Coding — Kode &amp; Test Cases
       </div>
-      <div class="text-caption text-grey-7">
-        Siswa menulis kode · sistem uji pakai test cases
-      </div>
+      <div class="text-caption text-grey-7">Siswa menulis kode · sistem uji pakai test cases</div>
     </div>
 
     <!-- Language -->
-    <q-select :model-value="language" :options="languageOptions" label="Bahasa Pemrograman" outlined dense emit-value
-      map-options class="q-mb-md" style="max-width: 240px" @update:model-value="$emit('update:language', $event)" />
+    <q-select
+      :model-value="language"
+      :options="languageOptions"
+      label="Bahasa Pemrograman"
+      outlined
+      dense
+      emit-value
+      map-options
+      class="q-mb-md"
+      style="max-width: 240px"
+      @update:model-value="$emit('update:language', $event)"
+    />
 
     <!-- Starter code -->
     <div class="q-mb-md">
       <div class="text-caption text-weight-bold text-grey-7 q-mb-xs text-uppercase">
         Starter Code (template yang dilihat siswa)
       </div>
-      <q-input :model-value="starterCode" type="textarea" outlined autogrow :rows="6" class="code-input"
-        placeholder="// Kode awal untuk siswa..." @update:model-value="$emit('update:starterCode', $event)" />
+      <q-input
+        :model-value="starterCode"
+        type="textarea"
+        outlined
+        autogrow
+        :rows="6"
+        class="code-input"
+        placeholder="// Kode awal untuk siswa..."
+        @update:model-value="$emit('update:starterCode', $event)"
+      />
     </div>
 
     <!-- Test cases -->
@@ -39,26 +55,48 @@
         <q-item-section>
           <div class="row q-col-gutter-sm">
             <div class="col-12 col-sm-6">
-              <q-input :model-value="tc.input" label="Input" outlined dense
-                @update:model-value="(v) => onUpdate(idx, 'input', v)" />
+              <q-input
+                :model-value="tc.input"
+                label="Input"
+                outlined
+                dense
+                @update:model-value="(v) => onUpdate(idx, 'input', v)"
+              />
             </div>
             <div class="col-12 col-sm-6">
-              <q-input :model-value="tc.expected_output" label="Output yang Diharapkan" outlined dense
-                @update:model-value="(v) => onUpdate(idx, 'expected_output', v)" />
+              <q-input
+                :model-value="tc.expected_output"
+                label="Output yang Diharapkan"
+                outlined
+                dense
+                @update:model-value="(v) => onUpdate(idx, 'expected_output', v)"
+              />
             </div>
           </div>
         </q-item-section>
 
         <q-item-section side style="min-width: 110px">
-          <q-toggle :model-value="tc.is_hidden" label="Hidden" dense color="orange"
-            @update:model-value="(v) => onUpdate(idx, 'is_hidden', v)">
+          <q-toggle
+            :model-value="tc.is_hidden"
+            label="Hidden"
+            dense
+            color="orange"
+            @update:model-value="(v) => onUpdate(idx, 'is_hidden', v)"
+          >
             <q-tooltip>Hidden test case tidak ditampilkan ke siswa</q-tooltip>
           </q-toggle>
         </q-item-section>
 
         <q-item-section side>
-          <q-btn flat round dense icon="close" color="grey-6" :disable="modelValue.length <= 1"
-            @click="onRemove(tc.id)">
+          <q-btn
+            flat
+            round
+            dense
+            icon="close"
+            color="grey-6"
+            :disable="modelValue.length <= 1"
+            @click="onRemove(tc.id)"
+          >
             <q-tooltip>Hapus test case</q-tooltip>
           </q-btn>
         </q-item-section>
@@ -70,8 +108,15 @@
     </q-list>
 
     <div class="row q-gutter-sm q-mt-md items-center">
-      <q-btn flat color="primary" icon="add" label="Tambah test case" no-caps :disable="modelValue.length >= 15"
-        @click="onAdd" />
+      <q-btn
+        flat
+        color="primary"
+        icon="add"
+        label="Tambah test case"
+        no-caps
+        :disable="modelValue.length >= 15"
+        @click="onAdd"
+      />
       <span class="text-caption text-grey-7">{{ modelValue.length }} / 15</span>
     </div>
   </div>
@@ -109,9 +154,7 @@ const createTestCase = () => ({
 })
 
 const onUpdate = (idx, field, value) => {
-  const updated = props.modelValue.map((t, i) =>
-    i === idx ? { ...t, [field]: value } : t,
-  )
+  const updated = props.modelValue.map((t, i) => (i === idx ? { ...t, [field]: value } : t))
   emit('update:modelValue', updated)
 }
 
@@ -125,7 +168,10 @@ const onRemove = (id) => {
     $q.notify({ type: 'warning', message: 'Minimal 1 test case' })
     return
   }
-  emit('update:modelValue', props.modelValue.filter((t) => t.id !== id))
+  emit(
+    'update:modelValue',
+    props.modelValue.filter((t) => t.id !== id),
+  )
 }
 </script>
 

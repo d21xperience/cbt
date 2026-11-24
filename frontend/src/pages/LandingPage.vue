@@ -9,8 +9,15 @@
         </div>
       </div>
 
-      <q-input v-model="searchQuery" outlined dense placeholder="Cari sekolah (nama, NPSN, atau subdomain)..."
-        class="q-mb-lg" clearable :loading="loading">
+      <q-input
+        v-model="searchQuery"
+        outlined
+        dense
+        placeholder="Cari sekolah (nama, NPSN, atau subdomain)..."
+        class="q-mb-lg"
+        clearable
+        :loading="loading"
+      >
         <template v-slot:prepend>
           <q-icon name="search" />
         </template>
@@ -33,23 +40,30 @@
       </div>
 
       <div v-else class="row q-col-gutter-md">
-        <!-- Tambahkan class 'column' pada pembungkus kolom agar tingginya sinkron -->
-        <div v-for="school in filteredSchools" :key="school.subdomain" class="col-12 col-sm-6 col-md-4 column">
-          <!-- Tambahkan 'full-height column justify-between' pada q-card -->
-          <q-card flat bordered class="bg-indigo-50-hover cursor-pointer full-height column justify-between"
-            @click="redirectToTenant(school.subdomain)">
-
-            <!-- q-card-section akan otomatis mengambil sisa ruang yang ada -->
+        <div
+          v-for="school in filteredSchools"
+          :key="school.subdomain"
+          class="col-12 col-sm-6 col-md-4 column"
+        >
+          <q-card
+            flat
+            bordered
+            class="bg-indigo-50-hover cursor-pointer full-height column justify-between"
+            @click="redirectToTenant(school.subdomain)"
+          >
             <q-card-section class="col">
-              <div class="flex items-center no-wrap"> <!-- 'no-wrap' mencegah logo tertekan jika teks sangat panjang -->
+              <div class="flex items-center no-wrap">
                 <q-avatar size="40px" class="q-mr-sm flex-shrink-0">
-                  <img :src="school.logo_url || 'https://cdn.quasar.dev/logo/svg/quasar-logo.svg'" alt="Logo" />
+                  <img
+                    :src="school.logo_url || 'https://cdn.quasar.dev/logo/svg/quasar-logo.svg'"
+                    alt="Logo"
+                  />
                 </q-avatar>
                 <div>
-                  <div class="text-weight-bold text-grey-9 text-body2">{{ school.school_name }}</div>
-                  <div class="text-caption text-grey-6">
-                    NPSN: {{ school.npsn || '-' }}
+                  <div class="text-weight-bold text-grey-9 text-body2">
+                    {{ `${school.jenjang} ${school.school_name}` }}
                   </div>
+                  <div class="text-caption text-grey-6">NPSN: {{ school.npsn || '-' }}</div>
                 </div>
               </div>
             </q-card-section>
@@ -61,7 +75,6 @@
           </q-card>
         </div>
       </div>
-
     </div>
   </q-page>
 </template>

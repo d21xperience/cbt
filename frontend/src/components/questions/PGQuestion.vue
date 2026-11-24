@@ -1,12 +1,25 @@
 <!-- src/components/questions/PGQuestion.vue -->
 <template>
   <div class="pg-question">
-    <div v-for="(text, key) in parsedOptions" :key="key" class="option-item"
-      :class="{ 'option-item--selected': modelValue === key }" role="radio" :aria-checked="modelValue === key"
-      tabindex="0" @click="selectOption(key)" @keydown.enter.prevent="selectOption(key)"
-      @keydown.space.prevent="selectOption(key)">
-      <q-radio :model-value="modelValue" :val="key" @update:model-value="selectOption" color="primary"
-        class="option-radio" />
+    <div
+      v-for="(text, key) in parsedOptions"
+      :key="key"
+      class="option-item"
+      :class="{ 'option-item--selected': modelValue === key }"
+      role="radio"
+      :aria-checked="modelValue === key"
+      tabindex="0"
+      @click="selectOption(key)"
+      @keydown.enter.prevent="selectOption(key)"
+      @keydown.space.prevent="selectOption(key)"
+    >
+      <q-radio
+        :model-value="modelValue"
+        :val="key"
+        @update:model-value="selectOption"
+        color="primary"
+        class="option-radio"
+      />
       <MathText :content="`<b>${key}.</b> ${text}`" class="option-text" />
     </div>
   </div>

@@ -15,7 +15,12 @@
     </div>
 
     <!-- Error banner -->
-    <q-banner v-if="errorState === 'endpoint_not_ready'" dense rounded class="bg-blue-grey-2 text-blue-grey-9 q-mb-md">
+    <q-banner
+      v-if="errorState === 'endpoint_not_ready'"
+      dense
+      rounded
+      class="bg-blue-grey-2 text-blue-grey-9 q-mb-md"
+    >
       <template v-slot:avatar><q-icon name="construction" /></template>
       Endpoint belum tersedia di backend. Menampilkan data mock.
     </q-banner>
@@ -65,24 +70,54 @@
           </q-input>
         </div>
         <div class="col-12 col-md-3">
-          <q-select v-model="filterStatus" :options="statusOptions" label="Status" outlined dense emit-value map-options
-            clearable />
+          <q-select
+            v-model="filterStatus"
+            :options="statusOptions"
+            label="Status"
+            outlined
+            dense
+            emit-value
+            map-options
+            clearable
+          />
         </div>
         <div class="col-12 col-md-3">
-          <q-select v-model="filterClass" :options="classOptions" label="Kelas" outlined dense emit-value map-options
-            clearable />
+          <q-select
+            v-model="filterClass"
+            :options="classOptions"
+            label="Kelas"
+            outlined
+            dense
+            emit-value
+            map-options
+            clearable
+          />
         </div>
         <div class="col-12 col-md-3">
-          <q-select v-model="filterSubject" :options="subjectOptions" label="Mata Pelajaran" outlined dense emit-value
-            map-options clearable />
+          <q-select
+            v-model="filterSubject"
+            :options="subjectOptions"
+            label="Mata Pelajaran"
+            outlined
+            dense
+            emit-value
+            map-options
+            clearable
+          />
         </div>
       </q-card-section>
     </q-card>
 
     <!-- Table -->
     <q-card flat bordered class="bg-white">
-      <q-table :rows="filteredItems" :columns="columns" row-key="id" flat :loading="loading"
-        no-data-label="Belum ada siswa yang perlu ujian susulan">
+      <q-table
+        :rows="filteredItems"
+        :columns="columns"
+        row-key="id"
+        flat
+        :loading="loading"
+        no-data-label="Belum ada siswa yang perlu ujian susulan"
+      >
         <template v-slot:body-cell-student_name="props">
           <q-td :props="props">
             <div class="text-weight-medium">{{ props.row.student_name }}</div>
@@ -107,16 +142,25 @@
 
         <template v-slot:body-cell-status="props">
           <q-td :props="props" class="text-center">
-            <q-chip dense :color="statusColor(props.row.status)" text-color="white" :icon="statusIcon(props.row.status)"
-              class="text-weight-bold">
+            <q-chip
+              dense
+              :color="statusColor(props.row.status)"
+              text-color="white"
+              :icon="statusIcon(props.row.status)"
+              class="text-weight-bold"
+            >
               {{ statusLabel(props.row.status) }}
             </q-chip>
-            <div v-if="props.row.status === 'IN_PROGRESS' && props.row.started_at"
-              class="text-caption text-grey-6 q-mt-xs">
+            <div
+              v-if="props.row.status === 'IN_PROGRESS' && props.row.started_at"
+              class="text-caption text-grey-6 q-mt-xs"
+            >
               Mulai: {{ formatTime(props.row.started_at) }}
             </div>
-            <div v-if="props.row.status === 'COMPLETED' && props.row.completed_at"
-              class="text-caption text-grey-6 q-mt-xs">
+            <div
+              v-if="props.row.status === 'COMPLETED' && props.row.completed_at"
+              class="text-caption text-grey-6 q-mt-xs"
+            >
               Selesai: {{ formatTime(props.row.completed_at) }}
             </div>
           </q-td>
@@ -124,10 +168,25 @@
 
         <template v-slot:body-cell-actions="props">
           <q-td :props="props" class="text-center">
-            <q-btn v-if="props.row.status === 'NOT_STARTED'" color="primary" icon="play_arrow" label="Mulai" size="sm"
-              no-caps @click="startMakeup(props.row)" />
-            <q-btn v-else-if="props.row.status === 'IN_PROGRESS'" color="orange" icon="schedule" label="Monitoring"
-              size="sm" no-caps outline @click="startMakeup(props.row)" />
+            <q-btn
+              v-if="props.row.status === 'NOT_STARTED'"
+              color="primary"
+              icon="play_arrow"
+              label="Mulai"
+              size="sm"
+              no-caps
+              @click="startMakeup(props.row)"
+            />
+            <q-btn
+              v-else-if="props.row.status === 'IN_PROGRESS'"
+              color="orange"
+              icon="schedule"
+              label="Monitoring"
+              size="sm"
+              no-caps
+              outline
+              @click="startMakeup(props.row)"
+            />
             <span v-else class="text-caption text-grey-6">
               <q-icon name="check_circle" color="positive" size="xs" />
               Selesai
@@ -159,9 +218,21 @@ const {
 } = useMakeupExams()
 
 const columns = [
-  { name: 'student_name', label: 'Nama Siswa', field: 'student_name', align: 'left', style: 'min-width: 200px' },
+  {
+    name: 'student_name',
+    label: 'Nama Siswa',
+    field: 'student_name',
+    align: 'left',
+    style: 'min-width: 200px',
+  },
   { name: 'class_name', label: 'Kelas', field: 'class_name', align: 'left', style: 'width: 130px' },
-  { name: 'subject_nama', label: 'Mata Pelajaran', field: 'subject_nama', align: 'left', style: 'min-width: 200px' },
+  {
+    name: 'subject_nama',
+    label: 'Mata Pelajaran',
+    field: 'subject_nama',
+    align: 'left',
+    style: 'min-width: 200px',
+  },
   { name: 'status', label: 'Status', field: 'status', align: 'center', style: 'width: 180px' },
   { name: 'actions', label: 'Aksi', align: 'center', style: 'width: 160px' },
 ]
@@ -191,8 +262,13 @@ const formatTime = (iso) => {
   if (!iso) return '-'
   try {
     return new Date(iso).toLocaleString('id-ID', {
-      day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
     })
-  } catch { return iso }
+  } catch {
+    return iso
+  }
 }
 </script>

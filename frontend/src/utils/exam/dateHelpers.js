@@ -23,7 +23,7 @@ export const getExamAccessState = (exam, now = Date.now()) => {
   if (!exam?.start_time || !exam?.end_time) {
     return { canEnter: false, reason: 'no_schedule' }
   }
-  
+
   // ── HACK: Jika admin menekan Start, backend mengirim ACTIVE. Abaikan jam manual.
   if (exam.session_status === 'ACTIVE') {
     return { canEnter: true, reason: 'open' }

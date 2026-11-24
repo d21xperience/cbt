@@ -5,16 +5,20 @@
         <q-icon :name="isAudio ? 'audiotrack' : 'videocam'" color="primary" class="q-mr-xs" />
         {{ isAudio ? 'Audio Soal' : 'Video Soal' }}
       </div>
-      <div class="text-caption text-grey-7">
-        Upload base64 (max 1 MB) atau masukkan URL
-      </div>
+      <div class="text-caption text-grey-7">Upload base64 (max 1 MB) atau masukkan URL</div>
     </div>
 
     <q-card flat bordered class="bg-white">
       <q-card-section class="q-gutter-md">
         <!-- URL Input -->
-        <q-input :model-value="modelValue" :label="isAudio ? 'URL Audio' : 'URL Video'" outlined dense
-          :hint="isAudio ? 'MP3/WAV/OGG' : 'MP4/WebM'" @update:model-value="$emit('update:modelValue', $event)">
+        <q-input
+          :model-value="modelValue"
+          :label="isAudio ? 'URL Audio' : 'URL Video'"
+          outlined
+          dense
+          :hint="isAudio ? 'MP3/WAV/OGG' : 'MP4/WebM'"
+          @update:model-value="$emit('update:modelValue', $event)"
+        >
           <template v-slot:prepend>
             <q-icon :name="isAudio ? 'audiotrack' : 'videocam'" />
           </template>
@@ -22,8 +26,15 @@
             <q-btn flat round dense icon="upload_file" color="primary" @click="pickFile">
               <q-tooltip>Upload file</q-tooltip>
             </q-btn>
-            <q-btn v-if="modelValue" flat round dense icon="clear" color="grey-6"
-              @click="$emit('update:modelValue', '')">
+            <q-btn
+              v-if="modelValue"
+              flat
+              round
+              dense
+              icon="clear"
+              color="grey-6"
+              @click="$emit('update:modelValue', '')"
+            >
               <q-tooltip>Clear</q-tooltip>
             </q-btn>
           </template>

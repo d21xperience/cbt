@@ -10,33 +10,83 @@
         </div>
       </div>
       <q-space />
-      <q-btn color="primary" icon="print" label="Cetak Terpilih" :disable="selected.length === 0 || printing"
-        :loading="printing" @click="onPrintSelected" />
-      <q-btn flat color="primary" icon="picture_as_pdf" label="Unduh PDF" class="q-ml-sm"
-        :disable="selected.length === 0 || printing" @click="onDownloadSelected" />
-      <q-btn flat color="grey-7" icon="tune" label="Pengaturan" @click="settingsDialog = true" class="q-ml-sm" />
+      <q-btn
+        color="primary"
+        icon="print"
+        label="Cetak Terpilih"
+        :disable="selected.length === 0 || printing"
+        :loading="printing"
+        @click="onPrintSelected"
+      />
+      <q-btn
+        flat
+        color="primary"
+        icon="picture_as_pdf"
+        label="Unduh PDF"
+        class="q-ml-sm"
+        :disable="selected.length === 0 || printing"
+        @click="onDownloadSelected"
+      />
+      <q-btn
+        flat
+        color="grey-7"
+        icon="tune"
+        label="Pengaturan"
+        @click="settingsDialog = true"
+        class="q-ml-sm"
+      />
     </div>
 
     <!-- Filter -->
     <q-card flat bordered class="q-mb-md">
       <q-card-section class="row q-col-gutter-md items-end">
         <div class="col-12 col-md-3">
-          <q-input v-model="filters.search" dense outlined label="Cari (nama / NIS / No. Kartu)" debounce="300"
-            @update:model-value="reload">
+          <q-input
+            v-model="filters.search"
+            dense
+            outlined
+            label="Cari (nama / NIS / No. Kartu)"
+            debounce="300"
+            @update:model-value="reload"
+          >
             <template #prepend><q-icon name="search" /></template>
           </q-input>
         </div>
         <div class="col-12 col-md-2">
-          <q-select v-model="filters.card_type" dense outlined label="Tipe Kartu" :options="typeOptions" emit-value
-            map-options @update:model-value="reload" />
+          <q-select
+            v-model="filters.card_type"
+            dense
+            outlined
+            label="Tipe Kartu"
+            :options="typeOptions"
+            emit-value
+            map-options
+            @update:model-value="reload"
+          />
         </div>
         <div class="col-12 col-md-2">
-          <q-select v-model="filters.status" dense outlined label="Status" :options="statusOptions" emit-value
-            map-options @update:model-value="reload" />
+          <q-select
+            v-model="filters.status"
+            dense
+            outlined
+            label="Status"
+            :options="statusOptions"
+            emit-value
+            map-options
+            @update:model-value="reload"
+          />
         </div>
         <div class="col-12 col-md-3">
-          <q-select v-model="filters.class_id" dense outlined label="Kelas (opsional)" :options="classOptions"
-            emit-value map-options clearable />
+          <q-select
+            v-model="filters.class_id"
+            dense
+            outlined
+            label="Kelas (opsional)"
+            :options="classOptions"
+            emit-value
+            map-options
+            clearable
+          />
         </div>
         <div class="col-12 col-md-2 text-right">
           <q-btn flat icon="refresh" label="Muat Ulang" @click="reload" />
@@ -45,11 +95,23 @@
     </q-card>
 
     <!-- Table -->
-    <q-table :rows="rows" :columns="columns" row-key="id" flat bordered dense :loading="loading"
-      v-model:selected="selected" selection="multiple">
+    <q-table
+      :rows="rows"
+      :columns="columns"
+      row-key="id"
+      flat
+      bordered
+      dense
+      :loading="loading"
+      v-model:selected="selected"
+      selection="multiple"
+    >
       <template #body-cell-card_type="props">
         <q-td :props="props">
-          <q-badge :color="props.row.card_type === 'PERMANENT' ? 'primary' : 'warning'" :label="props.row.card_type" />
+          <q-badge
+            :color="props.row.card_type === 'PERMANENT' ? 'primary' : 'warning'"
+            :label="props.row.card_type"
+          />
         </q-td>
       </template>
       <template #body-cell-status="props">
@@ -59,7 +121,9 @@
       </template>
       <template #body-cell-device="props">
         <q-td :props="props">
-          <span v-if="props.row.device_fingerprint" class="text-caption text-positive">Terikat</span>
+          <span v-if="props.row.device_fingerprint" class="text-caption text-positive"
+            >Terikat</span
+          >
           <span v-else class="text-caption text-grey-6">—</span>
         </q-td>
       </template>
@@ -68,13 +132,27 @@
           <q-btn flat round dense icon="print" color="primary" @click="onPrintSingle(props.row)">
             <q-tooltip>Cetak</q-tooltip>
           </q-btn>
-          <q-btn flat round dense icon="phonelink_erase" color="deep-orange" :disable="!props.row.device_fingerprint"
-            @click="onResetDevice(props.row)">
+          <q-btn
+            flat
+            round
+            dense
+            icon="phonelink_erase"
+            color="deep-orange"
+            :disable="!props.row.device_fingerprint"
+            @click="onResetDevice(props.row)"
+          >
             <q-tooltip>Reset Device Binding</q-tooltip>
           </q-btn>
 
-          <q-btn flat round dense icon="block" color="negative" :disable="props.row.status !== 'ACTIVE'"
-            @click="onRevoke(props.row)">
+          <q-btn
+            flat
+            round
+            dense
+            icon="block"
+            color="negative"
+            :disable="props.row.status !== 'ACTIVE'"
+            @click="onRevoke(props.row)"
+          >
             <q-tooltip>Cabut Kartu</q-tooltip>
           </q-btn>
         </q-td>
@@ -86,10 +164,26 @@
       <q-card style="min-width: 420px">
         <q-card-section class="text-h6">Buat Kartu Baru</q-card-section>
         <q-card-section class="q-gutter-md">
-          <q-select v-model="form.student" :options="studentOptions" label="Pilih Siswa" option-label="label" emit-value
-            map-options outlined dense :loading="loadingRefs" />
-          <q-select v-model="form.card_type" :options="typeOptions" label="Tipe Kartu" emit-value map-options outlined
-            dense />
+          <q-select
+            v-model="form.student"
+            :options="studentOptions"
+            label="Pilih Siswa"
+            option-label="label"
+            emit-value
+            map-options
+            outlined
+            dense
+            :loading="loadingRefs"
+          />
+          <q-select
+            v-model="form.card_type"
+            :options="typeOptions"
+            label="Tipe Kartu"
+            emit-value
+            map-options
+            outlined
+            dense
+          />
           <template v-if="form.card_type === 'TEMPORARY'">
             <q-input v-model="form.expiry_date" type="date" label="Berlaku s/d" outlined dense />
             <q-input v-model="form.reason" label="Alasan (tunggakan)" outlined dense />
@@ -115,55 +209,121 @@
         <q-card-section class="q-gutter-md">
           <div class="row q-col-gutter-sm">
             <div class="col-6">
-              <q-select v-model="printSettings.paper_size" :options="['A4', 'A5', 'A6', 'Letter']" label="Ukuran Kertas" outlined dense />
+              <q-select
+                v-model="printSettings.paper_size"
+                :options="['A4', 'A5', 'A6', 'Letter']"
+                label="Ukuran Kertas"
+                outlined
+                dense
+              />
             </div>
             <div class="col-6">
-              <q-select v-model="printSettings.orientation" :options="['portrait', 'landscape']" label="Orientasi" outlined dense />
+              <q-select
+                v-model="printSettings.orientation"
+                :options="['portrait', 'landscape']"
+                label="Orientasi"
+                outlined
+                dense
+              />
             </div>
           </div>
 
           <q-separator />
 
           <div class="text-subtitle2 q-mt-sm">Ukuran Kartu</div>
-          <q-select 
-            v-model="printSettings.card_preset" 
-            :options="['ID-1 (ATM/KTP)', 'ID-2 (Paspor)', 'Custom']" 
-            label="Preset Ukuran" 
-            outlined dense 
+          <q-select
+            v-model="printSettings.card_preset"
+            :options="['ID-1 (ATM/KTP)', 'ID-2 (Paspor)', 'Custom']"
+            label="Preset Ukuran"
+            outlined
+            dense
             @update:model-value="applyPreset"
           />
-          
+
           <div class="row q-col-gutter-sm" v-if="printSettings.card_preset === 'Custom'">
             <div class="col-6">
-              <q-input v-model.number="printSettings.card_width" type="number" step="0.1" label="Lebar (mm)" outlined dense />
+              <q-input
+                v-model.number="printSettings.card_width"
+                type="number"
+                step="0.1"
+                label="Lebar (mm)"
+                outlined
+                dense
+              />
             </div>
             <div class="col-6">
-              <q-input v-model.number="printSettings.card_height" type="number" step="0.1" label="Tinggi (mm)" outlined dense />
+              <q-input
+                v-model.number="printSettings.card_height"
+                type="number"
+                step="0.1"
+                label="Tinggi (mm)"
+                outlined
+                dense
+              />
             </div>
           </div>
           <div v-else class="text-caption text-grey-7">
             Ukuran: {{ printSettings.card_width }}mm x {{ printSettings.card_height }}mm
           </div>
 
-          <q-toggle v-model="printSettings.center_cards" label="Rata Tengah Otomatis (Hilangkan ruang kosong kanan)" />
+          <q-toggle
+            v-model="printSettings.center_cards"
+            label="Rata Tengah Otomatis (Hilangkan ruang kosong kanan)"
+          />
 
           <q-separator />
 
           <div class="text-subtitle2">Margin Halaman (mm)</div>
           <div class="row q-col-gutter-sm">
-            <div class="col-6"><q-input v-model.number="printSettings.margin_top" type="number" label="Atas" outlined dense /></div>
-            <div class="col-6"><q-input v-model.number="printSettings.margin_bottom" type="number" label="Bawah" outlined dense /></div>
-            <div class="col-6"><q-input v-model.number="printSettings.margin_left" type="number" label="Kiri" outlined dense /></div>
-            <div class="col-6"><q-input v-model.number="printSettings.margin_right" type="number" label="Kanan" outlined dense /></div>
+            <div class="col-6">
+              <q-input
+                v-model.number="printSettings.margin_top"
+                type="number"
+                label="Atas"
+                outlined
+                dense
+              />
+            </div>
+            <div class="col-6">
+              <q-input
+                v-model.number="printSettings.margin_bottom"
+                type="number"
+                label="Bawah"
+                outlined
+                dense
+              />
+            </div>
+            <div class="col-6">
+              <q-input
+                v-model.number="printSettings.margin_left"
+                type="number"
+                label="Kiri"
+                outlined
+                dense
+              />
+            </div>
+            <div class="col-6">
+              <q-input
+                v-model.number="printSettings.margin_right"
+                type="number"
+                label="Kanan"
+                outlined
+                dense
+              />
+            </div>
           </div>
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Batal" v-close-popup />
-          <q-btn color="primary" label="Simpan" :loading="savingSettings" @click="savePrintSettings" />
+          <q-btn
+            color="primary"
+            label="Simpan"
+            :loading="savingSettings"
+            @click="savePrintSettings"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
-
   </q-page>
 </template>
 
@@ -179,7 +339,6 @@ import { ExamTypeService } from '@/services/admin/ExamTypeService'
 import { useExamCardPrint } from '@/composables/admin/useExamCardPrint'
 import { getTenantSlug } from '@/utils/tenant'
 import { PrintSettingsService } from '@/services/admin/PrintSettingsService'
-
 
 const $q = useQuasar()
 const academicStore = useAcademicStore()
@@ -241,8 +400,7 @@ const classOptions = computed(() => {
   return Array.from(set, ([value, label]) => ({ label, value }))
 })
 
-const statusColor = (s) =>
-  s === 'ACTIVE' ? 'positive' : s === 'EXPIRED' ? 'warning' : 'negative'
+const statusColor = (s) => (s === 'ACTIVE' ? 'positive' : s === 'EXPIRED' ? 'warning' : 'negative')
 
 const tenantSlug = computed(() => getTenantSlug() || '')
 
@@ -305,7 +463,7 @@ const reload = async () => {
     })
     // ✅ PARSER TANGGUH: terima array LANGSUNG ATAU objek {cards}
     const raw = res.data?.data
-    const data = Array.isArray(raw) ? raw : (raw?.cards || [])
+    const data = Array.isArray(raw) ? raw : raw?.cards || []
     rows.value = Array.isArray(data) ? data : []
   } catch (err) {
     $q.notify({ type: 'negative', message: 'Gagal memuat kartu: ' + (err.message || err) })
@@ -383,7 +541,6 @@ const onDownloadSelected = async () => {
     mode: 'download',
   })
 }
-
 
 // ── Device & Revoke
 const onResetDevice = (card) => {
@@ -470,10 +627,9 @@ const printSettings = ref({
   card_width: 85.6,
   card_height: 53.98,
   center_cards: true,
-  card_preset: 'ID-1 (ATM/KTP)'
+  card_preset: 'ID-1 (ATM/KTP)',
 })
 const savingSettings = ref(false)
-
 
 onMounted(async () => {
   await loadReferences()

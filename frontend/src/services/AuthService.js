@@ -13,9 +13,10 @@ export const AuthService = {
           skipAuth: true,
         })
       case 'ADMIN':
+        console.log('ADMIN', credentials)
         return api.post('/auth/admin/login', credentials)
+      // case 'PROCTOR':
       case 'PROCTOR':
-      case 'TEACHER':
         return api.post('/auth/proctor/login', {
           username: credentials.username || '',
           password: credentials.password || '',

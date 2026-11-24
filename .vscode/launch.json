@@ -1,0 +1,50 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Go Backend Debugger",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/backend/cmd/server",
+      "cwd": "${workspaceFolder}/backend",
+      "env": {
+        "CGO_ENABLED": "1",
+        "GOOS": "windows",
+        "GOARCH": "amd64"
+      },
+      "showLog": true
+    },
+    {
+      "name": "Debug Migrate Tenants",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/backend/cmd/migrate-tenants",
+      "cwd": "${workspaceFolder}/backend",
+      "args": [
+        "-npsn", "12345678",
+        "-subdomain", "sman1",
+        "-name", "SMAN 1 Contoh",
+        "-base", "./data",
+        "-source", "./data/cbt.db"
+      ],
+      "env": {
+        "CGO_ENABLED": "1",
+        "GOOS": "windows",
+        "GOARCH": "amd64"
+      },
+      "showLog": true
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Debug Server + Migrate",
+      "configurations": [
+        "Go Backend Debugger",
+        "Debug Migrate Tenants"
+      ],
+      "stopAll": false
+    }
+  ]
+}

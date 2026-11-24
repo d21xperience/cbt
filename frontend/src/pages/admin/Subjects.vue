@@ -11,12 +11,24 @@
         </div>
       </div>
       <div class="q-gutter-sm">
-        <q-btn outline color="primary" icon="upload_file" label="Import CSV" no-caps @click="openImportDialog" />
+        <q-btn
+          outline
+          color="primary"
+          icon="upload_file"
+          label="Import CSV"
+          no-caps
+          @click="openImportDialog"
+        />
         <q-btn color="primary" icon="add" label="Tambah Mapel" no-caps @click="openCreateDialog" />
       </div>
     </div>
 
-    <q-banner v-if="errorState === 'endpoint_not_ready'" dense rounded class="bg-blue-grey-2 text-blue-grey-9 q-mb-md">
+    <q-banner
+      v-if="errorState === 'endpoint_not_ready'"
+      dense
+      rounded
+      class="bg-blue-grey-2 text-blue-grey-9 q-mb-md"
+    >
       <template v-slot:avatar><q-icon name="construction" /></template>
       Endpoint belum tersedia di backend. Menampilkan data mock.
     </q-banner>
@@ -30,20 +42,42 @@
           </q-input>
         </div>
         <div class="col-12 col-md-3">
-          <q-select v-model="filterTingkat" :options="tingkatOptions" label="Tingkat" outlined dense emit-value
-            map-options clearable />
+          <q-select
+            v-model="filterTingkat"
+            :options="tingkatOptions"
+            label="Tingkat"
+            outlined
+            dense
+            emit-value
+            map-options
+            clearable
+          />
         </div>
         <div class="col-12 col-md-4">
-          <q-select v-model="filterKelompok" :options="kelompokOptions" label="Kelompok" outlined dense emit-value
-            map-options clearable />
+          <q-select
+            v-model="filterKelompok"
+            :options="kelompokOptions"
+            label="Kelompok"
+            outlined
+            dense
+            emit-value
+            map-options
+            clearable
+          />
         </div>
       </q-card-section>
     </q-card>
 
     <!-- Table -->
     <q-card flat bordered class="bg-white">
-      <q-table :rows="filteredSubjects" :columns="columns" row-key="id" flat :loading="loading"
-        no-data-label="Belum ada mata pelajaran">
+      <q-table
+        :rows="filteredSubjects"
+        :columns="columns"
+        row-key="id"
+        flat
+        :loading="loading"
+        no-data-label="Belum ada mata pelajaran"
+      >
         <template v-slot:body-cell-kode="props">
           <q-td :props="props">
             <q-badge color="primary" :label="props.row.kode" />
@@ -59,7 +93,12 @@
 
         <template v-slot:body-cell-kelompok="props">
           <q-td :props="props" class="text-center">
-            <q-chip dense :color="kelompokColor(props.row.kelompok)" text-color="white" :label="props.row.kelompok" />
+            <q-chip
+              dense
+              :color="kelompokColor(props.row.kelompok)"
+              text-color="white"
+              :label="props.row.kelompok"
+            />
           </q-td>
         </template>
 
@@ -82,7 +121,14 @@
             <q-btn flat round dense icon="edit" color="primary" @click="openEditDialog(props.row)">
               <q-tooltip>Edit</q-tooltip>
             </q-btn>
-            <q-btn flat round dense icon="delete" color="negative" @click="confirmDelete(props.row)">
+            <q-btn
+              flat
+              round
+              dense
+              icon="delete"
+              color="negative"
+              @click="confirmDelete(props.row)"
+            >
               <q-tooltip>Hapus</q-tooltip>
             </q-btn>
           </q-td>
@@ -90,15 +136,32 @@
       </q-table>
     </q-card>
 
-    <SubjectFormDialog v-model="dialogOpen" :is-editing="isEditing" :initial-form="initialForm" :submitting="submitting"
-      :kelompok-options="kelompokOptions" :tingkat-options="tingkatOptions" :jurusan-options="jurusanOptions"
-      :loading-context="loadingContext" @submit="submitForm" />
+    <SubjectFormDialog
+      v-model="dialogOpen"
+      :is-editing="isEditing"
+      :initial-form="initialForm"
+      :submitting="submitting"
+      :kelompok-options="kelompokOptions"
+      :tingkat-options="tingkatOptions"
+      :jurusan-options="jurusanOptions"
+      :loading-context="loadingContext"
+      @submit="submitForm"
+    />
 
-    <SubjectImportDialog v-model="importDialogOpen" :import-step="importStep" :import-preview="importPreview"
-      :import-errors="importErrors" :importing="importing" :downloading-template="downloadingTemplate"
-      :import-valid-count="importValidCount" @update:import-step="importStep = $event"
-      @download-template="downloadTemplate" @parse-import="onParseImport" @confirm-import="confirmImport"
-      @close="closeImportDialog" />
+    <SubjectImportDialog
+      v-model="importDialogOpen"
+      :import-step="importStep"
+      :import-preview="importPreview"
+      :import-errors="importErrors"
+      :importing="importing"
+      :downloading-template="downloadingTemplate"
+      :import-valid-count="importValidCount"
+      @update:import-step="importStep = $event"
+      @download-template="downloadTemplate"
+      @parse-import="onParseImport"
+      @confirm-import="confirmImport"
+      @close="closeImportDialog"
+    />
   </q-page>
 </template>
 
@@ -143,7 +206,7 @@ const {
   parseImport,
   confirmImport,
   loadingContext,
-  isVocational
+  isVocational,
 } = useSubjects()
 
 // ── Auto-advance step 2 setelah parse sukses (fix T7)
@@ -153,15 +216,6 @@ const onParseImport = async (file) => {
     importStep.value = 2
   }
 }
-
-// const columns = [
-//   { name: 'kode', label: 'Kode / Singkat', field: 'kode', align: 'left', style: 'width: 160px' },
-//   { name: 'nama', label: 'Nama Mapel', field: 'nama', align: 'left', style: 'min-width: 220px' },
-//   { name: 'kelompok', label: 'Kelompok', field: 'kelompok', align: 'center', style: 'width: 130px' },
-//   { name: 'tingkat', label: 'Tingkat', field: 'tingkat', align: 'center', style: 'width: 100px' },
-//   { name: 'jurusan', label: 'Jurusan', align: 'center', style: 'width: 130px' },
-//   { name: 'actions', label: 'Aksi', align: 'center', style: 'width: 110px' },
-// ]
 const columns = computed(() => {
   const baseColumns = [
     { name: 'kode', label: 'Kode', field: 'kode', align: 'left', sortable: true },
@@ -177,7 +231,7 @@ const columns = computed(() => {
       label: 'Jurusan',
       field: 'jurusan_id',
       align: 'center',
-      sortable: true
+      sortable: true,
     })
   }
 
@@ -186,7 +240,7 @@ const columns = computed(() => {
     name: 'actions',
     label: 'Aksi',
     field: 'actions',
-    align: 'center'
+    align: 'center',
   })
 
   return baseColumns

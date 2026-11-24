@@ -58,6 +58,7 @@ type PublicSchoolDTO struct {
 	SchoolName string `json:"school_name"`
 	NPSN       string `json:"npsn"`
 	LogoURL    string `json:"logo_url,omitempty"`
+	Jenjang    string `json:"jenjang"`
 }
 
 // ============================================

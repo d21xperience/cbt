@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS exam_tokens;
+DROP TABLE IF EXISTS payment_gates;
+DROP TABLE IF EXISTS participant_sessions;
+DROP TABLE IF EXISTS exam_sessions;
+DROP TABLE IF EXISTS essay_scores;
+DROP TABLE IF EXISTS external_import_logs;
+DROP TABLE IF EXISTS eligible_participants;
+DROP TABLE IF EXISTS exam_results;
+DROP TABLE IF EXISTS questions;
+DROP TABLE IF EXISTS exams;

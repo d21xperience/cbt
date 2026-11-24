@@ -15,12 +15,16 @@
         <!-- ═══ Toolbar Row ═══ -->
         <div class="row items-center q-gutter-xs q-mb-md">
           <q-btn
-            flat dense no-caps color="grey-8" icon="refresh" label="Clear" size="sm"
+            flat
+            dense
+            no-caps
+            color="grey-8"
+            icon="refresh"
+            label="Clear"
+            size="sm"
             @click="onClear"
           />
-          <q-btn
-            flat dense no-caps color="grey-8" icon="palette" label="Colors" size="sm"
-          >
+          <q-btn flat dense no-caps color="grey-8" icon="palette" label="Colors" size="sm">
             <q-menu auto-close>
               <div class="q-pa-md" style="min-width: 200px">
                 <div class="text-caption text-grey-7 q-mb-sm">Warna:</div>
@@ -38,38 +42,59 @@
           </q-btn>
           <q-separator vertical inset />
           <q-btn
-            flat dense no-caps size="sm"
+            flat
+            dense
+            no-caps
+            size="sm"
             :color="tab === 'functions' ? 'primary' : 'grey-8'"
             :class="{ 'bg-blue-1': tab === 'functions' }"
-            icon="functions" label="Functions"
+            icon="functions"
+            label="Functions"
             @click="tab = 'functions'"
           />
           <q-btn
-            flat dense no-caps size="sm"
+            flat
+            dense
+            no-caps
+            size="sm"
             :color="tab === 'examples' ? 'primary' : 'grey-8'"
             :class="{ 'bg-blue-1': tab === 'examples' }"
-            icon="menu_book" label="Examples"
+            icon="menu_book"
+            label="Examples"
             @click="tab = 'examples'"
           />
           <q-btn
-            flat dense no-caps size="sm"
+            flat
+            dense
+            no-caps
+            size="sm"
             :color="tab === 'history' ? 'primary' : 'grey-8'"
             :class="{ 'bg-blue-1': tab === 'history' }"
-            icon="history" label="History"
+            icon="history"
+            label="History"
             @click="tab = 'history'"
           />
           <q-btn
-            flat dense no-caps size="sm"
+            flat
+            dense
+            no-caps
+            size="sm"
             :color="tab === 'favorites' ? 'primary' : 'grey-8'"
             :class="{ 'bg-blue-1': tab === 'favorites' }"
-            icon="star" label="Favorites"
+            icon="star"
+            label="Favorites"
             @click="tab = 'favorites'"
           />
           <q-space />
           <q-btn
             v-if="tab !== 'symbols'"
-            flat dense no-caps color="primary"
-            icon="arrow_back" label="Kembali ke Simbol" size="sm"
+            flat
+            dense
+            no-caps
+            color="primary"
+            icon="arrow_back"
+            label="Kembali ke Simbol"
+            size="sm"
             @click="tab = 'symbols'"
           />
         </div>
@@ -77,11 +102,7 @@
         <!-- ═══ TAB: SYMBOLS ═══ -->
         <template v-if="tab === 'symbols'">
           <!-- Small symbols -->
-          <div
-            v-for="(group, gi) in GROUPS_SMALL"
-            :key="`s-${gi}`"
-            class="q-mb-md"
-          >
+          <div v-for="(group, gi) in GROUPS_SMALL" :key="`s-${gi}`" class="q-mb-md">
             <div class="text-caption text-weight-bold text-grey-7 q-mb-xs text-uppercase">
               {{ group.title }}
             </div>
@@ -100,11 +121,7 @@
           </div>
 
           <!-- Structures -->
-          <div
-            v-for="(group, gi) in GROUPS_STRUCT"
-            :key="`t-${gi}`"
-            class="q-mb-md"
-          >
+          <div v-for="(group, gi) in GROUPS_STRUCT" :key="`t-${gi}`" class="q-mb-md">
             <div class="text-caption text-weight-bold text-grey-7 q-mb-xs text-uppercase">
               {{ group.title }}
             </div>
@@ -126,13 +143,13 @@
 
         <!-- ═══ TAB: FUNCTIONS ═══ -->
         <template v-else-if="tab === 'functions'">
-          <div class="text-caption text-grey-7 q-mb-md">
-            Fungsi LaTeX umum — klik untuk insert:
-          </div>
+          <div class="text-caption text-grey-7 q-mb-md">Fungsi LaTeX umum — klik untuk insert:</div>
           <div class="row q-col-gutter-sm">
             <div v-for="(fn, i) in latexFunctions" :key="i" class="col-12 col-sm-6 col-md-4">
               <q-btn
-                outline color="primary" no-caps
+                outline
+                color="primary"
+                no-caps
                 class="full-width q-pa-sm function-btn"
                 @click="onInsertSnippet({ insert: fn.code, label: fn.label })"
               >
@@ -147,13 +164,13 @@
 
         <!-- ═══ TAB: EXAMPLES ═══ -->
         <template v-else-if="tab === 'examples'">
-          <div class="text-caption text-grey-7 q-mb-md">
-            Contoh rumus umum — klik untuk insert:
-          </div>
+          <div class="text-caption text-grey-7 q-mb-md">Contoh rumus umum — klik untuk insert:</div>
           <div class="row q-col-gutter-sm">
             <div v-for="(ex, i) in EXAMPLES" :key="i" class="col-12 col-sm-6 col-md-4">
               <q-btn
-                outline color="primary" no-caps
+                outline
+                color="primary"
+                no-caps
                 class="full-width q-pa-sm function-btn"
                 @click="onInsertSnippet({ insert: ex.latex, label: ex.label })"
               >
@@ -175,7 +192,9 @@
           <div v-else class="row q-col-gutter-sm">
             <div v-for="(h, i) in history" :key="i" class="col-12 col-sm-6 col-md-4">
               <q-btn
-                outline color="grey-7" no-caps
+                outline
+                color="grey-7"
+                no-caps
                 class="full-width q-pa-sm function-btn"
                 @click="onInsertSnippet({ insert: h, label: h })"
               >
@@ -194,7 +213,9 @@
           <div v-else class="row q-col-gutter-sm">
             <div v-for="(f, i) in favorites" :key="i" class="col-12 col-sm-6 col-md-4">
               <q-btn
-                outline color="orange" no-caps
+                outline
+                color="orange"
+                no-caps
                 class="full-width q-pa-sm function-btn"
                 @click="onInsertSnippet({ insert: f, label: f })"
               >
@@ -209,36 +230,52 @@
           <q-select
             v-model="style.font"
             :options="FONT_OPTIONS"
-            dense outlined emit-value map-options
+            dense
+            outlined
+            emit-value
+            map-options
             label="Font"
             style="min-width: 140px"
           />
           <q-select
             v-model="style.size"
             :options="SIZE_OPTIONS"
-            dense outlined emit-value map-options
+            dense
+            outlined
+            emit-value
+            map-options
             label="Ukuran"
             style="min-width: 130px"
           />
           <q-select
             v-model="style.zoom"
             :options="ZOOM_OPTIONS"
-            dense outlined emit-value map-options
+            dense
+            outlined
+            emit-value
+            map-options
             label="Zoom"
             style="min-width: 90px"
           />
           <q-select
             v-model="style.background"
             :options="BG_OPTIONS"
-            dense outlined emit-value map-options
+            dense
+            outlined
+            emit-value
+            map-options
             label="Background"
             style="min-width: 130px"
           />
           <q-checkbox v-model="style.inline" label="Inline" dense />
           <q-space />
           <q-btn
-            flat dense no-caps color="orange"
-            icon="star" label="Simpan Favorit"
+            flat
+            dense
+            no-caps
+            color="orange"
+            icon="star"
+            label="Simpan Favorit"
             @click="onSaveFavorite"
           />
         </div>
@@ -336,36 +373,48 @@ const history = ref(LocalStorage.getItem(HISTORY_KEY) || [])
 const favorites = ref(LocalStorage.getItem(FAV_KEY) || [])
 
 const colorSwatches = [
-  '#000000', '#d32f2f', '#1976d2', '#388e3c',
-  '#f57c00', '#7b1fa2', '#00796b', '#455a64',
+  '#000000',
+  '#d32f2f',
+  '#1976d2',
+  '#388e3c',
+  '#f57c00',
+  '#7b1fa2',
+  '#00796b',
+  '#455a64',
 ]
 
 const latexFunctions = [
-  { label: 'Fraction',        code: '\\frac{a}{b}' },
-  { label: 'Sqrt',            code: '\\sqrt{x}' },
-  { label: 'Nth Root',        code: '\\sqrt[n]{x}' },
-  { label: 'Power',           code: 'x^{n}' },
-  { label: 'Subscript',       code: 'x_{n}' },
-  { label: 'Sum',             code: '\\sum_{i=1}^{n} x_i' },
-  { label: 'Product',         code: '\\prod_{i=1}^{n} x_i' },
-  { label: 'Integral',        code: '\\int_{a}^{b} f(x) \\, dx' },
+  { label: 'Fraction', code: '\\frac{a}{b}' },
+  { label: 'Sqrt', code: '\\sqrt{x}' },
+  { label: 'Nth Root', code: '\\sqrt[n]{x}' },
+  { label: 'Power', code: 'x^{n}' },
+  { label: 'Subscript', code: 'x_{n}' },
+  { label: 'Sum', code: '\\sum_{i=1}^{n} x_i' },
+  { label: 'Product', code: '\\prod_{i=1}^{n} x_i' },
+  { label: 'Integral', code: '\\int_{a}^{b} f(x) \\, dx' },
   { label: 'Double Integral', code: '\\iint_{D} f \\, dA' },
-  { label: 'Limit',           code: '\\lim_{x \\to a} f(x)' },
-  { label: 'Derivative',      code: '\\frac{d}{dx} f(x)' },
-  { label: 'Partial Deriv',   code: '\\frac{\\partial f}{\\partial x}' },
-  { label: 'Matrix 2×2',      code: '\\begin{bmatrix} a & b \\\\ c & d \\end{bmatrix}' },
-  { label: 'Matrix 3×3',      code: '\\begin{bmatrix} a & b & c \\\\ d & e & f \\\\ g & h & i \\end{bmatrix}' },
-  { label: 'Cases',           code: '\\begin{cases} a & x > 0 \\\\ b & x \\leq 0 \\end{cases}' },
-  { label: 'Binomial',        code: '\\binom{n}{k} = \\frac{n!}{k!(n-k)!}' },
+  { label: 'Limit', code: '\\lim_{x \\to a} f(x)' },
+  { label: 'Derivative', code: '\\frac{d}{dx} f(x)' },
+  { label: 'Partial Deriv', code: '\\frac{\\partial f}{\\partial x}' },
+  { label: 'Matrix 2×2', code: '\\begin{bmatrix} a & b \\\\ c & d \\end{bmatrix}' },
+  {
+    label: 'Matrix 3×3',
+    code: '\\begin{bmatrix} a & b & c \\\\ d & e & f \\\\ g & h & i \\end{bmatrix}',
+  },
+  { label: 'Cases', code: '\\begin{cases} a & x > 0 \\\\ b & x \\leq 0 \\end{cases}' },
+  { label: 'Binomial', code: '\\binom{n}{k} = \\frac{n!}{k!(n-k)!}' },
 ]
 
-watch(() => props.modelValue, (val) => {
-  isOpen.value = val
-  if (val) {
-    latex.value = props.initialLatex || ''
-    tab.value = 'symbols'
-  }
-})
+watch(
+  () => props.modelValue,
+  (val) => {
+    isOpen.value = val
+    if (val) {
+      latex.value = props.initialLatex || ''
+      tab.value = 'symbols'
+    }
+  },
+)
 watch(isOpen, (val) => emit('update:modelValue', val))
 
 const renderedLatex = computed(() => {

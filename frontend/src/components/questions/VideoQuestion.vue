@@ -8,8 +8,15 @@
         <div class="text-subtitle2">Tonton video berikut:</div>
       </div>
       <div class="video-wrap">
-        <video ref="videoRef" :src="videoUrl" controls class="video-player" preload="metadata" playsinline
-          @error="onVideoError">
+        <video
+          ref="videoRef"
+          :src="videoUrl"
+          controls
+          class="video-player"
+          preload="metadata"
+          playsinline
+          @error="onVideoError"
+        >
           Browser Anda tidak mendukung pemutar video.
         </video>
       </div>
@@ -20,12 +27,25 @@
 
     <!-- Pilihan Jawaban -->
     <div class="video-options">
-      <div v-for="(text, key) in parsedOptions" :key="key" class="video-option"
-        :class="{ 'video-option--selected': modelValue === key }" role="radio" :aria-checked="modelValue === key"
-        tabindex="0" @click="selectOption(key)" @keydown.enter.prevent="selectOption(key)"
-        @keydown.space.prevent="selectOption(key)">
-        <q-radio :model-value="modelValue" :val="key" color="primary" class="video-option-radio"
-          @update:model-value="selectOption" />
+      <div
+        v-for="(text, key) in parsedOptions"
+        :key="key"
+        class="video-option"
+        :class="{ 'video-option--selected': modelValue === key }"
+        role="radio"
+        :aria-checked="modelValue === key"
+        tabindex="0"
+        @click="selectOption(key)"
+        @keydown.enter.prevent="selectOption(key)"
+        @keydown.space.prevent="selectOption(key)"
+      >
+        <q-radio
+          :model-value="modelValue"
+          :val="key"
+          color="primary"
+          class="video-option-radio"
+          @update:model-value="selectOption"
+        />
         <MathText :content="`<b>${key}.</b> ${text}`" class="video-option-text" />
       </div>
     </div>

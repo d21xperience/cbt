@@ -17,8 +17,18 @@ export function usePrintReport(options = {}) {
   const formatTanggalID = (dateStr) => {
     if (!dateStr) return '-'
     const bulan = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
     ]
     const d = new Date(dateStr)
     if (!Number.isFinite(d.getTime())) return dateStr
@@ -57,8 +67,7 @@ export function usePrintReport(options = {}) {
     const currentTab = resolve('currentTab', 'ALL')
     const billingTypeFilter = resolve('billingTypeFilter', 'ALL')
     const tabLabels = options.tabLabels || defaultTabLabels
-    const reportTitle =
-      options.reportTitle || 'LAPORAN REKAPITULASI TAGIHAN SEWA CBT'
+    const reportTitle = options.reportTitle || 'LAPORAN REKAPITULASI TAGIHAN SEWA CBT'
     const companyName = options.companyName || 'UJIAN.PW'
 
     if (!data || data.length === 0) {
@@ -98,10 +107,7 @@ export function usePrintReport(options = {}) {
       )
       .join('')
 
-    const totalFiltered = data.reduce(
-      (sum, inv) => sum + (Number(inv.total_amount) || 0),
-      0,
-    )
+    const totalFiltered = data.reduce((sum, inv) => sum + (Number(inv.total_amount) || 0), 0)
 
     const htmlContent = generateHtmlContent({
       companyName,

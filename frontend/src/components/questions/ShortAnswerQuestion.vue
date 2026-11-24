@@ -1,9 +1,17 @@
 <!-- src/components/questions/ShortAnswerQuestion.vue -->
 <template>
   <div class="sa-question">
-    <q-input :model-value="modelValue" outlined :label="labelText" class="bg-white sa-input" :input-style="inputStyle"
-      autocomplete="off" autocorrect="off" spellcheck="false"
-      @update:model-value="(v) => $emit('update:modelValue', v)">
+    <q-input
+      :model-value="modelValue"
+      outlined
+      :label="labelText"
+      class="bg-white sa-input"
+      :input-style="inputStyle"
+      autocomplete="off"
+      autocorrect="off"
+      spellcheck="false"
+      @update:model-value="(v) => $emit('update:modelValue', v)"
+    >
       <template v-slot:prepend>
         <q-icon name="edit_note" color="primary" />
       </template>
@@ -28,9 +36,7 @@ defineEmits(['update:modelValue'])
 
 const labelText = computed(() => 'Tulis jawaban Anda di sini...')
 
-const inputStyle = computed(
-  () => 'font-size: clamp(0.95rem, 2.6vw, 1.05rem); line-height: 1.55;',
-)
+const inputStyle = computed(() => 'font-size: clamp(0.95rem, 2.6vw, 1.05rem); line-height: 1.55;')
 </script>
 
 <style scoped>

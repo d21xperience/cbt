@@ -24,34 +24,72 @@
 
     <!-- Area opsi / jawaban — dibungkus qr-body untuk styling child -->
     <div class="qr-body">
-      <PGQuestion v-if="question.question_type === 'PG'" :question="question" :model-value="currentAnswer"
-        @update:model-value="(val) => $emit('update:answer', val)" />
+      <PGQuestion
+        v-if="question.question_type === 'PG'"
+        :question="question"
+        :model-value="currentAnswer"
+        @update:model-value="(val) => $emit('update:answer', val)"
+      />
 
-      <EssayQuestion v-else-if="question.question_type === 'ESSAY'" :question="question" :model-value="currentAnswer"
-        @update:model-value="(val) => $emit('update:answer', val)" />
+      <EssayQuestion
+        v-else-if="question.question_type === 'ESSAY'"
+        :question="question"
+        :model-value="currentAnswer"
+        @update:model-value="(val) => $emit('update:answer', val)"
+      />
 
-      <AudioQuestion v-else-if="question.question_type === 'AUDIO'" :question="question" :model-value="currentAnswer"
-        @update:model-value="(val) => $emit('update:answer', val)" />
-      <TrueFalseQuestion v-else-if="question.question_type === 'TRUE_FALSE'" :question="question"
-        :model-value="currentAnswer || {}" @update:model-value="(val) => $emit('update:answer', val)" />
+      <AudioQuestion
+        v-else-if="question.question_type === 'AUDIO'"
+        :question="question"
+        :model-value="currentAnswer"
+        @update:model-value="(val) => $emit('update:answer', val)"
+      />
+      <TrueFalseQuestion
+        v-else-if="question.question_type === 'TRUE_FALSE'"
+        :question="question"
+        :model-value="currentAnswer || {}"
+        @update:model-value="(val) => $emit('update:answer', val)"
+      />
 
-      <ShortAnswerQuestion v-else-if="question.question_type === 'SHORT_ANSWER'" :question="question"
-        :model-value="currentAnswer || ''" @update:model-value="(val) => $emit('update:answer', val)" />
+      <ShortAnswerQuestion
+        v-else-if="question.question_type === 'SHORT_ANSWER'"
+        :question="question"
+        :model-value="currentAnswer || ''"
+        @update:model-value="(val) => $emit('update:answer', val)"
+      />
 
-      <MatchingQuestion v-else-if="question.question_type === 'MATCHING'" :question="question"
-        :model-value="currentAnswer || {}" @update:model-value="(val) => $emit('update:answer', val)" />
+      <MatchingQuestion
+        v-else-if="question.question_type === 'MATCHING'"
+        :question="question"
+        :model-value="currentAnswer || {}"
+        @update:model-value="(val) => $emit('update:answer', val)"
+      />
 
-      <PGComplexQuestion v-else-if="question.question_type === 'PG_COMPLEX'" :question="question"
+      <PGComplexQuestion
+        v-else-if="question.question_type === 'PG_COMPLEX'"
+        :question="question"
         :model-value="Array.isArray(currentAnswer) ? currentAnswer : []"
-        @update:model-value="(val) => $emit('update:answer', val)" />
-      <CodingQuestion v-else-if="question.question_type === 'CODING'" :question="question" :model-value="currentAnswer"
-        @update:model-value="(val) => $emit('update:answer', val)" />
+        @update:model-value="(val) => $emit('update:answer', val)"
+      />
+      <CodingQuestion
+        v-else-if="question.question_type === 'CODING'"
+        :question="question"
+        :model-value="currentAnswer"
+        @update:model-value="(val) => $emit('update:answer', val)"
+      />
 
-      <HotspotQuestion v-else-if="question.question_type === 'HOTSPOT'" :question="question"
+      <HotspotQuestion
+        v-else-if="question.question_type === 'HOTSPOT'"
+        :question="question"
         :model-value="Array.isArray(currentAnswer) ? currentAnswer : []"
-        @update:model-value="(val) => $emit('update:answer', val)" />
-      <VideoQuestion v-else-if="question.question_type === 'VIDEO'" :question="question" :model-value="currentAnswer"
-        @update:model-value="(val) => $emit('update:answer', val)" />
+        @update:model-value="(val) => $emit('update:answer', val)"
+      />
+      <VideoQuestion
+        v-else-if="question.question_type === 'VIDEO'"
+        :question="question"
+        :model-value="currentAnswer"
+        @update:model-value="(val) => $emit('update:answer', val)"
+      />
       <div v-else class="text-negative text-center q-pa-md">
         Tipe soal "{{ question.question_type }}" belum didukung.
       </div>

@@ -6,7 +6,7 @@ import {
   enrichProgramWithBidang,
   cloneMock,
 } from '../data/keahlianData'
-import { mockSchoolTenant } from '../data/superadminData'   // ← BARU
+import { mockSchoolTenant } from '../data/superadminData' // ← BARU
 
 const DELAY = 200
 
@@ -77,12 +77,17 @@ export const keahlianHandlers = (mock) => {
     }
     const existing = mockProgramKeahlian.find((p) => p.kode === kode)
     if (existing) {
-      return [200, { status: 'ok', created: false, data: enrichProgramWithBidang(existing) }, { delay: DELAY }]
+      return [
+        200,
+        { status: 'ok', created: false, data: enrichProgramWithBidang(existing) },
+        { delay: DELAY },
+      ]
     }
     const newProgram = {
       id: `prog-custom-${Date.now()}`,
       bidang_id: bidang_id || 'TI',
-      kode, nama,
+      kode,
+      nama,
       deskripsi: body.deskripsi || '',
       is_default: false,
       is_custom: true,
@@ -90,7 +95,11 @@ export const keahlianHandlers = (mock) => {
       created_by: 'mock-admin-uuid',
     }
     mockProgramKeahlian.push(newProgram)
-    return [201, { status: 'ok', created: true, data: enrichProgramWithBidang(newProgram) }, { delay: DELAY }]
+    return [
+      201,
+      { status: 'ok', created: true, data: enrichProgramWithBidang(newProgram) },
+      { delay: DELAY },
+    ]
   })
 
   // ═══ ADMIN — programs (tenant-scoped, resolve slug → UUID) ═══

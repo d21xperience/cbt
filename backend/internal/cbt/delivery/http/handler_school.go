@@ -1,12 +1,15 @@
 package http
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"log"
+	"math/big"
 
 	platformDomain "cbt-engine-service/internal/platform/domain"
 	platformUC "cbt-engine-service/internal/platform/usecase"
+	schedulingUsecase "cbt-engine-service/internal/scheduling/usecase"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -484,4 +487,139 @@ func respondOnboardingError(c *fiber.Ctx, err error) error {
 			"message": err.Error(),
 		})
 	}
+}
+
+// ============================================
+// FASE 3: Admin Management (Platform DB)
+// ============================================
+
+// HandleSuperListAdmins — GET /super/schools/:tenant_id/admins
+// Auth: SUPER_ADMIN
+func (h *CBTHandler) HandleSuperListAdmins(c *fiber.Ctx) error {
+	if h.tenantUC == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"error": "service_unavailable",
+		})
+	}
+
+	tenantID := c.Params("tenant_id")
+	if tenantID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "tenant_id_wajib"})
+	}
+
+	t, err := h.tenantUC.GetTenant(c.Context(), tenantID)
+	if err != nil || t == nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "tenant_not_found"})
+	}
+
+	// Ambil dari platform DB
+	if h.platformAdminDB == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"error": "platform_admin_db_unavailable",
+		})
+	}
+
+	list, err := h.platformAdminDB.ListByTenant(c.Context(), t.Subdomain)
+	if err != nil {
+		log.Printf("[Handler] ListAdmins failed: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal_error"})
+	}
+
+	data := make([]fiber.Map, 0, len(list))
+	for _, a := range list {
+		data = append(data, fiber.Map{
+			"admin_id":  a.ID,
+			"tenant_id": a.TenantID,
+			"username":  a.Username,
+			"role":      a.Role,
+			"is_active": a.IsActive,
+		})
+	}
+
+	return c.JSON(fiber.Map{"status": "ok", "data": data, "count": len(data)})
+}
+
+// HandleSuperResetAdminPassword — POST /super/schools/:tenant_id/admin/reset-password
+// Auth: SUPER_ADMIN
+// Body: { "new_password": "..." } — jika kosong, generate temp password.
+func (h *CBTHandler) HandleSuperResetAdminPassword(c *fiber.Ctx) error {
+	if h.tenantUC == nil || h.platformAdminDB == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+			"error": "service_unavailable",
+		})
+	}
+
+	tenantID := c.Params("tenant_id")
+	if tenantID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "tenant_id_wajib"})
+	}
+
+	var body struct {
+		Username    string `json:"username"`
+		NewPassword string `json:"new_password,omitempty"`
+	}
+	_ = c.BodyParser(&body)
+
+	if body.Username == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "username_wajib"})
+	}
+
+	t, err := h.tenantUC.GetTenant(c.Context(), tenantID)
+	if err != nil || t == nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "tenant_not_found"})
+	}
+
+	// Generate temp password jika kosong
+	newPassword := body.NewPassword
+	generated := false
+	if newPassword == "" {
+		var genErr error
+		newPassword, genErr = generateTempPasswordHelper(12)
+		if genErr != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "generate_failed"})
+		}
+		generated = true
+	}
+
+	hash, err := hashPasswordHelper(newPassword)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "hash_failed"})
+	}
+
+	if err := h.platformAdminDB.ResetPassword(c.Context(), tenantID, body.Username, hash); err != nil {
+		log.Printf("[Handler] ResetPassword failed: %v", err)
+		return respondOnboardingError(c, platformUC.ErrTenantNotFound)
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "ok",
+		"message": "Password admin berhasil direset",
+		"data": fiber.Map{
+			"tenant_id":     tenantID,
+			"subdomain":     t.Subdomain,
+			"username":      body.Username,
+			"temp_password": newPassword,
+			"generated":     generated,
+			"note":          "Simpan password ini. Wajib diganti setelah login.",
+		},
+	})
+}
+
+// generateTempPasswordHelper — wrapper untuk usecase.generateTempPassword.
+func generateTempPasswordHelper(length int) (string, error) {
+	const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789"
+	out := make([]byte, length)
+	for i := range out {
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(alphabet))))
+		if err != nil {
+			return "", err
+		}
+		out[i] = alphabet[n.Int64()]
+	}
+	return string(out), nil
+}
+
+// hashPasswordHelper — wrapper untuk usecase.HashPassword.
+func hashPasswordHelper(plain string) (string, error) {
+	return schedulingUsecase.HashPassword(plain)
 }

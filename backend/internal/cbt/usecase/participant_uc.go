@@ -218,9 +218,9 @@ func (uc *ParticipantUseCase) LoginByQrToken(ctx context.Context, token string, 
 	var siswa domain.Siswa
 	err = uc.repo.DB.QueryRowContext(ctx, `
 		SELECT id, nis, COALESCE(nisn, ''), nama, COALESCE(jenis_kelamin, ''),
-		       COALESCE(kelas_id, ''), COALESCE(kelas_nama, ''), status
+		       COALESCE(kelas_id, ''), COALESCE(kelas_nama, '')
 		FROM siswa WHERE nisn = ?
-	`, nisn).Scan(&siswa.ID, &siswa.NIS, &siswa.NISN, &siswa.Nama, &siswa.JenisKelamin, &siswa.KelasID, &siswa.KelasNama, &siswa.Status)
+	`, nisn).Scan(&siswa.ID, &siswa.NIS, &siswa.NISN, &siswa.Nama, &siswa.JenisKelamin, &siswa.KelasID, &siswa.KelasNama)
 
 	if err != nil {
 		return nil, "", fmt.Errorf("data siswa tidak ditemukan: %w", err)

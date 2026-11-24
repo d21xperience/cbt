@@ -53,7 +53,7 @@ func (uc *SiswaUseCase) GetByID(ctx context.Context, id string) (*cbtDomain.Sisw
 // Create — buat siswa + credential (random password).
 // Return siswa + plaintext password (sekali saja).
 func (uc *SiswaUseCase) Create(ctx context.Context, req cbtDomain.Siswa) (*cbtDomain.Siswa, string, error) {
-	if req.NIS == "" || req.Nama == "" || req.KelasID == "" {
+	if req.NIS == "" || req.Nama == "" {
 		return nil, "", cbtDomain.ErrSiswaInvalidInput
 	}
 	if ok, _ := uc.siswaDB.ExistsNIS(ctx, req.NIS); ok {
@@ -63,9 +63,6 @@ func (uc *SiswaUseCase) Create(ctx context.Context, req cbtDomain.Siswa) (*cbtDo
 		if ok, _ := uc.siswaDB.ExistsNISN(ctx, req.NISN); ok {
 			return nil, "", cbtDomain.ErrSiswaNISNDuplicated
 		}
-	}
-	if req.Status == "" {
-		req.Status = "AKTIF"
 	}
 	if req.JenisKelamin == "" {
 		req.JenisKelamin = "L"
@@ -149,9 +146,6 @@ func (uc *SiswaUseCase) Update(ctx context.Context, id string, req cbtDomain.Sis
 	if req.KelasNama != "" {
 		existing.KelasNama = req.KelasNama
 	}
-	if req.Status != "" {
-		existing.Status = req.Status
-	}
 	if req.PhotoURL != nil {
 		existing.PhotoURL = req.PhotoURL
 	}
@@ -202,9 +196,6 @@ func (uc *SiswaUseCase) LoginByNIS(ctx context.Context, nis, password string) (*
 	}
 	if s == nil {
 		return nil, cbtDomain.ErrSiswaNotFound
-	}
-	if s.Status != "AKTIF" {
-		return nil, cbtDomain.ErrSiswaInvalidInput
 	}
 	if s.NISN == "" {
 		return nil, cbtDomain.ErrSiswaInvalidInput

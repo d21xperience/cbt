@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"cbt-engine-service/internal/platform/domain"
@@ -87,7 +88,7 @@ func (r *TenantDB) ListPending(ctx context.Context) ([]domain.Tenant, error) {
 
 func (r *TenantDB) ListActivePublic(ctx context.Context) ([]domain.PublicSchoolDTO, error) {
 	const q = `
-		SELECT subdomain, school_name, npsn, COALESCE(logo_url, '') AS logo_url
+		SELECT subdomain, school_name, npsn, COALESCE(logo_url, '') AS logo_url, jenjang
 		FROM tenants
 		WHERE status = 'ACTIVE' AND is_suspended = 0
 		ORDER BY school_name ASC
@@ -101,7 +102,7 @@ func (r *TenantDB) ListActivePublic(ctx context.Context) ([]domain.PublicSchoolD
 	var out []domain.PublicSchoolDTO
 	for rows.Next() {
 		var s domain.PublicSchoolDTO
-		if err := rows.Scan(&s.Subdomain, &s.SchoolName, &s.NPSN, &s.LogoURL); err != nil {
+		if err := rows.Scan(&s.Subdomain, &s.SchoolName, &s.NPSN, &s.LogoURL, &s.Jenjang); err != nil {
 			return nil, err
 		}
 		out = append(out, s)
@@ -142,7 +143,7 @@ INSERT INTO tenants (
 	pending_admin_username, jenjang, program_duration_years,
 	package_tier, billing_type, max_participants, sync_locked
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-
+	t.DBPath = filepath.ToSlash(t.DBPath)
 	_, err := r.DB.ExecContext(ctx, q,
 		t.TenantID, t.NPSN, t.Subdomain, t.SchoolName,
 		t.ContactEmail, t.ContactPhone, t.Address,

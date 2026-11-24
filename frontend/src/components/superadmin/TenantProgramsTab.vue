@@ -13,9 +13,22 @@
       <q-card-section>
         <div class="row q-col-gutter-md items-center">
           <div class="col-12 col-md-6">
-            <q-select v-model="selectedTenantId" :options="tenantOptions" option-value="id" option-label="label"
-              emit-value map-options outlined dense use-input input-debounce="200" label="Pilih Sekolah"
-              :loading="loadingPrograms" @update:model-value="onTenantChange" @filter="onFilterTenant">
+            <q-select
+              v-model="selectedTenantId"
+              :options="tenantOptions"
+              option-value="id"
+              option-label="label"
+              emit-value
+              map-options
+              outlined
+              dense
+              use-input
+              input-debounce="200"
+              label="Pilih Sekolah"
+              :loading="loadingPrograms"
+              @update:model-value="onTenantChange"
+              @filter="onFilterTenant"
+            >
               <template v-slot:prepend>
                 <q-icon name="domain" />
               </template>
@@ -25,8 +38,13 @@
             <q-chip dense color="primary" text-color="white" icon="school">
               {{ selectedTenantLabel }}
             </q-chip>
-            <q-chip v-if="selectedTenantJenjang" dense outline color="indigo"
-              :label="`Jenjang: ${selectedTenantJenjang}`" />
+            <q-chip
+              v-if="selectedTenantJenjang"
+              dense
+              outline
+              color="indigo"
+              :label="`Jenjang: ${selectedTenantJenjang}`"
+            />
           </div>
         </div>
       </q-card-section>
@@ -44,13 +62,17 @@
     <!-- Content: tenant selected -->
     <template v-else>
       <!-- Warning: non-SMK/MAK jenjang -->
-      <q-banner v-if="selectedTenantJenjang && !isSmkLike" dense rounded class="bg-orange-1 text-orange-9 q-mb-md">
+      <q-banner
+        v-if="selectedTenantJenjang && !isSmkLike"
+        dense
+        rounded
+        class="bg-orange-1 text-orange-9 q-mb-md"
+      >
         <template v-slot:avatar>
           <q-icon name="warning" color="orange" />
         </template>
-        Sekolah ini berjenjang <b>{{ selectedTenantJenjang }}</b> — biasanya tidak
-        memiliki program keahlian (hanya SMK/MAK). Anda tetap dapat menambahkan
-        jika memang diperlukan.
+        Sekolah ini berjenjang <b>{{ selectedTenantJenjang }}</b> — biasanya tidak memiliki program
+        keahlian (hanya SMK/MAK). Anda tetap dapat menambahkan jika memang diperlukan.
       </q-banner>
 
       <!-- Add program -->
@@ -62,20 +84,42 @@
           </div>
           <div class="row q-col-gutter-sm items-center">
             <div class="col-12 col-md-8">
-              <q-select v-model="programToAdd" :options="availableMasterPrograms" option-value="id" option-label="label"
-                emit-value map-options outlined dense use-input input-debounce="200" label="Cari program keahlian..."
-                :loading="loadingMasters" :disable="loadingMasters || availableMasterPrograms.length === 0" :hint="availableMasterPrograms.length === 0 && !loadingMasters
+              <q-select
+                v-model="programToAdd"
+                :options="availableMasterPrograms"
+                option-value="id"
+                option-label="label"
+                emit-value
+                map-options
+                outlined
+                dense
+                use-input
+                input-debounce="200"
+                label="Cari program keahlian..."
+                :loading="loadingMasters"
+                :disable="loadingMasters || availableMasterPrograms.length === 0"
+                :hint="
+                  availableMasterPrograms.length === 0 && !loadingMasters
                     ? 'Semua program sudah terpasang atau master kosong'
                     : ''
-                  " @filter="onFilterProgram">
+                "
+                @filter="onFilterProgram"
+              >
                 <template v-slot:prepend>
                   <q-icon name="search" />
                 </template>
               </q-select>
             </div>
             <div class="col-12 col-md-4">
-              <q-btn color="primary" icon="add" label="Tambahkan" :disable="!programToAdd" :loading="assigning"
-                class="full-width" @click="onAssign" />
+              <q-btn
+                color="primary"
+                icon="add"
+                label="Tambahkan"
+                :disable="!programToAdd"
+                :loading="assigning"
+                class="full-width"
+                @click="onAssign"
+              />
             </div>
           </div>
         </q-card-section>
@@ -89,13 +133,28 @@
               <q-icon name="check_circle" color="positive" class="q-mr-xs" />
               Program Keahlian Terpasang ({{ assignedPrograms.length }})
             </div>
-            <q-btn flat dense round icon="refresh" color="grey-7" :loading="loadingPrograms" @click="loadPrograms">
+            <q-btn
+              flat
+              dense
+              round
+              icon="refresh"
+              color="grey-7"
+              :loading="loadingPrograms"
+              @click="loadPrograms"
+            >
               <q-tooltip>Refresh</q-tooltip>
             </q-btn>
           </div>
 
-          <q-table :rows="assignedPrograms" :columns="programColumns" row-key="id" flat dense :loading="loadingPrograms"
-            no-data-label="Belum ada program keahlian untuk sekolah ini">
+          <q-table
+            :rows="assignedPrograms"
+            :columns="programColumns"
+            row-key="id"
+            flat
+            dense
+            :loading="loadingPrograms"
+            no-data-label="Belum ada program keahlian untuk sekolah ini"
+          >
             <template v-slot:body-cell-kode="props">
               <q-td :props="props">
                 <q-badge color="primary" :label="props.row.kode || '-'" />
@@ -118,8 +177,15 @@
 
             <template v-slot:body-cell-actions="props">
               <q-td :props="props" class="text-center">
-                <q-btn flat round dense icon="delete" color="negative" :loading="removingId === props.row.id"
-                  @click="onRemove(props.row)">
+                <q-btn
+                  flat
+                  round
+                  dense
+                  icon="delete"
+                  color="negative"
+                  :loading="removingId === props.row.id"
+                  @click="onRemove(props.row)"
+                >
                   <q-tooltip>Hapus dari sekolah ini</q-tooltip>
                 </q-btn>
               </q-td>
@@ -194,9 +260,15 @@ const availableMasterPrograms = computed(() => {
     .filter((p) => {
       if (!q) return true
       return (
-        String(p.nama || '').toLowerCase().includes(q) ||
-        String(p.kode || '').toLowerCase().includes(q) ||
-        String(p.bidang_nama || '').toLowerCase().includes(q)
+        String(p.nama || '')
+          .toLowerCase()
+          .includes(q) ||
+        String(p.kode || '')
+          .toLowerCase()
+          .includes(q) ||
+        String(p.bidang_nama || '')
+          .toLowerCase()
+          .includes(q)
       )
     })
     .map((p) => ({

@@ -11,12 +11,24 @@
         </div>
       </div>
       <div class="q-gutter-sm">
-        <q-btn outline color="primary" icon="upload_file" label="Import CSV" no-caps @click="openImportDialog" />
+        <q-btn
+          outline
+          color="primary"
+          icon="upload_file"
+          label="Import CSV"
+          no-caps
+          @click="openImportDialog"
+        />
         <q-btn color="primary" icon="add" label="Tambah Jenis" no-caps @click="openCreateDialog" />
       </div>
     </div>
 
-    <q-banner v-if="errorState === 'endpoint_not_ready'" dense rounded class="bg-blue-grey-2 text-blue-grey-9 q-mb-md">
+    <q-banner
+      v-if="errorState === 'endpoint_not_ready'"
+      dense
+      rounded
+      class="bg-blue-grey-2 text-blue-grey-9 q-mb-md"
+    >
       <template v-slot:avatar><q-icon name="construction" /></template>
       Endpoint belum tersedia di backend. Menampilkan data mock.
     </q-banner>
@@ -30,8 +42,14 @@
     </q-card>
 
     <q-card flat bordered class="bg-white">
-      <q-table :rows="filteredExamTypes" :columns="columns" row-key="id" flat :loading="loading"
-        no-data-label="Belum ada jenis ujian">
+      <q-table
+        :rows="filteredExamTypes"
+        :columns="columns"
+        row-key="id"
+        flat
+        :loading="loading"
+        no-data-label="Belum ada jenis ujian"
+      >
         <template v-slot:body-cell-kode="props">
           <q-td :props="props">
             <q-badge color="primary" :label="props.row.kode" class="text-weight-bold" />
@@ -52,7 +70,14 @@
             <q-btn flat round dense icon="edit" color="primary" @click="openEditDialog(props.row)">
               <q-tooltip>Edit</q-tooltip>
             </q-btn>
-            <q-btn flat round dense icon="delete" color="negative" @click="confirmDelete(props.row)">
+            <q-btn
+              flat
+              round
+              dense
+              icon="delete"
+              color="negative"
+              @click="confirmDelete(props.row)"
+            >
               <q-tooltip>Hapus</q-tooltip>
             </q-btn>
           </q-td>
@@ -60,13 +85,27 @@
       </q-table>
     </q-card>
 
-    <ExamTypeFormDialog v-model="dialogOpen" :is-editing="isEditing" :initial-form="initialForm"
-      :submitting="submitting" @submit="submitForm" />
+    <ExamTypeFormDialog
+      v-model="dialogOpen"
+      :is-editing="isEditing"
+      :initial-form="initialForm"
+      :submitting="submitting"
+      @submit="submitForm"
+    />
 
-    <ExamTypeImportDialog v-model="importDialogOpen" :import-step="importStep" :import-preview="importPreview"
-      :importing="importing" :downloading-template="downloadingTemplate" :import-valid-count="importValidCount"
-      @update:import-step="importStep = $event" @download-template="downloadTemplate" @parse-import="parseImport"
-      @confirm-import="confirmImport" @close="closeImportDialog" />
+    <ExamTypeImportDialog
+      v-model="importDialogOpen"
+      :import-step="importStep"
+      :import-preview="importPreview"
+      :importing="importing"
+      :downloading-template="downloadingTemplate"
+      :import-valid-count="importValidCount"
+      @update:import-step="importStep = $event"
+      @download-template="downloadTemplate"
+      @parse-import="parseImport"
+      @confirm-import="confirmImport"
+      @close="closeImportDialog"
+    />
   </q-page>
 </template>
 
@@ -106,7 +145,13 @@ const {
 
 const columns = [
   { name: 'kode', label: 'Kode', field: 'kode', align: 'left', style: 'width: 130px' },
-  { name: 'nama', label: 'Nama Jenis Ujian', field: 'nama', align: 'left', style: 'min-width: 240px' },
+  {
+    name: 'nama',
+    label: 'Nama Jenis Ujian',
+    field: 'nama',
+    align: 'left',
+    style: 'min-width: 240px',
+  },
   { name: 'actions', label: 'Aksi', align: 'center', style: 'width: 110px' },
 ]
 

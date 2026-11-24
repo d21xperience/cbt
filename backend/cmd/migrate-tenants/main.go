@@ -151,7 +151,7 @@ func main() {
 	}
 
 	// Insert tenant
-	relDBPath := filepath.Join("tenants", tenantID, "cbt.db")
+	relDBPath := filepath.ToSlash(filepath.Join("tenants", tenantID, "cbt.db"))
 	if err := tenantRepo.Create(ctx, &platformDomain.Tenant{
 		TenantID:   tenantID,
 		NPSN:       *npsn,

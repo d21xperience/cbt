@@ -11,14 +11,34 @@
         </div>
       </div>
       <div class="q-gutter-sm">
-        <q-btn outline color="primary" icon="download" label="Download Kredensial" no-caps @click="downloadCredentials"
-          class="q-mr-sm" />
-        <q-btn outline color="primary" icon="upload_file" label="Import CSV" no-caps @click="openImportDialog" />
+        <q-btn
+          v-show="!filteredTeachers"
+          outline
+          color="primary"
+          icon="download"
+          label="Download Kredensial"
+          no-caps
+          @click="downloadCredentials"
+          class="q-mr-sm"
+        />
+        <q-btn
+          outline
+          color="primary"
+          icon="upload_file"
+          label="Import CSV"
+          no-caps
+          @click="openImportDialog"
+        />
         <q-btn color="primary" icon="add" label="Tambah Guru" no-caps @click="openCreateDialog" />
       </div>
     </div>
 
-    <q-banner v-if="errorState === 'endpoint_not_ready'" dense rounded class="bg-blue-grey-2 text-blue-grey-9 q-mb-md">
+    <q-banner
+      v-if="errorState === 'endpoint_not_ready'"
+      dense
+      rounded
+      class="bg-blue-grey-2 text-blue-grey-9 q-mb-md"
+    >
       <template v-slot:avatar><q-icon name="construction" /></template>
       Endpoint belum tersedia di backend. Menampilkan data mock.
     </q-banner>
@@ -26,26 +46,55 @@
     <q-card flat bordered class="q-mb-md bg-white">
       <q-card-section class="row q-col-gutter-md items-center">
         <div class="col-12 col-md-6">
-          <q-input v-model="searchQuery" label="Cari NIP / Nama / Username" outlined dense clearable>
+          <q-input
+            v-model="searchQuery"
+            label="Cari NIP / Nama / Username"
+            outlined
+            dense
+            clearable
+          >
             <template v-slot:prepend><q-icon name="search" /></template>
           </q-input>
         </div>
         <div class="col-12 col-md-3">
-          <q-select v-model="filterStatus" :options="statusOptions" label="Status" outlined dense emit-value map-options
-            clearable />
+          <q-select
+            v-model="filterStatus"
+            :options="statusOptions"
+            label="Status"
+            outlined
+            dense
+            emit-value
+            map-options
+            clearable
+          />
         </div>
         <div class="col-12 col-md-3">
-          <q-select v-model="filterHomeroom" :options="[
-            { label: 'Wali Kelas', value: 'YES' },
-            { label: 'Bukan Wali', value: 'NO' },
-          ]" label="Wali Kelas" outlined dense emit-value map-options clearable />
+          <q-select
+            v-model="filterHomeroom"
+            :options="[
+              { label: 'Wali Kelas', value: 'YES' },
+              { label: 'Bukan Wali', value: 'NO' },
+            ]"
+            label="Wali Kelas"
+            outlined
+            dense
+            emit-value
+            map-options
+            clearable
+          />
         </div>
       </q-card-section>
     </q-card>
 
     <q-card flat bordered class="bg-white">
-      <q-table :rows="filteredTeachers" :columns="columns" row-key="id" flat :loading="loading"
-        no-data-label="Belum ada guru">
+      <q-table
+        :rows="filteredTeachers"
+        :columns="columns"
+        row-key="id"
+        flat
+        :loading="loading"
+        no-data-label="Belum ada guru"
+      >
         <template v-slot:body-cell-nama="props">
           <q-td :props="props">
             <div class="text-weight-medium">{{ props.row.nama }}</div>
@@ -57,19 +106,36 @@
 
         <template v-slot:body-cell-status="props">
           <q-td :props="props" class="text-center">
-            <q-badge :color="props.row.status === 'AKTIF' ? 'positive' : 'grey-6'" :label="props.row.status" />
+            <q-badge
+              :color="props.row.status === 'AKTIF' ? 'positive' : 'grey-6'"
+              :label="props.row.status"
+            />
           </q-td>
         </template>
 
         <template v-slot:body-cell-role="props">
           <q-td :props="props">
-            <q-chip v-if="props.row.is_homeroom" dense color="deep-purple" text-color="white" icon="supervisor_account">
+            <q-chip
+              v-if="props.row.is_homeroom"
+              dense
+              color="deep-purple"
+              text-color="white"
+              icon="supervisor_account"
+            >
               Wali: {{ props.row.homeroom_class_nama || '-' }}
             </q-chip>
-            <q-chip v-if="(props.row.teaching_subject_ids || []).length > 0" dense outline color="primary"
-              icon="menu_book" :label="`${props.row.teaching_subject_ids.length} mapel`" />
-            <span v-if="!props.row.is_homeroom && !(props.row.teaching_subject_ids || []).length"
-              class="text-caption text-grey-6 italic">
+            <q-chip
+              v-if="(props.row.teaching_subject_ids || []).length > 0"
+              dense
+              outline
+              color="primary"
+              icon="menu_book"
+              :label="`${props.row.teaching_subject_ids.length} mapel`"
+            />
+            <span
+              v-if="!props.row.is_homeroom && !(props.row.teaching_subject_ids || []).length"
+              class="text-caption text-grey-6 italic"
+            >
               Belum ada peran
             </span>
           </q-td>
@@ -81,20 +147,41 @@
               <span v-if="visiblePasswords[props.row.id]">{{ props.row.password || '-' }}</span>
               <span v-else-if="props.row.password">••••••</span>
               <span v-else>-</span>
-              <q-btn v-if="props.row.password" flat round dense
-                :icon="visiblePasswords[props.row.id] ? 'visibility_off' : 'visibility'" size="sm"
-                @click="togglePassword(props.row.id)" class="q-ml-xs" />
+              <q-btn
+                v-if="props.row.password"
+                flat
+                round
+                dense
+                :icon="visiblePasswords[props.row.id] ? 'visibility_off' : 'visibility'"
+                size="sm"
+                @click="togglePassword(props.row.id)"
+                class="q-ml-xs"
+              />
             </div>
           </q-td>
         </template>
         <template v-slot:body-cell-actions="props">
           <q-td :props="props" class="text-center" style="white-space: nowrap">
-            <q-btn flat round dense icon="lock_reset" color="orange" @click="resetPassword(props.row)"><q-tooltip>Reset
-                Password</q-tooltip></q-btn>
+            <q-btn
+              flat
+              round
+              dense
+              icon="lock_reset"
+              color="orange"
+              @click="resetPassword(props.row)"
+              ><q-tooltip>Reset Password</q-tooltip></q-btn
+            >
             <q-btn flat round dense icon="edit" color="primary" @click="openEditDialog(props.row)">
               <q-tooltip>Edit</q-tooltip>
             </q-btn>
-            <q-btn flat round dense icon="delete" color="negative" @click="confirmDelete(props.row)">
+            <q-btn
+              flat
+              round
+              dense
+              icon="delete"
+              color="negative"
+              @click="confirmDelete(props.row)"
+            >
               <q-tooltip>Hapus</q-tooltip>
             </q-btn>
           </q-td>
@@ -102,14 +189,30 @@
       </q-table>
     </q-card>
 
-    <TeacherFormDialog v-model="dialogOpen" :is-editing="isEditing" :initial-form="initialForm" :submitting="submitting"
-      :status-options="statusOptions" :subject-options="subjectOptions" :class-options="classOptions"
-      @submit="submitForm" />
+    <TeacherFormDialog
+      v-model="dialogOpen"
+      :is-editing="isEditing"
+      :initial-form="initialForm"
+      :submitting="submitting"
+      :status-options="statusOptions"
+      :subject-options="subjectOptions"
+      :class-options="classOptions"
+      @submit="submitForm"
+    />
 
-    <TeacherImportDialog v-model="importDialogOpen" :import-step="importStep" :import-preview="importPreview"
-      :importing="importing" :downloading-template="downloadingTemplate" :import-valid-count="importValidCount"
-      @update:import-step="importStep = $event" @download-template="downloadTemplate" @parse-import="parseImport"
-      @confirm-import="confirmImport" @close="closeImportDialog" />
+    <TeacherImportDialog
+      v-model="importDialogOpen"
+      :import-step="importStep"
+      :import-preview="importPreview"
+      :importing="importing"
+      :downloading-template="downloadingTemplate"
+      :import-valid-count="importValidCount"
+      @update:import-step="importStep = $event"
+      @download-template="downloadTemplate"
+      @parse-import="parseImport"
+      @confirm-import="confirmImport"
+      @close="closeImportDialog"
+    />
   </q-page>
 </template>
 
@@ -156,12 +259,20 @@ const {
 } = useTeachers()
 
 const visiblePasswords = ref({})
-const togglePassword = (id) => { visiblePasswords.value[id] = !visiblePasswords.value[id] }
+const togglePassword = (id) => {
+  visiblePasswords.value[id] = !visiblePasswords.value[id]
+}
 
 const columns = [
   { name: 'nama', label: 'Nama / NIP', field: 'nama', align: 'left', style: 'min-width: 240px' },
   { name: 'status', label: 'Status', field: 'status', align: 'center', style: 'width: 100px' },
-  { name: 'jenis_kelamin', label: 'JK', field: 'jenis_kelamin', align: 'center', style: 'width: 100px' },
+  {
+    name: 'jenis_kelamin',
+    label: 'JK',
+    field: 'jenis_kelamin',
+    align: 'center',
+    style: 'width: 100px',
+  },
   { name: 'username', label: 'Username', field: 'username', align: 'left' },
   { name: 'password', label: 'Password', field: 'password', align: 'left' },
   // { name: 'role', label: 'Peran', align: 'left', style: 'min-width: 220px' },

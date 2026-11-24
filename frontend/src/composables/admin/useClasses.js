@@ -100,7 +100,6 @@ export function useClasses() {
     const q = String(searchQuery.value || '')
       .trim()
       .toLowerCase()
-
     return list.filter((c) => {
       if (filterTingkat.value && c.tingkat !== filterTingkat.value) return false
       if (filterJenisRombel.value && c.jenis_rombel !== filterJenisRombel.value) return false
@@ -155,10 +154,12 @@ export function useClasses() {
     }
   }
   // Auto-refresh saat tahun ajaran di header diganti
-  watch(() => academicStore.active_period_id, () => {
-    loadClasses()
-  })
-
+  watch(
+    () => academicStore.active_period_id,
+    () => {
+      loadClasses()
+    },
+  )
 
   const loadTeachers = async () => {
     try {
@@ -316,10 +317,10 @@ export function useClasses() {
       const payload = res?.data || {}
       importPreview.value = Array.isArray(payload.data) ? payload.data : []
       importErrors.value = Array.isArray(payload.errors) ? payload.errors : []
-      
+
       // ✅ FIX: Pindah ke Step 2 setelah preview berhasil dimuat
       importStep.value = 2
-      
+
       return {
         success: true,
         total: importPreview.value.length,
@@ -360,9 +361,12 @@ export function useClasses() {
     }
   }
 
-  watch(() => [academicStore.academic_year, academicStore.semester], () => {
-    loadClasses()
-  })
+  watch(
+    () => [academicStore.academic_year, academicStore.semester],
+    () => {
+      loadClasses()
+    },
+  )
 
   onMounted(() => {
     loadSchoolContext()

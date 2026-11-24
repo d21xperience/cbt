@@ -1,11 +1,7 @@
 <!-- src/components/questions/TrueFalseQuestion.vue -->
 <template>
   <div class="tf-question">
-    <div
-      v-for="(stmt, idx) in statements"
-      :key="stmt.id"
-      class="tf-statement"
-    >
+    <div v-for="(stmt, idx) in statements" :key="stmt.id" class="tf-statement">
       <div class="tf-statement-header">
         <div class="tf-statement-number">{{ idx + 1 }}</div>
         <MathText :content="stmt.text" class="tf-statement-text" />
@@ -84,7 +80,9 @@ const select = (statementId, value) => {
   border-radius: 10px;
   background: #fff;
   padding: 12px 14px;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .tf-statement:hover {

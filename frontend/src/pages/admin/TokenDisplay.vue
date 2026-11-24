@@ -7,25 +7,43 @@
       </div>
       <q-space />
       <q-btn flat icon="refresh" label="Reload" @click="manualReload" :loading="loadingList" />
-      <q-btn flat :icon="autoRefresh ? 'pause' : 'play_arrow'" :label="autoRefresh ? 'Stop Auto' : 'Auto Refresh'"
-        :color="autoRefresh ? 'negative' : 'positive'" @click="autoRefresh = !autoRefresh" />
+      <q-btn
+        flat
+        :icon="autoRefresh ? 'pause' : 'play_arrow'"
+        :label="autoRefresh ? 'Stop Auto' : 'Auto Refresh'"
+        :color="autoRefresh ? 'negative' : 'positive'"
+        @click="autoRefresh = !autoRefresh"
+      />
     </div>
 
     <!-- Pilih Sesi -->
     <q-card flat bordered class="q-mb-md">
       <q-card-section>
-        <q-select v-model="selectedSessionId" :options="sessionOptions" option-label="label" option-value="id"
-          emit-value map-options label="Pilih Sesi Ujian Aktif" outlined dense :loading="loadingList"
-          @update:model-value="onSessionChange">
+        <q-select
+          v-model="selectedSessionId"
+          :options="sessionOptions"
+          option-label="label"
+          option-value="id"
+          emit-value
+          map-options
+          label="Pilih Sesi Ujian Aktif"
+          outlined
+          dense
+          :loading="loadingList"
+          @update:model-value="onSessionChange"
+        >
           <template v-slot:option="scope">
             <q-item v-bind="scope.itemProps">
               <q-item-section>
                 <q-item-label>{{ scope.opt.exam_title }}</q-item-label>
                 <q-item-label caption>
-                  {{ scope.opt.session_type }} · {{ formatTime(scope.opt.start_time) }} - {{
-                    formatTime(scope.opt.end_time) }}
-                  <q-badge :color="scope.opt.has_active_token ? 'positive' : 'warning'" class="q-ml-sm"
-                    :label="scope.opt.has_active_token ? 'Token Aktif' : 'Belum Ada Token'" />
+                  {{ scope.opt.session_type }} · {{ formatTime(scope.opt.start_time) }} -
+                  {{ formatTime(scope.opt.end_time) }}
+                  <q-badge
+                    :color="scope.opt.has_active_token ? 'positive' : 'warning'"
+                    class="q-ml-sm"
+                    :label="scope.opt.has_active_token ? 'Token Aktif' : 'Belum Ada Token'"
+                  />
                 </q-item-label>
               </q-item-section>
             </q-item>
@@ -46,21 +64,37 @@
 
         <!-- Countdown -->
         <div class="q-mb-md" style="max-width: 500px; margin: 0 auto">
-          <q-linear-progress :value="progressRatio" :color="progressColor" track-color="grey-3" size="12px" rounded />
+          <q-linear-progress
+            :value="progressRatio"
+            :color="progressColor"
+            track-color="grey-3"
+            size="12px"
+            rounded
+          />
           <div class="text-h6 q-mt-sm text-weight-bold" :class="`text-${progressColor}`">
             ⏱ {{ formattedRemaining }}
           </div>
-          <div class="text-caption text-grey-7">
-            Rotasi otomatis berikutnya
-          </div>
+          <div class="text-caption text-grey-7">Rotasi otomatis berikutnya</div>
         </div>
 
         <!-- Aksi -->
         <div class="row justify-center q-gutter-sm q-mt-lg">
           <q-btn color="primary" icon="content_copy" label="Copy" @click="copyToken" size="lg" />
-          <q-btn color="warning" icon="refresh" label="Rotate Sekarang" @click="rotateNow" :loading="rotating"
-            size="lg" />
-          <q-btn color="dark" icon="fullscreen" label="Fullscreen" @click="toggleFullscreen" size="lg" />
+          <q-btn
+            color="warning"
+            icon="refresh"
+            label="Rotate Sekarang"
+            @click="rotateNow"
+            :loading="rotating"
+            size="lg"
+          />
+          <q-btn
+            color="dark"
+            icon="fullscreen"
+            label="Fullscreen"
+            @click="toggleFullscreen"
+            size="lg"
+          />
         </div>
 
         <!-- Meta -->
@@ -75,8 +109,14 @@
       <q-card-section class="text-center q-pa-xl text-grey-6">
         <q-icon name="key_off" size="xl" />
         <div class="q-mt-md">Belum ada token aktif untuk sesi ini.</div>
-        <q-btn color="primary" icon="add" label="Generate Token Sekarang" class="q-mt-md" @click="rotateNow"
-          :loading="rotating" />
+        <q-btn
+          color="primary"
+          icon="add"
+          label="Generate Token Sekarang"
+          class="q-mt-md"
+          @click="rotateNow"
+          :loading="rotating"
+        />
       </q-card-section>
     </q-card>
 
@@ -100,10 +140,10 @@ const loadingList = ref(false)
 const rotating = ref(false)
 const sessions = ref([])
 const selectedSessionId = ref(null)
-const token = ref(null)              // { token, valid_from, valid_until, remaining_seconds }
+const token = ref(null) // { token, valid_from, valid_until, remaining_seconds }
 const autoRefresh = ref(true)
 const lastUpdateAt = ref('')
-const remainingSeconds = ref(0)      // countdown lokal
+const remainingSeconds = ref(0) // countdown lokal
 
 let pollInterval = null
 let countdownInterval = null
@@ -200,7 +240,12 @@ const copyToken = async () => {
   if (!token.value?.token) return
   try {
     await copyToClipboard(token.value.token)
-    $q.notify({ type: 'positive', message: 'Token di-copy ke clipboard', position: 'top', timeout: 1500 })
+    $q.notify({
+      type: 'positive',
+      message: 'Token di-copy ke clipboard',
+      position: 'top',
+      timeout: 1500,
+    })
   } catch {
     $q.notify({ type: 'negative', message: 'Gagal copy' })
   }

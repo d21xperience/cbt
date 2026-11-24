@@ -185,38 +185,82 @@ func (m *Manager) CloseAll() {
 
 // ============ openTenantDB ============
 
+// func openTenantDB(dbPath string) (*sql.DB, error) {
+// 	// Validate path — prevent directory traversal
+// 	abs, err := filepath.Abs(dbPath)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	// ✅ FIX 1: Gunakan prefix 'file:' dan ubah backslash ke forward slash (standar URI SQLite)
+// 	// ✅ FIX 2: Naikkan busy_timeout ke 10000ms untuk toleransi recovery WAL saat pertama start
+// 	dsn := fmt.Sprintf("file:%s?_journal_mode=WAL&_busy_timeout=10000", filepath.ToSlash(abs))
+
+// 	db, err := sql.Open("sqlite3", dsn)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	// ✅ FIX 3: Kunci MaxOpenConns SEBELUM Ping/PRAGMA agar tidak terjadi race condition
+// 	db.SetMaxOpenConns(1)
+// 	db.SetMaxIdleConns(1)
+
+// 	// ✅ FIX 4: Paksa buka koneksi (Ping) sebelum mengembalikan *sql.DB
+// 	if err := db.Ping(); err != nil {
+// 		db.Close()
+// 		return nil, fmt.Errorf("ping failed: %w", err)
+// 	}
+
+// 	// Per-tenant PRAGMA — smaller than single-tenant config
+// 	pragmas := []string{
+// 		"PRAGMA journal_mode=WAL;",
+// 		"PRAGMA synchronous=NORMAL;",
+// 		"PRAGMA busy_timeout=10000;",
+// 		"PRAGMA cache_size=-16000;", // 16 MB
+// 		"PRAGMA temp_store=MEMORY;",
+// 		"PRAGMA mmap_size=67108864;", // 64 MB
+// 		"PRAGMA foreign_keys=ON;",
+// 	}
+// 	for _, p := range pragmas {
+// 		if _, err := db.Exec(p); err != nil {
+// 			log.Printf("[TENANT_MGR] PRAGMA warn %s: %v", p, err)
+// 		}
+// 	}
+
+//		return db, nil
+//	}
 func openTenantDB(dbPath string) (*sql.DB, error) {
 	// Validate path — prevent directory traversal
 	abs, err := filepath.Abs(dbPath)
 	if err != nil {
 		return nil, err
 	}
-	_ = abs // sanity
 
-	db, err := sql.Open("sqlite3", dbPath+"?_journal_mode=WAL&_busy_timeout=5000")
+	// ✅ FIX 1: Terapkan SEMUA PRAGMA di DSN. Ini memastikan setiap koneksi
+	// di dalam pool otomatis menggunakan WAL, synchronous=NORMAL, dll.
+	// ✅ FIX 2: Naikkan busy_timeout ke 15000ms (15 detik) agar penulisan yang
+	// antre tidak langsung error SQLITE_BUSY saat ujian serentak 1000 siswa.
+	dsn := fmt.Sprintf(
+		"file:%s?_journal_mode=WAL&_busy_timeout=15000&_synchronous=NORMAL&_cache_size=-16000&_temp_store=MEMORY&_mmap_size=67108864&_foreign_keys=ON",
+		filepath.ToSlash(abs),
+	)
+
+	db, err := sql.Open("sqlite3", dsn)
 	if err != nil {
 		return nil, err
 	}
 
-	// Per-tenant PRAGMA — smaller than single-tenant config
-	pragmas := []string{
-		"PRAGMA journal_mode=WAL;",
-		"PRAGMA synchronous=NORMAL;",
-		"PRAGMA busy_timeout=5000;",
-		"PRAGMA cache_size=-16000;", // 16 MB (dari 64 MB)
-		"PRAGMA temp_store=MEMORY;",
-		"PRAGMA mmap_size=67108864;", // 64 MB (dari 256 MB)
-		"PRAGMA foreign_keys=ON;",
-	}
-	for _, p := range pragmas {
-		if _, err := db.Exec(p); err != nil {
-			log.Printf("[TENANT_MGR] PRAGMA warn %s: %v", p, err)
-		}
-	}
+	// ✅ FIX 3: Izinkan Multiple Connections (Read/Write Splitting Level Pool)
+	// WAL mode memungkinkan 20 goroutine membaca secara paralel.
+	// Jika ada yang menulis, SQLite akan mengantrekan lewat busy_timeout.
+	db.SetMaxOpenConns(20)
+	db.SetMaxIdleConns(20)
+	db.SetConnMaxLifetime(0) // Biarkan koneksi hidup selama aplikasi berjalan
 
-	// Single connection per tenant (SQLite best practice)
-	db.SetMaxOpenConns(1)
-	db.SetMaxIdleConns(1)
+	if err := db.Ping(); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("ping failed: %w", err)
+	}
 
 	return db, nil
 }

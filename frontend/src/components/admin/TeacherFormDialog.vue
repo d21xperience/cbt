@@ -18,18 +18,36 @@
             <q-input v-model="localForm.nip" label="NIP (Opsional)" outlined dense />
           </div>
           <div class="col-12 col-sm-8">
-            <q-input v-model="localForm.nama" label="Nama Lengkap" outlined dense
-              :rules="[(v) => !!v || 'Nama wajib diisi']" />
+            <q-input
+              v-model="localForm.nama"
+              label="Nama Lengkap"
+              outlined
+              dense
+              :rules="[(v) => !!v || 'Nama wajib diisi']"
+            />
           </div>
         </div>
 
         <div class="row q-col-gutter-sm">
           <div class="col-12 col-sm-6">
-            <q-input v-model="localForm.email" type="email" label="Email (Opsional)" outlined dense />
+            <q-input
+              v-model="localForm.email"
+              type="email"
+              label="Email (Opsional)"
+              outlined
+              dense
+            />
           </div>
           <div class="col-12 col-sm-6">
-            <q-select v-model="localForm.status" :options="statusOptions" label="Status" outlined dense emit-value
-              map-options />
+            <q-select
+              v-model="localForm.status"
+              :options="statusOptions"
+              label="Status"
+              outlined
+              dense
+              emit-value
+              map-options
+            />
           </div>
         </div>
 
@@ -42,30 +60,58 @@
         </q-banner>
 
         <!-- Mata Pelajaran Diampu -->
-        <div class="text-subtitle2 text-weight-bold text-primary row items-center q-mt-sm">
+        <!-- <div class="text-subtitle2 text-weight-bold text-primary row items-center q-mt-sm">
           <q-icon name="menu_book" size="xs" class="q-mr-xs" /> Mata Pelajaran Diampu
         </div>
 
-        <q-select v-model="localForm.teaching_subject_ids" :options="subjectOptions" label="Pilih Mapel (multi)"
-          outlined dense multiple use-chips emit-value map-options hint="Pilih satu atau lebih mapel yang diampu" />
+        <q-select
+          v-model="localForm.teaching_subject_ids"
+          :options="subjectOptions"
+          label="Pilih Mapel (multi)"
+          outlined
+          dense
+          multiple
+          use-chips
+          emit-value
+          map-options
+          hint="Pilih satu atau lebih mapel yang diampu"
+        /> -->
 
         <!-- Wali Kelas -->
         <div class="text-subtitle2 text-weight-bold text-primary row items-center q-mt-sm">
           <q-icon name="supervisor_account" size="xs" class="q-mr-xs" /> Wali Kelas
         </div>
 
-        <q-toggle v-model="localForm.is_homeroom" label="Guru ini menjabat sebagai Wali Kelas" color="primary"
-          @update:model-value="onHomeroomToggle" />
+        <q-toggle
+          v-model="localForm.is_homeroom"
+          label="Guru ini menjabat sebagai Wali Kelas"
+          color="primary"
+          @update:model-value="onHomeroomToggle"
+        />
 
-        <q-select v-if="localForm.is_homeroom" v-model="localForm.homeroom_class_id" :options="classOptions"
-          label="Kelas Binaan" outlined dense emit-value map-options clearable
-          :rules="[(v) => !!v || 'Kelas wajib dipilih jika wali kelas']" />
+        <q-select
+          v-if="localForm.is_homeroom"
+          v-model="localForm.homeroom_class_id"
+          :options="classOptions"
+          label="Kelas Binaan"
+          outlined
+          dense
+          emit-value
+          map-options
+          clearable
+          :rules="[(v) => !!v || 'Kelas wajib dipilih jika wali kelas']"
+        />
       </q-card-section>
 
       <q-card-actions align="right" class="q-pb-md q-pr-md">
         <q-btn flat label="Batal" color="grey-7" v-close-popup />
-        <q-btn color="primary" :label="isEditing ? 'Simpan Perubahan' : 'Simpan'" :loading="submitting"
-          :disable="!canSubmitInternal" @click="onSubmit" />
+        <q-btn
+          color="primary"
+          :label="isEditing ? 'Simpan Perubahan' : 'Simpan'"
+          :loading="submitting"
+          :disable="!canSubmitInternal"
+          @click="onSubmit"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>

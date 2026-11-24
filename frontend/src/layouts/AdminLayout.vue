@@ -4,19 +4,43 @@
   <q-layout view="hHh lpR fFf" class="admin-layout">
     <!-- Skip Link for Accessibility -->
     <SkipLink />
-    <AppHeader :title="panelTitle" :badge="authStore.user?.role" :show-menu-toggle="true" :drawer-open="leftDrawerOpen"
-      :show-notifications="true" :notification-count="3" :show-refresh="true" :is-refreshing="isRefreshing"
-      @toggle-drawer="toggleDrawer" @notifications-click="showNotifications = true" @refresh="refreshData"
-      @logout="confirmLogout" />
+    <AppHeader
+      :title="panelTitle"
+      :badge="authStore.user?.role"
+      :show-menu-toggle="true"
+      :drawer-open="leftDrawerOpen"
+      :show-notifications="true"
+      :notification-count="3"
+      :show-refresh="true"
+      :is-refreshing="isRefreshing"
+      @toggle-drawer="toggleDrawer"
+      @notifications-click="showNotifications = true"
+      @refresh="refreshData"
+      @logout="confirmLogout"
+    />
 
     <!-- Enhanced Drawer -->
-    <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-grey-1" :width="280" :breakpoint="1024"
-      id="admin-drawer" role="navigation" aria-label="Main navigation">
+    <q-drawer
+      v-model="leftDrawerOpen"
+      show-if-above
+      bordered
+      class="bg-grey-1"
+      :width="280"
+      :breakpoint="1024"
+      id="admin-drawer"
+      role="navigation"
+      aria-label="Main navigation"
+    >
       <!-- Drawer Header -->
       <q-scroll-area style="height: calc(100% - 80px)">
         <q-list padding>
           <!-- Quick Stats -->
-          <div v-if="!isProctor" class="q-px-md q-py-sm" role="complementary" aria-label="Quick statistics">
+          <div
+            v-if="!isProctor"
+            class="q-px-md q-py-sm"
+            role="complementary"
+            aria-label="Quick statistics"
+          >
             <q-item-label header class="text-uppercase text-grey-7">
               <q-icon name="trending_up" class="q-mr-xs" size="xs" aria-hidden="true" />
               Quick Stats
@@ -50,10 +74,22 @@
             Main Navigation
           </q-item-label>
 
-          <q-item v-for="item in mainNavItems" :key="item.name" clickable v-ripple :to="item.to"
-            active-class="bg-blue-1 text-primary" exact :aria-current="isActiveRoute(item.to) ? 'page' : undefined">
+          <q-item
+            v-for="item in mainNavItems"
+            :key="item.name"
+            clickable
+            v-ripple
+            :to="item.to"
+            active-class="bg-blue-1 text-primary"
+            exact
+            :aria-current="isActiveRoute(item.to) ? 'page' : undefined"
+          >
             <q-item-section avatar>
-              <q-icon :name="item.icon" :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'" aria-hidden="true" />
+              <q-icon
+                :name="item.icon"
+                :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'"
+                aria-hidden="true"
+              />
             </q-item-section>
             <q-item-section>
               {{ item.label }}
@@ -68,16 +104,32 @@
           <!-- ═══ DATA REFERENSI ═══ -->
           <template v-if="referensiNavItems.length > 0">
             <q-separator class="q-my-sm" />
-            <q-expansion-item group="admin-nav-group" icon="storage" label="DATA REFERENSI"
-              header-class="text-uppercase text-grey-7 text-weight-medium" expand-icon-class="text-grey-7"
-              :default-opened="isGroupActive(referensiNavItems)">
+            <q-expansion-item
+              group="admin-nav-group"
+              icon="storage"
+              label="DATA REFERENSI"
+              header-class="text-uppercase text-grey-7 text-weight-medium"
+              expand-icon-class="text-grey-7"
+              :default-opened="isGroupActive(referensiNavItems)"
+            >
               <q-list>
-                <q-item v-for="item in referensiNavItems" :key="item.name" clickable v-ripple :to="item.to"
-                  :inset-level="0.3" active-class="bg-blue-1 text-primary" exact
-                  :aria-current="isActiveRoute(item.to) ? 'page' : undefined">
+                <q-item
+                  v-for="item in referensiNavItems"
+                  :key="item.name"
+                  clickable
+                  v-ripple
+                  :to="item.to"
+                  :inset-level="0.3"
+                  active-class="bg-blue-1 text-primary"
+                  exact
+                  :aria-current="isActiveRoute(item.to) ? 'page' : undefined"
+                >
                   <q-item-section avatar>
-                    <q-icon :name="item.icon" :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'"
-                      aria-hidden="true" />
+                    <q-icon
+                      :name="item.icon"
+                      :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'"
+                      aria-hidden="true"
+                    />
                   </q-item-section>
                   <q-item-section>{{ item.label }}</q-item-section>
                 </q-item>
@@ -85,11 +137,11 @@
             </q-expansion-item>
           </template>
 
-          <!-- ═══ MANAJEMEN ulangan ═══ -->
+          <!-- ═══ MANAJEMEN ujian ═══ -->
           <template v-if="managementNavItems.length > 0">
             <q-separator class="q-my-sm" />
             <!-- <q-expansion-item :key="'mgmt-' + (academicStore.exam_mode || 'off')" group="admin-nav-group" icon="tune"
-              label="MANAJEMEN ulangan" :disable="!academicStore.isExamModeActive"
+              label="MANAJEMEN ujian" :disable="!academicStore.isExamModeActive"
               header-class="text-uppercase text-grey-7 text-weight-medium" expand-icon-class="text-grey-7"
               :default-opened="academicStore.isExamModeActive && isGroupActive(managementNavItems)">
               <q-list>
@@ -105,28 +157,50 @@
               </q-list>
             </q-expansion-item> -->
             <div class="relative-position">
-              <q-tooltip v-if="!academicStore.isExamModeActive" anchor="center right" self="center left"
-                :offset="[10, 10]">
+              <q-tooltip
+                v-if="!academicStore.isExamModeActive"
+                anchor="center right"
+                self="center left"
+                :offset="[10, 10]"
+              >
                 Aktifkan Mode Ujian terlebih dahulu
               </q-tooltip>
-              <q-expansion-item :key="'mgmt-' + (academicStore.exam_mode || 'off')" group="admin-nav-group" icon="tune"
-                label="MANAJEMEN ulangan" :disable="!academicStore.isExamModeActive"
-                header-class="text-uppercase text-grey-7 text-weight-medium" expand-icon-class="text-grey-7"
-                :default-opened="academicStore.isExamModeActive && isGroupActive(managementNavItems)">
+              <q-expansion-item
+                :key="'mgmt-' + (academicStore.exam_mode || 'off')"
+                group="admin-nav-group"
+                icon="tune"
+                label="MANAJEMEN ujian"
+                :disable="!academicStore.isExamModeActive"
+                header-class="text-uppercase text-grey-7 text-weight-medium"
+                expand-icon-class="text-grey-7"
+                :default-opened="
+                  academicStore.isExamModeActive && isGroupActive(managementNavItems)
+                "
+              >
                 <q-list>
-                  <q-item v-for="item in managementNavItems" :key="item.name" clickable v-ripple :to="item.to"
-                    :inset-level="0.3" active-class="bg-blue-1 text-primary" exact
-                    :aria-current="isActiveRoute(item.to) ? 'page' : undefined">
+                  <q-item
+                    v-for="item in managementNavItems"
+                    :key="item.name"
+                    clickable
+                    v-ripple
+                    :to="item.to"
+                    :inset-level="0.3"
+                    active-class="bg-blue-1 text-primary"
+                    exact
+                    :aria-current="isActiveRoute(item.to) ? 'page' : undefined"
+                  >
                     <q-item-section avatar>
-                      <q-icon :name="item.icon" :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'"
-                        aria-hidden="true" />
+                      <q-icon
+                        :name="item.icon"
+                        :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'"
+                        aria-hidden="true"
+                      />
                     </q-item-section>
                     <q-item-section>{{ item.label }}</q-item-section>
                   </q-item>
                 </q-list>
               </q-expansion-item>
             </div>
-
           </template>
           <!-- ═══ MONITORING ═══ -->
           <template v-if="monitoringNavItems.length > 0">
@@ -148,21 +222,44 @@
               </q-list>
             </q-expansion-item> -->
             <div class="relative-position">
-              <q-tooltip v-if="!academicStore.isExamModeActive" anchor="center right" self="center left"
-                :offset="[10, 10]">
+              <q-tooltip
+                v-if="!academicStore.isExamModeActive"
+                anchor="center right"
+                self="center left"
+                :offset="[10, 10]"
+              >
                 Aktifkan Mode Ujian terlebih dahulu
               </q-tooltip>
-              <q-expansion-item :key="'mon-' + (academicStore.exam_mode || 'off')" group="admin-nav-group"
-                icon="visibility" label="MONITORING" :disable="!academicStore.isExamModeActive"
-                header-class="text-uppercase text-grey-7 text-weight-medium" expand-icon-class="text-grey-7"
-                :default-opened="academicStore.isExamModeActive && isGroupActive(monitoringNavItems)">
+              <q-expansion-item
+                :key="'mon-' + (academicStore.exam_mode || 'off')"
+                group="admin-nav-group"
+                icon="visibility"
+                label="MONITORING"
+                :disable="!academicStore.isExamModeActive"
+                header-class="text-uppercase text-grey-7 text-weight-medium"
+                expand-icon-class="text-grey-7"
+                :default-opened="
+                  academicStore.isExamModeActive && isGroupActive(monitoringNavItems)
+                "
+              >
                 <q-list>
-                  <q-item v-for="item in monitoringNavItems" :key="item.name" clickable v-ripple :to="item.to"
-                    :inset-level="0.3" active-class="bg-blue-1 text-primary" exact
-                    :aria-current="isActiveRoute(item.to) ? 'page' : undefined">
+                  <q-item
+                    v-for="item in monitoringNavItems"
+                    :key="item.name"
+                    clickable
+                    v-ripple
+                    :to="item.to"
+                    :inset-level="0.3"
+                    active-class="bg-blue-1 text-primary"
+                    exact
+                    :aria-current="isActiveRoute(item.to) ? 'page' : undefined"
+                  >
                     <q-item-section avatar>
-                      <q-icon :name="item.icon" :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'"
-                        aria-hidden="true" />
+                      <q-icon
+                        :name="item.icon"
+                        :color="isActiveRoute(item.to) ? 'primary' : 'grey-7'"
+                        aria-hidden="true"
+                      />
                     </q-item-section>
                     <q-item-section>{{ item.label }}</q-item-section>
                   </q-item>
@@ -171,7 +268,6 @@
             </div>
           </template>
         </q-list>
-
       </q-scroll-area>
     </q-drawer>
 
@@ -179,7 +275,12 @@
     <q-page-container>
       <q-page class="bg-grey-2" id="main-content" role="main">
         <!-- Breadcrumb -->
-        <q-toolbar class="q-py-xs bg-primary-dark" v-if="currentRoute" role="navigation" aria-label="Breadcrumb">
+        <q-toolbar
+          class="q-py-xs bg-primary-dark"
+          v-if="currentRoute"
+          role="navigation"
+          aria-label="Breadcrumb"
+        >
           <div class="text-caption q-px-md">
             <q-breadcrumbs>
               <q-breadcrumbs-el label="Home" icon="home" :to="{ name: 'admin-dashboard' }" />
@@ -187,13 +288,24 @@
             </q-breadcrumbs>
           </div>
           <div class="absolute-bottom q-pa-md">
-            <q-btn flat color="grey-7" icon="help" label="Bantuan" size="sm" class="full-width q-mb-xs"
-              @click="showHelp" aria-label="Help" />
-
+            <q-btn
+              flat
+              color="grey-7"
+              icon="help"
+              label="Bantuan"
+              size="sm"
+              class="full-width q-mb-xs"
+              @click="showHelp"
+              aria-label="Help"
+            />
           </div>
         </q-toolbar>
         <router-view v-slot="{ Component }">
-          <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut" mode="out-in">
+          <transition
+            enter-active-class="animated fadeIn"
+            leave-active-class="animated fadeOut"
+            mode="out-in"
+          >
             <component :is="Component" :key="$route.fullPath" />
           </transition>
         </router-view>
@@ -246,9 +358,7 @@
     <!-- Footer Global -->
     <q-footer elevated class="bg-grey-2 text-grey-7 q-pa-sm">
       <div class="row items-center justify-between full-width q-px-md text-caption">
-        <div>
-          <q-icon name="copyright" size="xs" /> 2026 CBT Engine - ujian.pw
-        </div>
+        <div><q-icon name="copyright" size="xs" /> 2026 CBT Engine - ujian.pw</div>
         <div>
           <q-icon name="schedule" size="xs" class="q-mr-xs" />
           {{ currentDateTime }}
@@ -315,41 +425,178 @@ const panelTitle = computed(() => (isProctor.value ? 'CBT Proctor Panel' : 'CBT 
 // ══════════════════════════════════════════════════════════
 
 const ALL_MAIN_NAV = [
-  { name: 'dashboard', label: 'Dashboard', icon: 'dashboard', to: { name: 'admin-dashboard' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
-  { name: 'proctor-dashboard', label: 'Dashboard Proktor', icon: 'shield', to: { name: 'proctor-dashboard' }, roles: ['PROCTOR', 'TEACHER'] },
+  {
+    name: 'dashboard',
+    label: 'Dashboard',
+    icon: 'dashboard',
+    to: { name: 'admin-dashboard' },
+    roles: ['ADMIN', 'SUPER_ADMIN'],
+  },
+  {
+    name: 'proctor-dashboard',
+    label: 'Dashboard Proktor',
+    icon: 'shield',
+    to: { name: 'proctor-dashboard' },
+    roles: ['PROCTOR', 'TEACHER'],
+  },
 ]
 
 // ── DATA REFERENSI (setup master data)
 const ALL_REFERENSI_NAV = [
-  { name: 'school-profile', label: 'Profil Sekolah', icon: 'school', to: { name: 'admin-school-profile' }, roles: ['ADMIN'] },
-  { name: 'academic-periods', label: 'Tahun Ajaran', icon: 'calendar_month', to: { name: 'admin-academic-periods' }, roles: ['ADMIN'] },
-  { name: 'subjects', label: 'Mata Pelajaran', icon: 'menu_book', to: { name: 'admin-subjects' }, roles: ['ADMIN'] },
-  { name: 'rooms', label: 'Ruang ulangan', icon: 'meeting_room', to: { name: 'admin-rooms' }, roles: ['ADMIN'] },
-  { name: 'teachers', label: 'Guru & Proctor', icon: 'supervisor_account', to: { name: 'admin-teachers' }, roles: ['ADMIN'] },
-  { name: 'classes', label: 'Kelas / Rombel', icon: 'class', to: { name: 'admin-classes' }, roles: ['ADMIN'] },
-  { name: 'students', label: 'Siswa', icon: 'groups', to: { name: 'admin-students' }, roles: ['ADMIN'] },
-  { name: 'examTypes', label: 'Jenis ulangan', icon: 'assignment', to: { name: 'admin-exam-types' }, roles: ['ADMIN'] },
-  { name: 'lessons', label: 'Pembelajaran', icon: 'school', to: { name: 'admin-lessons' }, roles: ['ADMIN'] },
+  {
+    name: 'school-profile',
+    label: 'Profil Sekolah',
+    icon: 'school',
+    to: { name: 'admin-school-profile' },
+    roles: ['ADMIN'],
+  },
+  {
+    name: 'academic-periods',
+    label: 'Tahun Ajaran',
+    icon: 'calendar_month',
+    to: { name: 'admin-academic-periods' },
+    roles: ['ADMIN'],
+  },
+  {
+    name: 'subjects',
+    label: 'Mata Pelajaran',
+    icon: 'menu_book',
+    to: { name: 'admin-subjects' },
+    roles: ['ADMIN'],
+  },
+  {
+    name: 'rooms',
+    label: 'Ruang',
+    icon: 'meeting_room',
+    to: { name: 'admin-rooms' },
+    roles: ['ADMIN'],
+  },
+  {
+    name: 'classes',
+    label: 'Kelas / Rombel',
+    icon: 'class',
+    to: { name: 'admin-classes' },
+    roles: ['ADMIN'],
+  },
+
+  {
+    name: 'teachers',
+    label: 'Guru & Proctor',
+    icon: 'supervisor_account',
+    to: { name: 'admin-teachers' },
+    roles: ['ADMIN'],
+  },
+
+  {
+    name: 'students',
+    label: 'Siswa',
+    icon: 'groups',
+    to: { name: 'admin-students' },
+    roles: ['ADMIN'],
+  },
+
+  {
+    name: 'examTypes',
+    label: 'Jenis ujian',
+    icon: 'assignment',
+    to: { name: 'admin-exam-types' },
+    roles: ['ADMIN'],
+  },
+  {
+    name: 'lessons',
+    label: 'Pembelajaran',
+    icon: 'school',
+    to: { name: 'admin-lessons' },
+    roles: ['ADMIN'],
+  },
 ]
 
-// ── MANAJEMEN ulangan (persiapan pelaksanaan ulangan)
+// ── MANAJEMEN ujian (persiapan pelaksanaan ujian)
 const ALL_MANAGEMENT_NAV = [
-  { name: 'participants', label: 'Data Peserta', icon: 'group', to: { name: 'admin-participants' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
-  { name: 'kelolaSoal', label: 'Kelola Soal', icon: 'quiz', to: { name: 'admin-questions' }, roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'] },
-  { name: 'buatJadwal', label: 'Jadwal ulangan', icon: 'schedule', to: { name: 'admin-exam-management' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
-  { name: 'paymentGates', label: 'Payment Gate', icon: 'payments', to: { name: 'admin-payment-gates' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
-  //{ name: 'examCard', label: 'Kartu ulangan', icon: 'card_membership', to: { name: 'admin-exam-card' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
-  { name: 'cetakDokumen', label: 'Cetak Dokumen ulangan', icon: 'print', to: { name: 'admin-cetak-dokumen' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
+  {
+    name: 'participants',
+    label: 'Data Peserta',
+    icon: 'group',
+    to: { name: 'admin-participants' },
+    roles: ['ADMIN', 'SUPER_ADMIN'],
+  },
+  {
+    name: 'kelolaSoal',
+    label: 'Kelola Soal',
+    icon: 'quiz',
+    to: { name: 'admin-questions' },
+    roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'],
+  },
+  {
+    name: 'buatJadwal',
+    label: 'Jadwal ujian',
+    icon: 'schedule',
+    to: { name: 'admin-exam-management' },
+    roles: ['ADMIN', 'SUPER_ADMIN'],
+  },
+  {
+    name: 'paymentGates',
+    label: 'Payment Gate',
+    icon: 'payments',
+    to: { name: 'admin-payment-gates' },
+    roles: ['ADMIN', 'SUPER_ADMIN'],
+  },
+  //{ name: 'examCard', label: 'Kartu ujian', icon: 'card_membership', to: { name: 'admin-exam-card' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
+  {
+    name: 'cetakDokumen',
+    label: 'Cetak Dokumen ujian',
+    icon: 'print',
+    to: { name: 'admin-cetak-dokumen' },
+    roles: ['ADMIN', 'SUPER_ADMIN'],
+  },
 ]
 
-// ── MONITORING (runtime pelaksanaan ulangan + proctor tools)
+// ── MONITORING (runtime pelaksanaan ujian + proctor tools)
 const ALL_MONITORING_NAV = [
-  { name: 'sessions', label: 'Sesi ulangan', icon: 'event', to: { name: 'admin-sessions' }, roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'] },
-  { name: 'tokenulangan', label: 'Token ulangan', icon: 'vpn_key', to: { name: 'admin-token-display' }, roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'] },
-  { name: 'makeup', label: 'ulangan Susulan', icon: 'event_repeat', to: { name: 'admin-makeup' }, roles: ['ADMIN', 'SUPER_ADMIN'] },
-  { name: 'proctor-unlock', label: 'Buka Blok ulangan', icon: 'lock_open', to: { name: 'proctor-unlock' }, roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'] },
-  { name: 'proctor-tunggakan', label: 'Tunggakan', icon: 'payments', to: { name: 'proctor-tunggakan' }, roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'], onlyHomeroomForRoles: ['PROCTOR', 'TEACHER'] },
-  { name: 'proctor-peserta-kelas', label: 'Peserta ulangan Kelas', icon: 'groups', to: { name: 'proctor-peserta-kelas' }, roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'], onlyHomeroomForRoles: ['PROCTOR', 'TEACHER'] },
+  {
+    name: 'sessions',
+    label: 'Sesi ujian',
+    icon: 'event',
+    to: { name: 'admin-sessions' },
+    roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'],
+  },
+  {
+    name: 'tokenujian',
+    label: 'Token ujian',
+    icon: 'vpn_key',
+    to: { name: 'admin-token-display' },
+    roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'],
+  },
+  {
+    name: 'makeup',
+    label: 'ujian Susulan',
+    icon: 'event_repeat',
+    to: { name: 'admin-makeup' },
+    roles: ['ADMIN', 'SUPER_ADMIN'],
+  },
+  {
+    name: 'proctor-unlock',
+    label: 'Buka Blok ujian',
+    icon: 'lock_open',
+    to: { name: 'proctor-unlock' },
+    roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'],
+  },
+  {
+    name: 'proctor-tunggakan',
+    label: 'Tunggakan',
+    icon: 'payments',
+    to: { name: 'proctor-tunggakan' },
+    roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'],
+    onlyHomeroomForRoles: ['PROCTOR', 'TEACHER'],
+  },
+  {
+    name: 'proctor-peserta-kelas',
+    label: 'Peserta ujian Kelas',
+    icon: 'groups',
+    to: { name: 'proctor-peserta-kelas' },
+    roles: ['ADMIN', 'SUPER_ADMIN', 'PROCTOR', 'TEACHER'],
+    onlyHomeroomForRoles: ['PROCTOR', 'TEACHER'],
+  },
 ]
 
 const filterItems = (items) =>
@@ -366,7 +613,7 @@ const referensiNavItems = computed(() => filterItems(ALL_REFERENSI_NAV))
 const managementNavItems = computed(() => filterItems(ALL_MANAGEMENT_NAV))
 const monitoringNavItems = computed(() => {
   let items = filterItems(ALL_MONITORING_NAV)
-  // 'makeup' (ulangan Susulan) hanya muncul di mode UTS/UAS
+  // 'makeup' (ujian Susulan) hanya muncul di mode UTS/UAS
   if (!academicStore.isMainExamMode) {
     items = items.filter((i) => i.name !== 'makeup')
   }
@@ -377,23 +624,36 @@ const monitoringNavItems = computed(() => {
 const adminStore = useAdminStore()
 const academicStore = useAcademicStore()
 
-// ── Guard: Tendang user ke Dashboard jika Mode ulangan dimatikan
-watch(() => academicStore.exam_mode, (newMode) => {
-  if (!newMode) {
-    const path = route.path
-    // Daftar prefix path yang dilarang saat mode ulangan mati
-    const restrictedPrefixes = [
-      '/admin/participants', '/admin/kartu-ulangan', '/admin/cetak-dokumen',
-      '/admin/manajemen-ulangan', '/admin/questions', '/admin/payment-gates',
-      '/admin/sessions', '/admin/token-ulangan', '/admin/makeup',
-      '/proctor'
-    ]
-    if (restrictedPrefixes.some(p => path.startsWith(p))) {
-      router.push({ name: 'admin-dashboard' })
-      $q.notify({ type: 'warning', message: 'Mode ulangan dimatikan. Anda dialihkan ke Dashboard.' })
+// ── Guard: Tendang user ke Dashboard jika Mode ujian dimatikan
+watch(
+  () => academicStore.exam_mode,
+  (newMode) => {
+    if (!newMode) {
+      const path = route.path
+      // Daftar prefix path yang dilarang saat mode ujian mati
+      const restrictedPrefixes = [
+        '/admin/participants',
+        '/admin/kartu-ujian',
+        '/admin/cetak-dokumen',
+        '/admin/manajemen-ujian',
+        '/admin/questions',
+        '/admin/payment-gates',
+        '/admin/sessions',
+        '/admin/token-ujian',
+        '/admin/makeup',
+        '/proctor',
+      ]
+      if (restrictedPrefixes.some((p) => path.startsWith(p))) {
+        router.push({ name: 'admin-dashboard' })
+        $q.notify({
+          type: 'warning',
+          message: 'Mode ujian dimatikan. Anda dialihkan ke Dashboard.',
+        })
+      }
     }
-  }
-}, { immediate: true })
+  },
+  { immediate: true },
+)
 
 const stats = computed(() => {
   if (isProctor.value) {
@@ -413,13 +673,13 @@ const getBreadcrumbLabel = computed(() => {
   const nameMap = {
     'admin-dashboard': 'Dashboard',
     'admin-sync': 'Sync SIAKAD',
-    'admin-sessions': 'Sesi ulangan',
+    'admin-sessions': 'Sesi ujian',
     'admin-questions': 'Kelola Soal',
     'admin-participants': 'Data Peserta',
     'admin-archive': 'Archive Semester',
-    'admin-cetak-dokumen': 'Cetak Dokumen ulangan',
-    'admin-cetak-kartu-ulangan': 'Kartu ulangan',
-    'admin-rooms': 'Ruang ulangan',
+    'admin-cetak-dokumen': 'Cetak Dokumen ujian',
+    'admin-cetak-kartu-ujian': 'Kartu ujian',
+    'admin-rooms': 'Ruang ujian',
   }
   return nameMap[route.name] || route.name || 'Page'
 })
@@ -434,8 +694,8 @@ const notifications = ref([
     id: 1,
     icon: 'warning',
     color: 'orange',
-    title: 'ulangan Akan Berakhir',
-    message: 'Sesi ulangan akan berakhir dalam 30 menit',
+    title: 'ujian Akan Berakhir',
+    message: 'Sesi ujian akan berakhir dalam 30 menit',
     time: '5m ago',
   },
   {
@@ -522,7 +782,6 @@ const loadStats = async () => {
 const isManagementExpanded = ref(false)
 const isMonitoringExpanded = ref(false)
 
-
 // ✅ Sinkronisasi Academic Context — Watch user + retry
 const _syncAcademicFromDB = async () => {
   const role = authStore.user?.role
@@ -538,8 +797,8 @@ const _syncAcademicFromDB = async () => {
     // SOFT SYNC: Hanya paksa update jika di UI belum ada tahun ajaran yang dipilih,
     // atau jika tahun ajaran yang dipilih di UI ternyata sudah dihapus dari DB.
     const isValidChoice = list.some(
-      (p) => p.academic_year === academicStore.academic_year &&
-        p.semester === academicStore.semester
+      (p) =>
+        p.academic_year === academicStore.academic_year && p.semester === academicStore.semester,
     )
 
     if (active && !isValidChoice) {
@@ -558,7 +817,7 @@ watch(
   (role) => {
     if (role) _syncAcademicFromDB()
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 // Fallback timer — kalau auth belum siap saat mount

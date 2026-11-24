@@ -5,9 +5,7 @@
         <q-icon name="edit_note" color="primary" class="q-mr-xs" />
         Jawaban Diterima
       </div>
-      <div class="text-caption text-grey-7">
-        Siswa menjawab bebas · sistem cek ke daftar ini
-      </div>
+      <div class="text-caption text-grey-7">Siswa menjawab bebas · sistem cek ke daftar ini</div>
     </div>
 
     <!-- Accepted answers -->
@@ -18,13 +16,25 @@
         </q-item-section>
 
         <q-item-section>
-          <q-input :model-value="ans.text" placeholder="Jawaban diterima (mis. Jakarta)" outlined dense
-            @update:model-value="(v) => onUpdate(idx, v)" />
+          <q-input
+            :model-value="ans.text"
+            placeholder="Jawaban diterima (mis. Jakarta)"
+            outlined
+            dense
+            @update:model-value="(v) => onUpdate(idx, v)"
+          />
         </q-item-section>
 
         <q-item-section side>
-          <q-btn flat round dense icon="close" color="grey-6" :disable="modelValue.length <= 1"
-            @click="onRemove(ans.id)">
+          <q-btn
+            flat
+            round
+            dense
+            icon="close"
+            color="grey-6"
+            :disable="modelValue.length <= 1"
+            @click="onRemove(ans.id)"
+          >
             <q-tooltip>Hapus jawaban</q-tooltip>
           </q-btn>
         </q-item-section>
@@ -33,8 +43,15 @@
 
     <!-- Add -->
     <div class="row q-gutter-sm q-mt-md items-center">
-      <q-btn flat color="primary" icon="add" label="Tambah jawaban alternatif" no-caps
-        :disable="modelValue.length >= 10" @click="onAdd" />
+      <q-btn
+        flat
+        color="primary"
+        icon="add"
+        label="Tambah jawaban alternatif"
+        no-caps
+        :disable="modelValue.length >= 10"
+        @click="onAdd"
+      />
       <span class="text-caption text-grey-7">{{ modelValue.length }} / 10</span>
     </div>
 
@@ -42,10 +59,16 @@
     <q-card flat bordered class="q-mt-md bg-grey-1">
       <q-card-section>
         <div class="row items-center q-gutter-md">
-          <q-toggle :model-value="caseSensitive" label="Case sensitive (bedakan huruf besar/kecil)"
-            @update:model-value="$emit('update:caseSensitive', $event)" />
-          <q-toggle :model-value="trimWhitespace" label="Trim spasi di awal/akhir"
-            @update:model-value="$emit('update:trimWhitespace', $event)" />
+          <q-toggle
+            :model-value="caseSensitive"
+            label="Case sensitive (bedakan huruf besar/kecil)"
+            @update:model-value="$emit('update:caseSensitive', $event)"
+          />
+          <q-toggle
+            :model-value="trimWhitespace"
+            label="Trim spasi di awal/akhir"
+            @update:model-value="$emit('update:trimWhitespace', $event)"
+          />
         </div>
         <div class="text-caption text-grey-7 q-mt-sm">
           <q-icon name="info" size="xs" class="q-mr-xs" />
@@ -74,9 +97,7 @@ const createAnswer = () => ({
 })
 
 const onUpdate = (idx, value) => {
-  const updated = props.modelValue.map((a, i) =>
-    i === idx ? { ...a, text: value } : a,
-  )
+  const updated = props.modelValue.map((a, i) => (i === idx ? { ...a, text: value } : a))
   emit('update:modelValue', updated)
 }
 
@@ -90,6 +111,9 @@ const onRemove = (id) => {
     $q.notify({ type: 'warning', message: 'Minimal 1 jawaban' })
     return
   }
-  emit('update:modelValue', props.modelValue.filter((a) => a.id !== id))
+  emit(
+    'update:modelValue',
+    props.modelValue.filter((a) => a.id !== id),
+  )
 }
 </script>

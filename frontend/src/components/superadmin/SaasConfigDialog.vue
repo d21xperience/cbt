@@ -20,26 +20,54 @@
 
         <div class="row q-col-gutter-sm">
           <div class="col-12 col-sm-6">
-            <q-select v-model="config.package_tier" :options="tierOptions" label="Tiering Paket" outlined dense
-              emit-value map-options />
+            <q-select
+              v-model="config.package_tier"
+              :options="tierOptions"
+              label="Tiering Paket"
+              outlined
+              dense
+              emit-value
+              map-options
+            />
           </div>
           <div class="col-12 col-sm-6">
-            <q-input v-model.number="config.max_active_students" type="number" label="Maksimal Siswa Aktif ulangan"
-              outlined dense :min="50" :max="10000" :step="50" :rules="[
-                (v) => (v >= 50 && v <= 10000) || 'Kuota antara 50-10.000',
-              ]" hint="50 – 10.000 siswa" />
+            <q-input
+              v-model.number="config.max_active_students"
+              type="number"
+              label="Maksimal Siswa Aktif ulangan"
+              outlined
+              dense
+              :min="50"
+              :max="10000"
+              :step="50"
+              :rules="[(v) => (v >= 50 && v <= 10000) || 'Kuota antara 50-10.000']"
+              hint="50 – 10.000 siswa"
+            />
           </div>
         </div>
 
         <q-separator class="q-my-sm" />
         <div class="row q-col-gutter-sm">
           <div class="col-12 col-sm-6">
-            <q-select v-model="config.package_tier" :options="tierOptions" label="Tiering Paket" outlined dense
-              emit-value map-options />
+            <q-select
+              v-model="config.package_tier"
+              :options="tierOptions"
+              label="Tiering Paket"
+              outlined
+              dense
+              emit-value
+              map-options
+            />
           </div>
           <div class="col-12 col-sm-6">
-            <q-input :model-value="config.billing_type === 'PER_EXAM' ? 'Per ulangan' : 'Bulanan'" label="Tipe Billing"
-              outlined dense readonly hint="Ubah tipe billing via form registrasi/edit" />
+            <q-input
+              :model-value="config.billing_type === 'PER_EXAM' ? 'Per ulangan' : 'Bulanan'"
+              label="Tipe Billing"
+              outlined
+              dense
+              readonly
+              hint="Ubah tipe billing via form registrasi/edit"
+            />
           </div>
         </div>
         <q-separator class="q-my-sm" />
@@ -50,16 +78,37 @@
         </div>
 
         <div class="q-gutter-sm">
-          <q-radio v-model="config.domain_mode" val="SUBDOMAIN" label="Gunakan Subdomain Utama" color="indigo" />
-          <q-radio v-model="config.domain_mode" val="CUSTOM_DOMAIN" label="Gunakan Custom Domain Sendiri"
-            color="indigo" />
+          <q-radio
+            v-model="config.domain_mode"
+            val="SUBDOMAIN"
+            label="Gunakan Subdomain Utama"
+            color="indigo"
+          />
+          <q-radio
+            v-model="config.domain_mode"
+            val="CUSTOM_DOMAIN"
+            label="Gunakan Custom Domain Sendiri"
+            color="indigo"
+          />
         </div>
 
-        <q-input v-if="config.domain_mode === 'SUBDOMAIN'" v-model="config.subdomain" label="Subdomain Aplikasi"
-          outlined dense suffix=".ujian.pw" />
+        <q-input
+          v-if="config.domain_mode === 'SUBDOMAIN'"
+          v-model="config.subdomain"
+          label="Subdomain Aplikasi"
+          outlined
+          dense
+          suffix=".ujian.pw"
+        />
 
-        <q-input v-if="config.domain_mode === 'CUSTOM_DOMAIN'" v-model="config.custom_domain"
-          label="Custom Domain Sekolah" outlined dense placeholder="contoh: cbt.sekolah.sch.id">
+        <q-input
+          v-if="config.domain_mode === 'CUSTOM_DOMAIN'"
+          v-model="config.custom_domain"
+          label="Custom Domain Sekolah"
+          outlined
+          dense
+          placeholder="contoh: cbt.sekolah.sch.id"
+        >
           <template v-slot:prepend>
             <q-icon name="language" />
           </template>
@@ -118,7 +167,12 @@
       <!-- Tombol Aksi -->
       <q-card-actions align="right" class="q-pb-md q-pr-md">
         <q-btn flat label="Batal" v-close-popup color="grey-7" />
-        <q-btn color="indigo-9" label="Simpan Parameter SaaS" :loading="saving" @click="saveSaasConfig" />
+        <q-btn
+          color="indigo-9"
+          label="Simpan Parameter SaaS"
+          :loading="saving"
+          @click="saveSaasConfig"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -146,9 +200,9 @@ const DEFAULT_CONFIG = {
   domain_mode: 'SUBDOMAIN',
   custom_domain: '',
   subdomain: '',
-  package_tier: 'BASIC',                // ← BARU
+  package_tier: 'BASIC', // ← BARU
   billing_type: 'MONTHLY',
-  max_active_students: 500,             // ← GANTI dari 200 → 500
+  max_active_students: 500, // ← GANTI dari 200 → 500
   allowed_features: {
     proctoring_ai: false,
     coding_question: false,

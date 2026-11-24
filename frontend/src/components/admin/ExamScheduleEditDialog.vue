@@ -1,6 +1,11 @@
 <!-- src/components/admin/ExamScheduleEditDialog.vue -->
 <template>
-  <q-dialog :model-value="modelValue" persistent @update:model-value="$emit('update:modelValue', $event)" maximized>
+  <q-dialog
+    :model-value="modelValue"
+    persistent
+    @update:model-value="$emit('update:modelValue', $event)"
+    maximized
+  >
     <q-card>
       <q-card-section class="bg-primary text-white row items-center">
         <q-icon name="edit_calendar" size="md" class="q-mr-sm" />
@@ -23,12 +28,16 @@
             <q-input v-model="form.jam_mulai" type="time" label="Jam Mulai" outlined dense />
           </div>
           <div class="col-12 col-md-3">
-            <q-input v-model.number="form.durasi_menit" type="number" label="Durasi (menit)" outlined dense />
+            <q-input
+              v-model.number="form.durasi_menit"
+              type="number"
+              label="Durasi (menit)"
+              outlined
+              dense
+            />
           </div>
           <div class="col-12 col-md-3 flex items-center">
-            <q-chip outline color="indigo" icon="schedule">
-              Selesai: {{ endTime }}
-            </q-chip>
+            <q-chip outline color="indigo" icon="schedule"> Selesai: {{ endTime }} </q-chip>
           </div>
         </div>
 
@@ -54,12 +63,29 @@
             Distribusi Kelas & Pengawas ({{ localDetails.length }} kelas)
           </div>
           <q-space />
-          <q-btn flat dense size="sm" color="primary" icon="auto_fix_high" label="Auto-assign Semua"
-            :disable="loadingRefs" @click="autoAssignAll" />
+          <q-btn
+            flat
+            dense
+            size="sm"
+            color="primary"
+            icon="auto_fix_high"
+            label="Auto-assign Semua"
+            :disable="loadingRefs"
+            @click="autoAssignAll"
+          />
         </div>
 
-        <q-table :rows="localDetails" :columns="detailColumns" row-key="class_id" flat bordered dense hide-pagination
-          :pagination="{ rowsPerPage: 0 }" :loading="loadingRefs">
+        <q-table
+          :rows="localDetails"
+          :columns="detailColumns"
+          row-key="class_id"
+          flat
+          bordered
+          dense
+          hide-pagination
+          :pagination="{ rowsPerPage: 0 }"
+          :loading="loadingRefs"
+        >
           <template #body-cell-class_nama="props">
             <q-td :props="props">
               <div class="text-weight-medium">{{ props.row.class_nama }}</div>
@@ -68,29 +94,59 @@
 
           <template #body-cell-ruang="props">
             <q-td :props="props">
-              <q-select v-model="props.row.ruang_id" :options="ruangOptionsAll" dense outlined emit-value map-options
-                options-dense />
+              <q-select
+                v-model="props.row.ruang_id"
+                :options="ruangOptionsAll"
+                dense
+                outlined
+                emit-value
+                map-options
+                options-dense
+              />
             </q-td>
           </template>
 
           <template #body-cell-pengawas1="props">
             <q-td :props="props">
-              <q-select v-model="props.row.pengawas_ids[0]" :options="teacherOptions" dense outlined emit-value
-                map-options options-dense clearable />
+              <q-select
+                v-model="props.row.pengawas_ids[0]"
+                :options="teacherOptions"
+                dense
+                outlined
+                emit-value
+                map-options
+                options-dense
+                clearable
+              />
             </q-td>
           </template>
 
           <template #body-cell-pengawas2="props">
             <q-td :props="props">
-              <q-select v-model="props.row.pengawas_ids[1]" :options="teacherOptions" dense outlined emit-value
-                map-options options-dense clearable />
+              <q-select
+                v-model="props.row.pengawas_ids[1]"
+                :options="teacherOptions"
+                dense
+                outlined
+                emit-value
+                map-options
+                options-dense
+                clearable
+              />
             </q-td>
           </template>
 
           <template #body-cell-aksi="props">
             <q-td :props="props" class="text-center">
-              <q-btn flat round dense icon="delete" color="negative" size="sm"
-                @click="removeDetail(props.row.class_id)">
+              <q-btn
+                flat
+                round
+                dense
+                icon="delete"
+                color="negative"
+                size="sm"
+                @click="removeDetail(props.row.class_id)"
+              >
                 <q-tooltip>Hapus kelas dari jadwal</q-tooltip>
               </q-btn>
             </q-td>
@@ -105,7 +161,13 @@
 
       <q-card-actions align="right" class="q-pb-md q-pr-md">
         <q-btn flat label="Batal" color="grey-7" v-close-popup />
-        <q-btn color="primary" icon="save" label="Simpan Perubahan" :loading="submitting" @click="onSubmit" />
+        <q-btn
+          color="primary"
+          icon="save"
+          label="Simpan Perubahan"
+          :loading="submitting"
+          @click="onSubmit"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -118,11 +180,7 @@ import { ExamScheduleService } from '@/services/admin/ExamScheduleService'
 import { TeacherService } from '@/services/admin/TeacherService'
 import { ClassService } from '@/services/admin/ClassService'
 import { RoomService } from '@/services/admin/RoomService'
-import {
-  autoAssignPengawas,
-  buildDetailsForRow,
-  calcEndTime,
-} from '@/utils/exam/scheduleHelpers'
+import { autoAssignPengawas, buildDetailsForRow, calcEndTime } from '@/utils/exam/scheduleHelpers'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -157,17 +215,33 @@ const teacherOptions = computed(() =>
     .map((t) => ({ label: `${t.nama}${t.nip ? ` (${t.nip})` : ''}`, value: t.id })),
 )
 
-const ruangOptionsAll = computed(() =>
-  rooms.value.map((r) => ({ label: r.nama, value: r.id })),
-)
+const ruangOptionsAll = computed(() => rooms.value.map((r) => ({ label: r.nama, value: r.id })))
 
 const endTime = computed(() => calcEndTime(form.value.jam_mulai, form.value.durasi_menit))
 
 const detailColumns = [
-  { name: 'class_nama', label: 'Kelas', field: 'class_nama', align: 'left', style: 'min-width: 140px' },
+  {
+    name: 'class_nama',
+    label: 'Kelas',
+    field: 'class_nama',
+    align: 'left',
+    style: 'min-width: 140px',
+  },
   { name: 'ruang', label: 'Ruang', field: 'ruang_id', align: 'left', style: 'min-width: 160px' },
-  { name: 'pengawas1', label: 'Pengawas 1', field: 'pengawas1', align: 'left', style: 'min-width: 220px' },
-  { name: 'pengawas2', label: 'Pengawas 2', field: 'pengawas2', align: 'left', style: 'min-width: 220px' },
+  {
+    name: 'pengawas1',
+    label: 'Pengawas 1',
+    field: 'pengawas1',
+    align: 'left',
+    style: 'min-width: 220px',
+  },
+  {
+    name: 'pengawas2',
+    label: 'Pengawas 2',
+    field: 'pengawas2',
+    align: 'left',
+    style: 'min-width: 220px',
+  },
   { name: 'aksi', label: '', align: 'center', style: 'width: 60px' },
 ]
 
@@ -235,9 +309,7 @@ const removeDetail = (classId) => {
 const syncPengawasNama = () => {
   localDetails.value = localDetails.value.map((d) => {
     const ids = (d.pengawas_ids || []).filter(Boolean)
-    const namas = ids
-      .map((id) => teachers.value.find((t) => t.id === id)?.nama)
-      .filter(Boolean)
+    const namas = ids.map((id) => teachers.value.find((t) => t.id === id)?.nama).filter(Boolean)
     return { ...d, pengawas_ids: ids, pengawas_namas: namas }
   })
 }

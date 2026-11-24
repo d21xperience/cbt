@@ -1,5 +1,11 @@
 <template>
-  <q-dialog v-model="isOpen" persistent maximized transition-show="slide-up" transition-hide="slide-down">
+  <q-dialog
+    v-model="isOpen"
+    persistent
+    maximized
+    transition-show="slide-up"
+    transition-hide="slide-down"
+  >
     <q-card>
       <q-bar class="bg-primary text-white">
         <div class="text-subtitle1">Import Jenis Ujian</div>
@@ -17,24 +23,49 @@
               Format CSV: <code>kode,nama,deskripsi</code>
             </q-banner>
 
-            <q-btn outline color="primary" icon="download" label="Download Template CSV" no-caps class="q-mb-md"
-              :loading="downloadingTemplate" @click="onDownloadTemplate('csv')" />
+            <q-btn
+              outline
+              color="primary"
+              icon="download"
+              label="Download Template CSV"
+              no-caps
+              class="q-mb-md"
+              :loading="downloadingTemplate"
+              @click="onDownloadTemplate('csv')"
+            />
 
             <q-form @submit.prevent="onUploadStep" class="q-gutter-md">
-              <q-file v-model="fileRef" label="File CSV" accept=".csv" outlined
-                :rules="[(v) => !!v || 'File wajib dipilih']">
+              <q-file
+                v-model="fileRef"
+                label="File CSV"
+                accept=".csv"
+                outlined
+                :rules="[(v) => !!v || 'File wajib dipilih']"
+              >
                 <template v-slot:prepend><q-icon name="attach_file" /></template>
               </q-file>
 
               <div class="row q-gutter-sm">
-                <q-btn type="submit" color="primary" label="Lanjut ke Preview" :loading="importing" />
+                <q-btn
+                  type="submit"
+                  color="primary"
+                  label="Lanjut ke Preview"
+                  :loading="importing"
+                />
                 <q-btn flat color="grey" label="Batal" @click="onClose" />
               </div>
             </q-form>
           </q-step>
 
           <q-step :name="2" title="Preview & Validasi" icon="visibility">
-            <q-table :rows="importPreview" :columns="previewColumns" row-key="_rowNumber" flat bordered dense>
+            <q-table
+              :rows="importPreview"
+              :columns="previewColumns"
+              row-key="_rowNumber"
+              flat
+              bordered
+              dense
+            >
               <template v-slot:body-cell-_error="props">
                 <q-td :props="props">
                   <q-badge v-if="props.row._error" color="negative" :label="props.row._error" />
@@ -45,8 +76,13 @@
 
             <div class="row q-gutter-sm q-mt-md">
               <q-btn color="primary" flat label="Kembali" @click="step = 1" />
-              <q-btn color="positive" :label="`Import ${importValidCount} Jenis Ujian`"
-                :disable="importValidCount === 0" :loading="importing" @click="onConfirmImport" />
+              <q-btn
+                color="positive"
+                :label="`Import ${importValidCount} Jenis Ujian`"
+                :disable="importValidCount === 0"
+                :loading="importing"
+                @click="onConfirmImport"
+              />
               <q-btn flat color="grey" label="Batal" @click="onClose" />
             </div>
           </q-step>
@@ -67,24 +103,43 @@ const props = defineProps({
   downloadingTemplate: Boolean,
   importValidCount: { type: Number, default: 0 },
 })
-const emit = defineEmits(['update:modelValue', 'update:importStep', 'download-template', 'parse-import', 'confirm-import', 'close'])
+const emit = defineEmits([
+  'update:modelValue',
+  'update:importStep',
+  'download-template',
+  'parse-import',
+  'confirm-import',
+  'close',
+])
 
 const isOpen = ref(false)
 const step = ref(1)
 const fileRef = ref(null)
 
 const previewColumns = [
-  { name: '_rowNumber', label: 'Baris', field: '_rowNumber', align: 'center', style: 'width: 70px' },
+  {
+    name: '_rowNumber',
+    label: 'Baris',
+    field: '_rowNumber',
+    align: 'center',
+    style: 'width: 70px',
+  },
   { name: 'kode', label: 'Kode', field: 'kode', align: 'left' },
   { name: 'nama', label: 'Nama', field: 'nama', align: 'left' },
   { name: 'deskripsi', label: 'Deskripsi', field: 'deskripsi', align: 'left' },
   { name: '_error', label: 'Status', field: '_error', align: 'center' },
 ]
 
-watch(() => props.modelValue, (val) => {
-  isOpen.value = val
-  if (val) { step.value = props.importStep || 1; fileRef.value = null }
-})
+watch(
+  () => props.modelValue,
+  (val) => {
+    isOpen.value = val
+    if (val) {
+      step.value = props.importStep || 1
+      fileRef.value = null
+    }
+  },
+)
 watch(isOpen, (val) => emit('update:modelValue', val))
 watch(step, (val) => emit('update:importStep', val))
 

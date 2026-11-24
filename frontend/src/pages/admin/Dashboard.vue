@@ -70,11 +70,20 @@
       <q-card-section>
         <div class="text-h6 q-mb-md">Aksi Cepat</div>
         <div class="row q-gutter-md">
-          <q-btn color="primary" icon="sync" label="Sync dari SIAKAD" :to="{ name: 'admin-sync' }" />
-          <q-btn color="teal" icon="event" label="Kelola Sesi Ujian" :to="{ name: 'admin-sessions' }" />
+          <q-btn
+            color="primary"
+            icon="sync"
+            label="Sync dari SIAKAD"
+            :to="{ name: 'admin-sync' }"
+          />
+          <q-btn
+            color="teal"
+            icon="event"
+            label="Kelola Sesi Ujian"
+            :to="{ name: 'admin-sessions' }"
+          />
           <q-btn color="grey" icon="upload_file" label="Upload Soal" disable />
           <q-btn color="grey" icon="group_add" label="Import Peserta" disable />
-
         </div>
       </q-card-section>
     </q-card>
@@ -83,8 +92,16 @@
     <q-card>
       <q-card-section>
         <div class="text-h6 q-mb-md">Riwayat Sync Terakhir</div>
-        <q-table :rows="adminStore.syncHistory" :columns="syncColumns" row-key="id" flat bordered dense
-          :loading="loadingHistory" no-data-label="Belum ada riwayat sync">
+        <q-table
+          :rows="adminStore.syncHistory"
+          :columns="syncColumns"
+          row-key="id"
+          flat
+          bordered
+          dense
+          :loading="loadingHistory"
+          no-data-label="Belum ada riwayat sync"
+        >
           <template v-slot:body-cell-timestamp="props">
             <q-td :props="props">
               {{ formatDate(props.row.timestamp) }}

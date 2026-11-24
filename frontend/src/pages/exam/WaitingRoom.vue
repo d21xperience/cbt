@@ -5,15 +5,15 @@
     <q-banner inline-actions class="text-white bg-amber-9 q-mb-md rounded-borders shadow-2">
       <div class="text-weight-bold text-subtitle1">PENTING: Tata Tertib Ujian CBT</div>
       <ul class="q-pl-md q-my-xs text-body2">
-        <li>Dilarang membuka tab browser lain atau meninggalkan aplikasi selama ujian berlangsung.</li>
+        <li>
+          Dilarang membuka tab browser lain atau meninggalkan aplikasi selama ujian berlangsung.
+        </li>
         <li>Sistem akan mencatat otomatis jika Anda mencoba keluar dari halaman ujian.</li>
         <li>Pastikan koneksi internet Anda stabil sebelum menekan tombol "Mulai".</li>
       </ul>
     </q-banner>
 
     <div class="row q-col-gutter-md">
-
-
       <!-- AGENDA UJIAN -->
       <div class="col-12 col-md-8 order-md-first">
         <div class="text-h6 q-mb-sm text-grey-8 flex items-center">
@@ -34,8 +34,11 @@
                   <q-card-section class="q-pb-none">
                     <div class="row items-center justify-between">
                       <div class="text-h6 text-primary text-weight-bold">{{ exam.title }}</div>
-                      <q-badge :color="statusOf(exam).color" :label="statusOf(exam).label"
-                        class="q-px-sm q-py-xs text-weight-bold" />
+                      <q-badge
+                        :color="statusOf(exam).color"
+                        :label="statusOf(exam).label"
+                        class="q-px-sm q-py-xs text-weight-bold"
+                      />
                     </div>
                     <div class="text-caption text-grey-7">{{ exam.session_type }}</div>
                   </q-card-section>
@@ -44,10 +47,14 @@
                     <div class="flex items-start">
                       <q-icon name="event" class="q-mr-sm text-grey-6 q-mt-xs" />
                       <div>
-                        <div class="text-weight-medium">{{ formatRelativeExamDate(exam.start_time) }}</div>
+                        <div class="text-weight-medium">
+                          {{ formatRelativeExamDate(exam.start_time) }}
+                        </div>
                         <div class="text-caption text-grey-6">
                           {{ formatTime(exam.start_time) }} - {{ formatTime(exam.end_time) }}
-                          <span v-if="exam.duration_minutes"> · {{ exam.duration_minutes }} menit</span>
+                          <span v-if="exam.duration_minutes">
+                            · {{ exam.duration_minutes }} menit</span
+                          >
                         </div>
                       </div>
                     </div>
@@ -55,14 +62,22 @@
 
                   <q-banner v-if="exam.blocked" class="bg-red-2 text-red-9 q-mx-md q-mb-sm">
                     <template v-slot:avatar><q-icon name="lock" /></template>
-                    <strong>Menunggu Persetujuan.</strong> {{ exam.blocked_reason || 'Hubungi admin.' }}
+                    <strong>Menunggu Persetujuan.</strong>
+                    {{ exam.blocked_reason || 'Hubungi admin.' }}
                   </q-banner>
 
                   <q-separator />
                   <q-card-actions class="q-pa-md">
-                    <q-btn :color="canEnterExam(exam) ? 'primary' : 'grey-5'" :disabled="!canEnterExam(exam)"
-                      :label="buttonLabel(exam)" :icon-right="canEnterExam(exam) ? 'play_arrow' : 'lock_clock'"
-                      unelevated class="full-width" size="lg" @click="openTokenDialog(exam)" />
+                    <q-btn
+                      :color="canEnterExam(exam) ? 'primary' : 'grey-5'"
+                      :disabled="!canEnterExam(exam)"
+                      :label="buttonLabel(exam)"
+                      :icon-right="canEnterExam(exam) ? 'play_arrow' : 'lock_clock'"
+                      unelevated
+                      class="full-width"
+                      size="lg"
+                      @click="openTokenDialog(exam)"
+                    />
                   </q-card-actions>
                 </q-card>
               </div>
@@ -82,13 +97,21 @@
                       <div class="text-h6 text-orange-9 text-weight-bold">{{ exam.title }}</div>
                       <q-badge color="orange" label="SUSULAN" />
                     </div>
-                    <div class="text-caption text-grey-7 q-mt-xs">Alasan: {{ exam.makeup_reason || 'Tidak hadir' }}
+                    <div class="text-caption text-grey-7 q-mt-xs">
+                      Alasan: {{ exam.makeup_reason || 'Tidak hadir' }}
                     </div>
                   </q-card-section>
                   <q-card-actions class="q-pa-md">
-                    <q-btn color="orange" :disabled="exam.session_status !== 'ACTIVE' || exam.blocked"
-                      label="Masuk Susulan" icon-right="play_arrow" unelevated class="full-width" size="lg"
-                      @click="openTokenDialog(exam)" />
+                    <q-btn
+                      color="orange"
+                      :disabled="exam.session_status !== 'ACTIVE' || exam.blocked"
+                      label="Masuk Susulan"
+                      icon-right="play_arrow"
+                      unelevated
+                      class="full-width"
+                      size="lg"
+                      @click="openTokenDialog(exam)"
+                    />
                   </q-card-actions>
                 </q-card>
               </div>
@@ -96,8 +119,14 @@
           </div>
 
           <!-- Empty State -->
-          <div v-if="!dashboard.scheduled.length && !dashboard.makeup_available.length && !dashboard.completed.length"
-            class="col-12 text-center q-pa-xl">
+          <div
+            v-if="
+              !dashboard.scheduled.length &&
+              !dashboard.makeup_available.length &&
+              !dashboard.completed.length
+            "
+            class="col-12 text-center q-pa-xl"
+          >
             <q-icon name="event_available" size="xl" color="grey-4" />
             <div class="text-grey-6 q-mt-sm">Tidak ada agenda ujian untuk hari ini.</div>
           </div>
@@ -106,9 +135,15 @@
     </div>
 
     <!-- DIALOG POPUP: Input Token Ujian (Responsive untuk Mobile) -->
-    <q-dialog v-model="tokenDialog.show" persistent :position="$q.screen.lt.sm ? 'bottom' : 'standard'">
-      <q-card style="width: 100%; max-width: 400px; border-radius: 16px 16px 0 0"
-        :class="{ 'q-pa-sm': $q.screen.lt.sm }">
+    <q-dialog
+      v-model="tokenDialog.show"
+      persistent
+      :position="$q.screen.lt.sm ? 'bottom' : 'standard'"
+    >
+      <q-card
+        style="width: 100%; max-width: 400px; border-radius: 16px 16px 0 0"
+        :class="{ 'q-pa-sm': $q.screen.lt.sm }"
+      >
         <q-card-section class="bg-primary text-white row items-center q-py-sm">
           <div class="text-subtitle1 text-weight-bold">Konfirmasi Token</div>
           <q-space />
@@ -117,19 +152,34 @@
 
         <q-card-section class="q-pt-md">
           <div class="text-body2 q-mb-md text-grey-8">
-            Anda akan memulai ujian <strong>{{ tokenDialog.examSubject }}</strong>. Masukkan token dari pengawas
-            ruangan.
+            Anda akan memulai ujian <strong>{{ tokenDialog.examSubject }}</strong
+            >. Masukkan token dari pengawas ruangan.
           </div>
-          <q-input v-model="tokenDialog.inputToken" outlined label="Masukkan Token" mask="NNNNNN"
-            hint="Format: 6 karakter (huruf/angka)" autofocus class="text-uppercase" @keyup.enter="submitToken">
+          <q-input
+            v-model="tokenDialog.inputToken"
+            outlined
+            label="Masukkan Token"
+            mask="NNNNNN"
+            hint="Format: 6 karakter (huruf/angka)"
+            autofocus
+            class="text-uppercase"
+            @keyup.enter="submitToken"
+          >
             <template v-slot:prepend><q-icon name="vpn_key" /></template>
           </q-input>
         </q-card-section>
 
         <q-card-actions align="right" class="q-pa-md q-pt-none">
           <q-btn flat label="Batal" v-close-popup @click="resetTokenDialog" />
-          <q-btn unelevated color="primary" label="Mulai Ujian" @click="submitToken" :loading="tokenVerifying"
-            class="full-width" size="lg" />
+          <q-btn
+            unelevated
+            color="primary"
+            label="Mulai Ujian"
+            @click="submitToken"
+            :loading="tokenVerifying"
+            class="full-width"
+            size="lg"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -142,7 +192,11 @@ import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from '@/stores/auth'
 import { useExamList } from '@/composables/exam/useExamList'
-import { formatRelativeExamDate, getExamAccessState, getExamStatusLabel } from '@/utils/exam/dateHelpers'
+import {
+  formatRelativeExamDate,
+  getExamAccessState,
+  getExamStatusLabel,
+} from '@/utils/exam/dateHelpers'
 
 const router = useRouter()
 const $q = useQuasar()
@@ -176,7 +230,9 @@ const formatTime = (iso) => {
   if (!iso) return '-'
   try {
     return new Date(iso).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-  } catch { return iso }
+  } catch {
+    return iso
+  }
 }
 function openTokenDialog(exam) {
   if (!canEnterExam(exam)) {
@@ -200,10 +256,14 @@ function resetTokenDialog() {
 
 async function submitToken() {
   const { examId, inputToken } = tokenDialog.value
-  
+
   // ── CEK SESI LOGIN ──
   if (!authStore.token) {
-    $q.notify({ type: 'negative', message: 'Sesi login Anda habis. Silakan login ulang.', position: 'top' })
+    $q.notify({
+      type: 'negative',
+      message: 'Sesi login Anda habis. Silakan login ulang.',
+      position: 'top',
+    })
     router.push({ name: 'participant-login' })
     return
   }
@@ -213,7 +273,7 @@ async function submitToken() {
     $q.notify({ type: 'warning', message: 'Token harus 6 karakter', position: 'top' })
     return
   }
-  
+
   tokenVerifying.value = true
   try {
     const res = await verifyToken(examId, cleanToken)

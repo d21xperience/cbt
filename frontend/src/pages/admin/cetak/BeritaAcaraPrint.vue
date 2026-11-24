@@ -10,28 +10,72 @@
         </div>
       </div>
       <q-space />
-      <q-btn flat color="grey-7" icon="settings" label="Edit Template" no-caps
-        @click="$router.push({ name: 'admin-cetak-berita-acara-template' })" class="q-mr-sm" />
-      <q-btn color="primary" icon="print" label="Cetak Terpilih" :disable="selected.length === 0 || printing"
-        :loading="printing" @click="onPrintSelected('open')" />
-      <q-btn flat color="primary" icon="picture_as_pdf" label="Unduh PDF" class="q-ml-sm"
-        :disable="selected.length === 0 || printing" @click="onPrintSelected('download')" />
+      <q-btn
+        flat
+        color="grey-7"
+        icon="settings"
+        label="Edit Template"
+        no-caps
+        @click="$router.push({ name: 'admin-cetak-berita-acara-template' })"
+        class="q-mr-sm"
+      />
+      <q-btn
+        color="primary"
+        icon="print"
+        label="Cetak Terpilih"
+        :disable="selected.length === 0 || printing"
+        :loading="printing"
+        @click="onPrintSelected('open')"
+      />
+      <q-btn
+        flat
+        color="primary"
+        icon="picture_as_pdf"
+        label="Unduh PDF"
+        class="q-ml-sm"
+        :disable="selected.length === 0 || printing"
+        @click="onPrintSelected('download')"
+      />
     </div>
 
     <!-- Filter -->
     <q-card flat bordered class="q-mb-md">
       <q-card-section class="row q-col-gutter-md items-end">
         <div class="col-12 col-md-3">
-          <q-input v-model="filters.tanggal" type="date" dense outlined label="Tanggal (opsional)" clearable
-            @update:model-value="reload" />
+          <q-input
+            v-model="filters.tanggal"
+            type="date"
+            dense
+            outlined
+            label="Tanggal (opsional)"
+            clearable
+            @update:model-value="reload"
+          />
         </div>
         <div class="col-12 col-md-3">
-          <q-select v-model="filters.ruang" dense outlined label="Ruang (opsional)" :options="ruangOptions" emit-value
-            map-options clearable />
+          <q-select
+            v-model="filters.ruang"
+            dense
+            outlined
+            label="Ruang (opsional)"
+            :options="ruangOptions"
+            emit-value
+            map-options
+            clearable
+          />
         </div>
         <div class="col-12 col-md-3">
-          <q-select v-model="filters.jenis_ujian_id" dense outlined label="Jenis Ujian (opsional)"
-            :options="examTypeOptions" emit-value map-options clearable @update:model-value="reload" />
+          <q-select
+            v-model="filters.jenis_ujian_id"
+            dense
+            outlined
+            label="Jenis Ujian (opsional)"
+            :options="examTypeOptions"
+            emit-value
+            map-options
+            clearable
+            @update:model-value="reload"
+          />
         </div>
         <div class="col-12 col-md-3 text-right">
           <q-btn flat icon="refresh" label="Muat Ulang" @click="reload" />
@@ -69,9 +113,18 @@
 
     <!-- Table -->
     <q-card flat bordered class="bg-white">
-      <q-table :rows="filteredRows" :columns="columns" row-key="_key" flat dense :loading="loading"
-        v-model:selected="selected" selection="multiple" :pagination="{ rowsPerPage: 25 }"
-        no-data-label="Tidak ada jadwal sesuai filter">
+      <q-table
+        :rows="filteredRows"
+        :columns="columns"
+        row-key="_key"
+        flat
+        dense
+        :loading="loading"
+        v-model:selected="selected"
+        selection="multiple"
+        :pagination="{ rowsPerPage: 25 }"
+        no-data-label="Tidak ada jadwal sesuai filter"
+      >
         <template #body-cell-tanggal="props">
           <q-td :props="props">
             <div>{{ fmtShortDate(props.row.tanggal) }}</div>
@@ -80,7 +133,11 @@
         </template>
         <template #body-cell-jam="props">
           <q-td :props="props">
-            <div>{{ props.row.jam_mulai }}–{{ calcEndTime(props.row.jam_mulai, props.row.durasi_menit) }}</div>
+            <div>
+              {{ props.row.jam_mulai }}–{{
+                calcEndTime(props.row.jam_mulai, props.row.durasi_menit)
+              }}
+            </div>
           </q-td>
         </template>
         <template #body-cell-ruang="props">
@@ -91,7 +148,11 @@
         <template #body-cell-pengawas="props">
           <q-td :props="props">
             <div v-if="props.row.pengawas_namas?.length">
-              <div v-for="(n, i) in props.row.pengawas_namas.slice(0, 2)" :key="i" class="text-caption">
+              <div
+                v-for="(n, i) in props.row.pengawas_namas.slice(0, 2)"
+                :key="i"
+                class="text-caption"
+              >
                 <q-icon name="person" size="xs" color="primary" class="q-mr-xs" />{{ n }}
               </div>
             </div>
@@ -100,7 +161,15 @@
         </template>
         <template #body-cell-actions="props">
           <q-td :props="props" class="text-center">
-            <q-btn flat round dense icon="print" color="primary" size="sm" @click="onPrintSingle(props.row)">
+            <q-btn
+              flat
+              round
+              dense
+              icon="print"
+              color="primary"
+              size="sm"
+              @click="onPrintSingle(props.row)"
+            >
               <q-tooltip>Cetak BA ini</q-tooltip>
             </q-btn>
           </q-td>
@@ -136,9 +205,21 @@ const columns = [
   { name: 'tanggal', label: 'Tanggal', field: 'tanggal', align: 'left', style: 'min-width: 130px' },
   { name: 'jam', label: 'Jam', field: 'jam_mulai', align: 'left', style: 'min-width: 120px' },
   { name: 'ruang', label: 'Ruang', field: 'ruang_nama', align: 'center', style: 'width: 90px' },
-  { name: 'class_nama', label: 'Kelas', field: 'class_nama', align: 'left', style: 'min-width: 120px' },
+  {
+    name: 'class_nama',
+    label: 'Kelas',
+    field: 'class_nama',
+    align: 'left',
+    style: 'min-width: 120px',
+  },
   { name: 'subject_nama', label: 'Mata Pelajaran', field: 'subject_nama', align: 'left' },
-  { name: 'pengawas', label: 'Pengawas', field: 'pengawas_namas', align: 'left', style: 'min-width: 180px' },
+  {
+    name: 'pengawas',
+    label: 'Pengawas',
+    field: 'pengawas_namas',
+    align: 'left',
+    style: 'min-width: 180px',
+  },
   { name: 'actions', label: 'Aksi', align: 'center', style: 'width: 70px' },
 ]
 
@@ -189,11 +270,13 @@ const filteredRows = computed(() => {
 const ruangOptions = computed(() => {
   const set = new Set()
   schedulesRaw.value.forEach((s) => {
-    ; (s.details || []).forEach((d) => {
+    ;(s.details || []).forEach((d) => {
       if (d.ruang_nama) set.add(d.ruang_nama)
     })
   })
-  return Array.from(set).sort().map((r) => ({ label: r, value: r }))
+  return Array.from(set)
+    .sort()
+    .map((r) => ({ label: r, value: r }))
 })
 
 const examTypeOptions = computed(() =>
@@ -209,13 +292,16 @@ const uniqueKelas = computed(() => {
 })
 
 const emptyAssign = computed(
-  () =>
-    rows.value.filter((r) => !r.pengawas_namas || r.pengawas_namas.length === 0).length,
+  () => rows.value.filter((r) => !r.pengawas_namas || r.pengawas_namas.length === 0).length,
 )
 
 const fmtShortDate = (d) => {
   if (!d) return '-'
-  return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+  return new Date(d).toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
 }
 const fmtHari = (d) => {
   if (!d) return ''

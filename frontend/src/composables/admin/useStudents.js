@@ -30,6 +30,7 @@ export function useStudents() {
   const filterKelas = ref(null)
   const filterStatus = ref(null)
   const filterGender = ref(null)
+  const filterTingkat = ref(null)
 
   // ── Dialog CRUD
   const dialogOpen = ref(false)
@@ -56,6 +57,11 @@ export function useStudents() {
     { label: 'Laki-laki', value: 'L' },
     { label: 'Perempuan', value: 'P' },
   ]
+  const tingkatOptions = [
+    { label: '10', value: 10 },
+    { label: '11', value: 11 },
+    { label: '12', value: 12 },
+  ]
 
   const classOptions = computed(() =>
     classes.value.map((c) => ({
@@ -75,6 +81,7 @@ export function useStudents() {
       if (filterKelas.value && s.kelas_id !== filterKelas.value) return false
       if (filterStatus.value && s.status !== filterStatus.value) return false
       if (filterGender.value && s.jenis_kelamin !== filterGender.value) return false
+      if (filterTingkat.value && s.tingkat !== filterTingkat.value) return false //cek
       if (!q) return true
       return (
         String(s.nisn || '')
@@ -125,11 +132,13 @@ export function useStudents() {
     }
   }
   // Sync ulang data setiap kali Tahun Ajaran berubah
-    watch(() => academicStore.active_period_id, () => {
-    loadStudents()
-    loadClasses()
-  })
-
+  watch(
+    () => academicStore.active_period_id,
+    () => {
+      loadStudents()
+      loadClasses()
+    },
+  )
 
   // ── Dialog
   const openCreateDialog = () => {
@@ -267,10 +276,10 @@ export function useStudents() {
       const payload = res?.data || {}
       importPreview.value = Array.isArray(payload.data) ? payload.data : []
       importErrors.value = Array.isArray(payload.errors) ? payload.errors : []
-      
+
       // ✅ FIX: Pindah ke Step 2 setelah preview berhasil dimuat
       importStep.value = 2
-      
+
       return { success: true }
     } catch (err) {
       $q.notify({ type: 'negative', message: err?.response?.data?.error || 'Gagal parse file.' })
@@ -316,9 +325,11 @@ export function useStudents() {
     filterKelas,
     filterStatus,
     filterGender,
+    filterTingkat,
     filteredStudents,
     statusOptions,
     genderOptions,
+    tingkatOptions, //cek
     classOptions,
     dialogOpen,
     isEditing,

@@ -12,16 +12,24 @@
             <q-avatar color="primary" text-color="white" icon="done_all" />
           </q-item-section>
           <q-item-section>
-            <q-item-label class="text-weight-bold text-subtitle1">{{ history.subject }}</q-item-label>
+            <q-item-label class="text-weight-bold text-subtitle1">{{
+              history.subject
+            }}</q-item-label>
             <q-item-label caption>
-              <q-icon name="schedule" size="xs" class="q-mr-xs" /> Selesai pada: {{ history.completedAt || '-' }}
+              <q-icon name="schedule" size="xs" class="q-mr-xs" /> Selesai pada:
+              {{ history.completedAt || '-' }}
             </q-item-label>
             <q-item-label caption v-if="history.score !== undefined">
-              <q-icon name="grade" size="xs" class="q-mr-xs" /> Nilai: <strong>{{ history.score }}</strong>
+              <q-icon name="grade" size="xs" class="q-mr-xs" /> Nilai:
+              <strong>{{ history.score }}</strong>
             </q-item-label>
           </q-item-section>
           <q-item-section side top>
-            <q-badge :color="history.status === 'NEEDS_REVIEW' ? 'orange' : 'positive'" :label="history.status || 'SUBMITTED'" class="q-px-sm q-py-xs" />
+            <q-badge
+              :color="history.status === 'NEEDS_REVIEW' ? 'orange' : 'positive'"
+              :label="history.status || 'SUBMITTED'"
+              class="q-px-sm q-py-xs"
+            />
           </q-item-section>
         </q-item>
 

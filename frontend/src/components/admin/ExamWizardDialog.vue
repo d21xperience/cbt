@@ -1,5 +1,11 @@
 <template>
-  <q-dialog v-model="isOpen" persistent maximized transition-show="slide-up" transition-hide="slide-down">
+  <q-dialog
+    v-model="isOpen"
+    persistent
+    maximized
+    transition-show="slide-up"
+    transition-hide="slide-down"
+  >
     <q-card>
       <q-bar class="bg-primary text-white">
         <div class="text-subtitle1">
@@ -19,29 +25,48 @@
         <q-stepper v-model="localStep" color="primary" animated flat>
           <!-- ═══ STEP 1: Tingkat ═══ -->
           <q-step :name="1" title="Tingkat" icon="stairs" :done="step > 1">
-            <div class="text-subtitle2 q-mb-md">
-              Pilih tingkat kelas untuk ujian ini:
-            </div>
-            <q-select v-model="localForm.tingkat" :options="tingkatOptions" label="Tingkat" outlined emit-value
-              map-options :rules="[(v) => !!v || 'Tingkat wajib dipilih']" />
+            <div class="text-subtitle2 q-mb-md">Pilih tingkat kelas untuk ujian ini:</div>
+            <q-select
+              v-model="localForm.tingkat"
+              :options="tingkatOptions"
+              label="Tingkat"
+              outlined
+              emit-value
+              map-options
+              :rules="[(v) => !!v || 'Tingkat wajib dipilih']"
+            />
           </q-step>
 
           <!-- ═══ STEP 2: Jurusan (SMK/MAK only) ═══ -->
           <q-step :name="2" title="Jurusan" icon="engineering" :done="step > 2">
-            <div class="text-subtitle2 q-mb-md">
-              Pilih jurusan / program keahlian:
-            </div>
-            <q-select v-model="localForm.jurusan_id" :options="jurusanOptions" label="Jurusan" outlined emit-value
-              map-options use-input input-debounce="200" :rules="[(v) => !!v || 'Jurusan wajib dipilih']" />
+            <div class="text-subtitle2 q-mb-md">Pilih jurusan / program keahlian:</div>
+            <q-select
+              v-model="localForm.jurusan_id"
+              :options="jurusanOptions"
+              label="Jurusan"
+              outlined
+              emit-value
+              map-options
+              use-input
+              input-debounce="200"
+              :rules="[(v) => !!v || 'Jurusan wajib dipilih']"
+            />
           </q-step>
 
           <!-- ═══ STEP 3: Mapel ═══ -->
           <q-step :name="3" title="Mata Pelajaran" icon="menu_book" :done="step > 3">
-            <div class="text-subtitle2 q-mb-md">
-              Pilih mata pelajaran:
-            </div>
-            <q-select v-model="localForm.subject_id" :options="subjectOptions" label="Mata Pelajaran" outlined
-              emit-value map-options use-input input-debounce="200" :rules="[(v) => !!v || 'Mapel wajib dipilih']" />
+            <div class="text-subtitle2 q-mb-md">Pilih mata pelajaran:</div>
+            <q-select
+              v-model="localForm.subject_id"
+              :options="subjectOptions"
+              label="Mata Pelajaran"
+              outlined
+              emit-value
+              map-options
+              use-input
+              input-debounce="200"
+              :rules="[(v) => !!v || 'Mapel wajib dipilih']"
+            />
             <q-banner v-if="isProctorRole" dense rounded class="bg-blue-1 text-blue-9 q-mt-md">
               <template v-slot:avatar>
                 <q-icon name="info" color="primary" />
@@ -54,16 +79,36 @@
           <q-step :name="4" title="Jenis & Judul" icon="label">
             <div class="row q-col-gutter-md q-mb-md">
               <div class="col-12 col-sm-6">
-                <q-select v-model="localForm.jenis_ujian_id" :options="examTypeOptions" label="Jenis Ujian" outlined
-                  dense emit-value map-options :rules="[(v) => !!v || 'Jenis ujian wajib']" />
+                <q-select
+                  v-model="localForm.jenis_ujian_id"
+                  :options="examTypeOptions"
+                  label="Jenis Ujian"
+                  outlined
+                  dense
+                  emit-value
+                  map-options
+                  :rules="[(v) => !!v || 'Jenis ujian wajib']"
+                />
               </div>
               <div class="col-12 col-sm-3">
-                <q-input v-model="localForm.academic_year" label="Tahun Ajaran" outlined dense
-                  :rules="[(v) => !!v || 'TA wajib']" />
+                <q-input
+                  v-model="localForm.academic_year"
+                  label="Tahun Ajaran"
+                  outlined
+                  dense
+                  :rules="[(v) => !!v || 'TA wajib']"
+                />
               </div>
               <div class="col-12 col-sm-3">
-                <q-select v-model="localForm.semester" :options="semesterOptions" label="Semester" outlined dense
-                  emit-value map-options />
+                <q-select
+                  v-model="localForm.semester"
+                  :options="semesterOptions"
+                  label="Semester"
+                  outlined
+                  dense
+                  emit-value
+                  map-options
+                />
               </div>
             </div>
 
@@ -78,10 +123,22 @@
               </div>
             </q-banner>
 
-            <q-input v-model="localForm.custom_nama" label="Override Judul (opsional)" outlined dense
-              :hint="generatedNama ? `Default: ${generatedNama}` : ''">
+            <q-input
+              v-model="localForm.custom_nama"
+              label="Override Judul (opsional)"
+              outlined
+              dense
+              :hint="generatedNama ? `Default: ${generatedNama}` : ''"
+            >
               <template v-slot:append>
-                <q-btn v-if="localForm.custom_nama" flat round dense icon="clear" @click="resetCustomNama">
+                <q-btn
+                  v-if="localForm.custom_nama"
+                  flat
+                  round
+                  dense
+                  icon="clear"
+                  @click="resetCustomNama"
+                >
                   <q-tooltip>Reset ke judul auto</q-tooltip>
                 </q-btn>
               </template>
@@ -93,11 +150,31 @@
       <!-- Actions -->
       <q-card-actions align="right" class="q-pb-md q-pr-md">
         <q-btn flat label="Batal" color="grey-7" @click="onClose" />
-        <q-btn v-if="step > 1" flat color="grey-7" icon="arrow_back" label="Kembali" @click="onPrev" />
-        <q-btn v-if="step < 4" color="primary" icon-right="arrow_forward" label="Lanjut" :disable="!canNext"
-          @click="onNext" />
-        <q-btn v-if="step === 4" color="positive" icon="check_circle" label="Buat / Pilih Ujian" :loading="submitting"
-          :disable="!canSubmit" @click="onSubmit" />
+        <q-btn
+          v-if="step > 1"
+          flat
+          color="grey-7"
+          icon="arrow_back"
+          label="Kembali"
+          @click="onPrev"
+        />
+        <q-btn
+          v-if="step < 4"
+          color="primary"
+          icon-right="arrow_forward"
+          label="Lanjut"
+          :disable="!canNext"
+          @click="onNext"
+        />
+        <q-btn
+          v-if="step === 4"
+          color="positive"
+          icon="check_circle"
+          label="Buat / Pilih Ujian"
+          :loading="submitting"
+          :disable="!canSubmit"
+          @click="onSubmit"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -129,7 +206,7 @@ const props = defineProps({
 const emit = defineEmits([
   'update:modelValue',
   'update:step',
-  'update:form',      // ← BARU
+  'update:form', // ← BARU
   'next-step',
   'prev-step',
   'reset-custom-nama',
@@ -152,13 +229,16 @@ const localStep = ref(1)
 const localForm = reactive({ ...EMPTY_FORM })
 
 // ── Sync dialog open + reset local form dari parent saat buka
-watch(() => props.modelValue, (val) => {
-  isOpen.value = val
-  if (val) {
-    Object.assign(localForm, EMPTY_FORM, props.form || {})
-    localStep.value = props.step || 1
-  }
-})
+watch(
+  () => props.modelValue,
+  (val) => {
+    isOpen.value = val
+    if (val) {
+      Object.assign(localForm, EMPTY_FORM, props.form || {})
+      localStep.value = props.step || 1
+    }
+  },
+)
 
 // ── Emit form changes ke parent
 watch(
@@ -172,9 +252,12 @@ watch(
 // ── Sync step 2 arah
 watch(isOpen, (val) => emit('update:modelValue', val))
 watch(localStep, (val) => emit('update:step', val))
-watch(() => props.step, (val) => {
-  if (val !== localStep.value) localStep.value = val
-})
+watch(
+  () => props.step,
+  (val) => {
+    if (val !== localStep.value) localStep.value = val
+  },
+)
 
 const canNext = computed(() => {
   if (localStep.value === 1) return props.canNextStep1

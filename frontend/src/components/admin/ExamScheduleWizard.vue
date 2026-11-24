@@ -18,23 +18,52 @@
       <q-stepper v-model="step" flat animated color="primary" header-nav>
         <q-step :name="1" title="Konteks" icon="settings" :done="step > 1" />
         <q-step :name="2" title="Mapel Wajib" icon="menu_book" :done="step > 2" />
-        <q-step v-if="hasMajor(props.jenjang)" :name="3" title="Mapel Kejuruan" icon="construction" :done="step > 3" />
+        <q-step
+          v-if="hasMajor(props.jenjang)"
+          :name="3"
+          title="Mapel Kejuruan"
+          icon="construction"
+          :done="step > 3"
+        />
         <q-step :name="4" title="Pengawas" icon="person_pin" :done="false" />
       </q-stepper>
     </q-card-section>
 
     <!-- STEP 1 -->
     <q-card-section v-if="step === 1" class="q-gutter-md">
-      <q-select v-model="context.jenis_ujian_id" :options="examTypeOptions" label="Jenis Ujian" outlined dense
-        emit-value map-options option-label="label" option-value="value" />
+      <q-select
+        v-model="context.jenis_ujian_id"
+        :options="examTypeOptions"
+        label="Jenis Ujian"
+        outlined
+        dense
+        emit-value
+        map-options
+        option-label="label"
+        option-value="value"
+      />
       <div class="row q-col-gutter-md">
         <div class="col-12 col-sm-6">
-          <q-select v-model="context.academic_year" :options="academicYearOptions" label="Tahun Ajaran" outlined dense
-            emit-value map-options />
+          <q-select
+            v-model="context.academic_year"
+            :options="academicYearOptions"
+            label="Tahun Ajaran"
+            outlined
+            dense
+            emit-value
+            map-options
+          />
         </div>
         <div class="col-12 col-sm-6">
-          <q-select v-model="context.semester" :options="semesterOptions" label="Semester" outlined dense emit-value
-            map-options />
+          <q-select
+            v-model="context.semester"
+            :options="semesterOptions"
+            label="Semester"
+            outlined
+            dense
+            emit-value
+            map-options
+          />
         </div>
       </div>
 
@@ -56,8 +85,15 @@
             <q-icon name="class" class="q-mr-xs" />Tingkat {{ tingkat }}
           </div>
           <q-space />
-          <q-btn flat dense size="sm" color="primary" icon="content_copy" label="Isi Semua Sama"
-            @click="openFillAll('tingkat', tingkat)" />
+          <q-btn
+            flat
+            dense
+            size="sm"
+            color="primary"
+            icon="content_copy"
+            label="Isi Semua Sama"
+            @click="openFillAll('tingkat', tingkat)"
+          />
         </div>
 
         <SubjectTable :rows="group" :get-end-time="getEndTime" />
@@ -76,7 +112,11 @@
 
     <!-- STEP 3: KEJURUAN -->
     <q-card-section v-if="step === 3">
-      <div v-for="(tingkatGroup, tingkat) in groupedKejuruanByTingkat" :key="tingkat" class="q-mb-xl">
+      <div
+        v-for="(tingkatGroup, tingkat) in groupedKejuruanByTingkat"
+        :key="tingkat"
+        class="q-mb-xl"
+      >
         <!-- Header Tingkat -->
         <div class="text-subtitle2 text-weight-bold text-primary q-mb-md">
           <q-icon name="class" class="q-mr-xs" />Tingkat {{ tingkat }}
@@ -89,8 +129,15 @@
               <q-icon name="engineering" class="q-mr-xs" />{{ jGroup.nama }}
             </div>
             <q-space />
-            <q-btn flat dense size="sm" color="deep-purple" icon="content_copy" label="Isi Semua Sama"
-              @click="openFillAll('jurusan-tingkat', { jurusan_id: jid, tingkat })" />
+            <q-btn
+              flat
+              dense
+              size="sm"
+              color="deep-purple"
+              icon="content_copy"
+              label="Isi Semua Sama"
+              @click="openFillAll('jurusan-tingkat', { jurusan_id: jid, tingkat })"
+            />
           </div>
 
           <SubjectTable :rows="jGroup.rows" :get-end-time="getEndTime" />
@@ -104,33 +151,54 @@
 
       <div class="row justify-between q-mt-lg">
         <q-btn flat label="Kembali" color="grey-7" icon="arrow_back" @click="step = 2" />
-        <q-btn color="primary" label="Lanjut ke Pengawas" icon-right="arrow_forward" @click="goStep4" />
+        <q-btn
+          color="primary"
+          label="Lanjut ke Pengawas"
+          icon-right="arrow_forward"
+          @click="goStep4"
+        />
       </div>
     </q-card-section>
 
     <!-- STEP 4: ASSIGN -->
     <q-card-section v-if="step === 4">
-      <ExamScheduleAssignStep :rows="assignRows" :teachers="teachers" :teacher-options="teacherOptions"
-        :ruang-options-all="ruangOptionsAll" :get-end-time="getEndTime" @auto-one="assignAutoPerRow"
-        @auto-all="assignAutoAll" />
+      <ExamScheduleAssignStep
+        :rows="assignRows"
+        :teachers="teachers"
+        :teacher-options="teacherOptions"
+        :ruang-options-all="ruangOptionsAll"
+        :get-end-time="getEndTime"
+        @auto-one="assignAutoPerRow"
+        @auto-all="assignAutoAll"
+      />
 
       <div class="row justify-between q-mt-lg">
         <q-btn flat label="Kembali" color="grey-7" icon="arrow_back" @click="backFromStep4" />
-        <q-btn color="primary" label="Simpan Semua Jadwal" icon="save" :loading="saving"
-          :disable="assignRows.length === 0" @click="onSave" />
+        <q-btn
+          color="primary"
+          label="Simpan Semua Jadwal"
+          icon="save"
+          :loading="saving"
+          :disable="assignRows.length === 0"
+          @click="onSave"
+        />
       </div>
     </q-card-section>
 
     <!-- Fill All Dialog -->
     <q-dialog v-model="fillAllOpen">
       <q-card style="min-width: 380px">
-        <q-card-section class="text-h6">
-          Isi Semua Mapel {{ fillAllLabel }}
-        </q-card-section>
+        <q-card-section class="text-h6"> Isi Semua Mapel {{ fillAllLabel }} </q-card-section>
         <q-card-section class="q-gutter-md">
           <q-input v-model="fillAllForm.tanggal" type="date" label="Tanggal" outlined dense />
           <q-input v-model="fillAllForm.jam_mulai" type="time" label="Jam Mulai" outlined dense />
-          <q-input v-model.number="fillAllForm.durasi_menit" type="number" label="Durasi (menit)" outlined dense />
+          <q-input
+            v-model.number="fillAllForm.durasi_menit"
+            type="number"
+            label="Durasi (menit)"
+            outlined
+            dense
+          />
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Batal" v-close-popup />
@@ -163,7 +231,7 @@ const fillAllForm = ref({ tanggal: '', jam_mulai: '', durasi_menit: 90 })
 const {
   context,
   assignRows,
-  teachers,               // ← TAMBAH
+  teachers, // ← TAMBAH
   examTypeOptions,
   semesterOptions,
   academicYearOptions,

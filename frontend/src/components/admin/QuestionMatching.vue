@@ -5,13 +5,13 @@
         <q-icon name="compare_arrows" color="primary" class="q-mr-xs" />
         Pasangan Menjodohkan
       </div>
-      <div class="text-caption text-grey-7">
-        Kiri = premis · Kanan = jawaban pasangan
-      </div>
+      <div class="text-caption text-grey-7">Kiri = premis · Kanan = jawaban pasangan</div>
     </div>
 
     <!-- Header row -->
-    <div class="row q-col-gutter-sm q-mb-xs text-caption text-weight-bold text-grey-7 text-uppercase">
+    <div
+      class="row q-col-gutter-sm q-mb-xs text-caption text-weight-bold text-grey-7 text-uppercase"
+    >
       <div style="width: 32px" />
       <div class="col-5">Premis (kiri)</div>
       <div class="col-5">Jawaban Pasangan (kanan)</div>
@@ -19,11 +19,21 @@
     </div>
 
     <q-list bordered separator class="rounded-borders bg-white" @dragover.prevent>
-      <q-item v-for="(pair, idx) in modelValue" :key="pair.id" draggable="true" class="pair-row q-py-sm" :class="{
-        'pair-row--dragging': dragIndex === idx,
-        'pair-row--drop-target': dropIndex === idx && dragIndex !== idx,
-      }" @dragstart="onDragStart(idx)" @dragover.prevent="onDragOver(idx)" @dragleave="onDragLeave(idx)"
-        @drop.prevent="onDrop(idx)" @dragend="onDragEnd">
+      <q-item
+        v-for="(pair, idx) in modelValue"
+        :key="pair.id"
+        draggable="true"
+        class="pair-row q-py-sm"
+        :class="{
+          'pair-row--dragging': dragIndex === idx,
+          'pair-row--drop-target': dropIndex === idx && dragIndex !== idx,
+        }"
+        @dragstart="onDragStart(idx)"
+        @dragover.prevent="onDragOver(idx)"
+        @dragleave="onDragLeave(idx)"
+        @drop.prevent="onDrop(idx)"
+        @dragend="onDragEnd"
+      >
         <!-- Handle + Number -->
         <q-item-section side style="min-width: 44px">
           <div class="row items-center no-wrap">
@@ -34,8 +44,13 @@
 
         <!-- Left (premis) -->
         <q-item-section>
-          <q-input :model-value="pair.left" placeholder="Contoh: Ibukota Indonesia" outlined dense
-            @update:model-value="(v) => onUpdate(idx, 'left', v)" />
+          <q-input
+            :model-value="pair.left"
+            placeholder="Contoh: Ibukota Indonesia"
+            outlined
+            dense
+            @update:model-value="(v) => onUpdate(idx, 'left', v)"
+          />
         </q-item-section>
 
         <!-- Arrow -->
@@ -45,14 +60,26 @@
 
         <!-- Right (jawaban) -->
         <q-item-section>
-          <q-input :model-value="pair.right" placeholder="Contoh: Jakarta" outlined dense
-            @update:model-value="(v) => onUpdate(idx, 'right', v)" />
+          <q-input
+            :model-value="pair.right"
+            placeholder="Contoh: Jakarta"
+            outlined
+            dense
+            @update:model-value="(v) => onUpdate(idx, 'right', v)"
+          />
         </q-item-section>
 
         <!-- Remove -->
         <q-item-section side>
-          <q-btn flat round dense icon="close" color="grey-6" :disable="modelValue.length <= 2"
-            @click="onRemove(pair.id)">
+          <q-btn
+            flat
+            round
+            dense
+            icon="close"
+            color="grey-6"
+            :disable="modelValue.length <= 2"
+            @click="onRemove(pair.id)"
+          >
             <q-tooltip>Hapus pasangan</q-tooltip>
           </q-btn>
         </q-item-section>
@@ -61,13 +88,18 @@
 
     <!-- Add -->
     <div class="row q-gutter-sm q-mt-md items-center">
-      <q-btn flat color="primary" icon="add" label="Tambahkan pasangan" no-caps :disable="modelValue.length >= 10"
-        @click="onAdd">
+      <q-btn
+        flat
+        color="primary"
+        icon="add"
+        label="Tambahkan pasangan"
+        no-caps
+        :disable="modelValue.length >= 10"
+        @click="onAdd"
+      >
         <q-tooltip v-if="modelValue.length >= 10">Maksimal 10 pasangan</q-tooltip>
       </q-btn>
-      <span class="text-caption text-grey-7">
-        {{ modelValue.length }} / 10 pasangan
-      </span>
+      <span class="text-caption text-grey-7"> {{ modelValue.length }} / 10 pasangan </span>
     </div>
   </div>
 </template>
@@ -92,9 +124,7 @@ const createPair = () => ({
 })
 
 const onUpdate = (idx, field, value) => {
-  const updated = props.modelValue.map((p, i) =>
-    i === idx ? { ...p, [field]: value } : p,
-  )
+  const updated = props.modelValue.map((p, i) => (i === idx ? { ...p, [field]: value } : p))
   emit('update:modelValue', updated)
 }
 
@@ -108,28 +138,45 @@ const onRemove = (id) => {
     $q.notify({ type: 'warning', message: 'Minimal 2 pasangan' })
     return
   }
-  emit('update:modelValue', props.modelValue.filter((p) => p.id !== id))
+  emit(
+    'update:modelValue',
+    props.modelValue.filter((p) => p.id !== id),
+  )
 }
 
 // ── Drag
-const onDragStart = (idx) => { dragIndex.value = idx }
-const onDragOver = (idx) => { dropIndex.value = idx }
-const onDragLeave = (idx) => { if (dropIndex.value === idx) dropIndex.value = null }
+const onDragStart = (idx) => {
+  dragIndex.value = idx
+}
+const onDragOver = (idx) => {
+  dropIndex.value = idx
+}
+const onDragLeave = (idx) => {
+  if (dropIndex.value === idx) dropIndex.value = null
+}
 const onDrop = (targetIdx) => {
   const from = dragIndex.value
-  if (from === null || from === targetIdx) { onDragEnd(); return }
+  if (from === null || from === targetIdx) {
+    onDragEnd()
+    return
+  }
   const updated = [...props.modelValue]
   const [moved] = updated.splice(from, 1)
   updated.splice(targetIdx, 0, moved)
   emit('update:modelValue', updated)
   onDragEnd()
 }
-const onDragEnd = () => { dragIndex.value = null; dropIndex.value = null }
+const onDragEnd = () => {
+  dragIndex.value = null
+  dropIndex.value = null
+}
 </script>
 
 <style scoped>
 .pair-row {
-  transition: background-color 0.15s, border-color 0.15s;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
   cursor: grab;
 }
 

@@ -10,27 +10,51 @@
           Kelola periode akademik. Tahun ajaran menjadi konteks global semua data.
         </div>
       </div>
-      <q-btn color="primary" icon="add" label="Buat Tahun Ajaran Baru" no-caps @click="openCreateDialog" />
+      <q-btn
+        color="primary"
+        icon="add"
+        label="Buat Tahun Ajaran Baru"
+        no-caps
+        @click="openCreateDialog"
+      />
     </div>
 
     <q-banner dense rounded class="bg-blue-1 text-blue-9 q-mb-md">
       <template v-slot:avatar><q-icon name="info" color="primary" /></template>
-      Saat membuat tahun ajaran baru, sistem otomatis menyalin kelas, siswa, dan pembelajaran dari periode aktif dengan <b>auto-naik-tingkat</b>.
+      Saat membuat tahun ajaran baru, sistem otomatis menyalin kelas, siswa, dan pembelajaran dari
+      periode aktif dengan <b>auto-naik-tingkat</b>.
     </q-banner>
 
     <q-card flat bordered class="bg-white">
-      <q-table :rows="periods" :columns="columns" row-key="id" flat :loading="loading"
-        no-data-label="Belum ada tahun ajaran">
+      <q-table
+        :rows="periods"
+        :columns="columns"
+        row-key="id"
+        flat
+        :loading="loading"
+        no-data-label="Belum ada tahun ajaran"
+      >
         <template v-slot:body-cell-status="props">
           <q-td :props="props" class="text-center">
-            <q-badge :color="props.row.is_active ? 'positive' : 'grey-6'"
-              :label="props.row.is_active ? 'AKTIF' : 'Tidak Aktif'" class="q-px-sm" />
+            <q-badge
+              :color="props.row.is_active ? 'positive' : 'grey-6'"
+              :label="props.row.is_active ? 'AKTIF' : 'Tidak Aktif'"
+              class="q-px-sm"
+            />
           </q-td>
         </template>
         <template v-slot:body-cell-actions="props">
           <q-td :props="props" class="text-center" style="white-space: nowrap">
-            <q-btn v-if="!props.row.is_active" flat dense no-caps icon="check_circle" color="primary"
-              label="Aktifkan" @click.stop="onActivateClick(props.row)" />
+            <q-btn
+              v-if="!props.row.is_active"
+              flat
+              dense
+              no-caps
+              icon="check_circle"
+              color="primary"
+              label="Aktifkan"
+              @click.stop="onActivateClick(props.row)"
+            />
             <span v-else class="text-caption text-grey-6">—</span>
           </q-td>
         </template>
@@ -45,10 +69,22 @@
           <div class="text-caption">Semua data akan di-copy dari periode aktif</div>
         </q-card-section>
         <q-card-section class="q-gutter-md">
-          <q-input v-model="form.academic_year" label="Tahun Ajaran (YYYY/YYYY)" outlined dense
-            placeholder="2027/2028" />
-          <q-select v-model="form.semester" :options="semesterOptions" label="Semester" outlined dense emit-value
-            map-options />
+          <q-input
+            v-model="form.academic_year"
+            label="Tahun Ajaran (YYYY/YYYY)"
+            outlined
+            dense
+            placeholder="2027/2028"
+          />
+          <q-select
+            v-model="form.semester"
+            :options="semesterOptions"
+            label="Semester"
+            outlined
+            dense
+            emit-value
+            map-options
+          />
           <q-banner v-if="activePeriod" dense rounded class="bg-orange-1 text-orange-9">
             <template v-slot:avatar><q-icon name="warning" /></template>
             Akan copy dari: <b>{{ activePeriod.academic_year }} — {{ activePeriod.semester }}</b>
@@ -68,13 +104,20 @@
           <div class="text-h6">Aktifkan Periode</div>
         </q-card-section>
         <q-card-section>
-          Aktifkan <b>{{ pendingPeriod?.academic_year }} — {{ pendingPeriod?.semester }}</b>?
-          <br /><br />
-          <span class="text-caption text-grey-7">Semua halaman akan menampilkan data periode ini.</span>
+          Aktifkan <b>{{ pendingPeriod?.academic_year }} — {{ pendingPeriod?.semester }}</b
+          >? <br /><br />
+          <span class="text-caption text-grey-7"
+            >Semua halaman akan menampilkan data periode ini.</span
+          >
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Batal" color="grey-7" @click="activateDialogOpen = false" />
-          <q-btn color="primary" label="Aktifkan" :loading="activating" @click="confirmActivateNow" />
+          <q-btn
+            color="primary"
+            label="Aktifkan"
+            :loading="activating"
+            @click="confirmActivateNow"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -89,10 +132,22 @@
           <div><b>Dari:</b> {{ rolloverResult.from_period }}</div>
           <div><b>Ke:</b> {{ rolloverResult.to_period }}</div>
           <q-separator />
-          <div><q-icon name="check" color="positive" /> Kelas: <b>{{ rolloverResult.classes_copied }}</b></div>
-          <div><q-icon name="check" color="positive" /> Siswa: <b>{{ rolloverResult.students_copied }}</b></div>
-          <div><q-icon name="check" color="positive" /> Pembelajaran: <b>{{ rolloverResult.lessons_copied }}</b></div>
-          <div><q-icon name="school" color="orange" /> Lulus: <b>{{ rolloverResult.graduates_count }}</b></div>
+          <div>
+            <q-icon name="check" color="positive" /> Kelas:
+            <b>{{ rolloverResult.classes_copied }}</b>
+          </div>
+          <div>
+            <q-icon name="check" color="positive" /> Siswa:
+            <b>{{ rolloverResult.students_copied }}</b>
+          </div>
+          <div>
+            <q-icon name="check" color="positive" /> Pembelajaran:
+            <b>{{ rolloverResult.lessons_copied }}</b>
+          </div>
+          <div>
+            <q-icon name="school" color="orange" /> Lulus:
+            <b>{{ rolloverResult.graduates_count }}</b>
+          </div>
         </q-card-section>
         <q-card-actions align="right">
           <q-btn color="primary" label="OK" @click="resultDialogOpen = false" />
@@ -129,7 +184,13 @@ const semesterOptions = [
 ]
 
 const columns = [
-  { name: 'academic_year', label: 'Tahun Ajaran', field: 'academic_year', align: 'left', sortable: true },
+  {
+    name: 'academic_year',
+    label: 'Tahun Ajaran',
+    field: 'academic_year',
+    align: 'left',
+    sortable: true,
+  },
   { name: 'semester', label: 'Semester', field: 'semester', align: 'center' },
   { name: 'status', label: 'Status', field: 'is_active', align: 'center', style: 'width: 130px' },
   { name: 'created_at', label: 'Dibuat', field: 'created_at', align: 'left' },
@@ -143,10 +204,17 @@ const loadPeriods = async () => {
   try {
     const res = await AcademicPeriodService.list()
     periods.value = res?.data?.data || []
-    console.log('[Periods] Loaded:', periods.value.map(p => `${p.academic_year}/${p.semester}=${p.is_active}`))
+    console.log(
+      '[Periods] Loaded:',
+      periods.value.map((p) => `${p.academic_year}/${p.semester}=${p.is_active}`),
+    )
 
     const active = periods.value.find((p) => p.is_active)
-    if (active && (academicStore.academic_year !== active.academic_year || academicStore.semester !== active.semester)) {
+    if (
+      active &&
+      (academicStore.academic_year !== active.academic_year ||
+        academicStore.semester !== active.semester)
+    ) {
       academicStore.setPeriod(active.academic_year, active.semester, active.id)
       console.log('[Periods] Store synced to active:', active.academic_year, active.semester)
     }
@@ -180,16 +248,24 @@ const submitCreate = async () => {
   }
   submitting.value = true
   try {
-    const res = await AcademicPeriodService.create({ academic_year: ay, semester: form.value.semester })
+    const res = await AcademicPeriodService.create({
+      academic_year: ay,
+      semester: form.value.semester,
+    })
     rolloverResult.value = res?.data?.data
     createDialogOpen.value = false
     resultDialogOpen.value = true
-    academicStore.setPeriod(ay, form.value.semester, `${ay.split('/')[0]}${form.value.semester === 'GANJIL' ? '1' : '2'}`)
+    academicStore.setPeriod(
+      ay,
+      form.value.semester,
+      `${ay.split('/')[0]}${form.value.semester === 'GANJIL' ? '1' : '2'}`,
+    )
     await loadPeriods()
   } catch (err) {
-    const msg = err?.response?.data?.error === 'period_exists'
-      ? 'Tahun ajaran sudah ada.'
-      : err?.response?.data?.message || 'Gagal membuat.'
+    const msg =
+      err?.response?.data?.error === 'period_exists'
+        ? 'Tahun ajaran sudah ada.'
+        : err?.response?.data?.message || 'Gagal membuat.'
     $q.notify({ type: 'negative', message: msg })
   } finally {
     submitting.value = false

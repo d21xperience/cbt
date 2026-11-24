@@ -55,13 +55,19 @@ export function useExamSchedules() {
   }
 
   // Watch Global Context (Tahun/Semester) untuk reload
-  watch(() => [academicStore.academic_year, academicStore.semester], () => {
-    loadData()
-  })
+  watch(
+    () => [academicStore.academic_year, academicStore.semester],
+    () => {
+      loadData()
+    },
+  )
 
   const openCreateDialog = (row = null) => {
     if (!academicStore.exam_mode) {
-      $q.notify({ type: 'warning', message: 'Aktifkan Mode Ujian (UTS/UAS) di Header terlebih dahulu.' })
+      $q.notify({
+        type: 'warning',
+        message: 'Aktifkan Mode Ujian (UTS/UAS) di Header terlebih dahulu.',
+      })
       return
     }
     isEditing.value = false
@@ -87,13 +93,20 @@ export function useExamSchedules() {
     submitting.value = true
     try {
       // Inject Jenis Ujian ID berdasarkan Mode Ujian Global
-      const type = examTypes.value.find(t => t.kode === academicStore.exam_mode)
+      const type = examTypes.value.find((t) => t.kode === academicStore.exam_mode)
       if (!type) {
-        $q.notify({ type: 'negative', message: `Jenis ujian '${academicStore.exam_mode}' tidak ditemukan.` })
+        $q.notify({
+          type: 'negative',
+          message: `Jenis ujian '${academicStore.exam_mode}' tidak ditemukan.`,
+        })
         return { success: false }
       }
-      
-      const finalPayload = { ...payload, jenis_ujian_id: type.id, academic_period_id: payload.academic_period_id || academicStore.active_period_id }
+
+      const finalPayload = {
+        ...payload,
+        jenis_ujian_id: type.id,
+        academic_period_id: payload.academic_period_id || academicStore.active_period_id,
+      }
 
       if (isEditing.value) {
         await ExamScheduleService.update(finalPayload.id, finalPayload)

@@ -3,40 +3,65 @@
     <!-- Header -->
     <div class="q-mb-md row justify-between items-center">
       <div>
-        <h5 class="q-my-none text-weight-bold text-primary">
-          Log Telemetri & Audit Infrastruktur
-        </h5>
+        <h5 class="q-my-none text-weight-bold text-primary">Log Telemetri & Audit Infrastruktur</h5>
         <div class="text-caption text-grey-7">
           Pantau stabilitas Cloudflare Tunnel sekolah dan beban performa engine lokal secara
           real-time.
         </div>
       </div>
-      <q-btn outline color="primary" icon="refresh" label="Segarkan Log" :loading="loading" @click="fetchLogs" />
+      <q-btn
+        outline
+        color="primary"
+        icon="refresh"
+        label="Segarkan Log"
+        :loading="loading"
+        @click="fetchLogs"
+      />
     </div>
 
     <!-- Error state banner -->
-    <q-banner v-if="errorState === 'endpoint_not_ready'" dense rounded class="bg-blue-grey-2 text-blue-grey-9 q-mb-md">
+    <q-banner
+      v-if="errorState === 'endpoint_not_ready'"
+      dense
+      rounded
+      class="bg-blue-grey-2 text-blue-grey-9 q-mb-md"
+    >
       <template v-slot:avatar>
         <q-icon name="construction" />
       </template>
       Endpoint log telemetri belum tersedia di backend (VER-011 pending).
     </q-banner>
 
-    <q-banner v-else-if="errorState === 'network_error'" dense rounded class="bg-orange-1 text-orange-9 q-mb-md">
+    <q-banner
+      v-else-if="errorState === 'network_error'"
+      dense
+      rounded
+      class="bg-orange-1 text-orange-9 q-mb-md"
+    >
       <template v-slot:avatar>
         <q-icon name="wifi_off" color="orange" />
       </template>
       Koneksi terputus. Data terakhir tetap ditampilkan.
     </q-banner>
 
-    <q-banner v-else-if="errorState === 'server_error'" dense rounded class="bg-red-1 text-red-9 q-mb-md">
+    <q-banner
+      v-else-if="errorState === 'server_error'"
+      dense
+      rounded
+      class="bg-red-1 text-red-9 q-mb-md"
+    >
       <template v-slot:avatar>
         <q-icon name="error" color="red" />
       </template>
       Server error. Klik refresh untuk coba lagi.
     </q-banner>
 
-    <q-banner v-else-if="errorState === 'contract_mismatch'" dense rounded class="bg-purple-1 text-purple-9 q-mb-md">
+    <q-banner
+      v-else-if="errorState === 'contract_mismatch'"
+      dense
+      rounded
+      class="bg-purple-1 text-purple-9 q-mb-md"
+    >
       <template v-slot:avatar>
         <q-icon name="report" color="purple" />
       </template>
@@ -47,15 +72,28 @@
     <q-card flat bordered class="q-mb-md bg-white">
       <q-card-section class="row q-col-gutter-sm items-center">
         <div class="col-12 col-sm-6">
-          <q-input v-model="searchQuery" placeholder="Cari nama sekolah atau pesan log..." outlined dense clearable>
+          <q-input
+            v-model="searchQuery"
+            placeholder="Cari nama sekolah atau pesan log..."
+            outlined
+            dense
+            clearable
+          >
             <template v-slot:prepend>
               <q-icon name="search" />
             </template>
           </q-input>
         </div>
         <div class="col-12 col-sm-6">
-          <q-select v-model="statusFilter" :options="statusOptions" label="Filter Tingkat Keparahan" outlined dense
-            emit-value map-options />
+          <q-select
+            v-model="statusFilter"
+            :options="statusOptions"
+            label="Filter Tingkat Keparahan"
+            outlined
+            dense
+            emit-value
+            map-options
+          />
         </div>
       </q-card-section>
     </q-card>
@@ -63,13 +101,21 @@
     <!-- List Audit Trail -->
     <q-card flat bordered class="bg-white">
       <q-list separator>
-        <q-item v-if="filteredLogs.length === 0" class="q-pa-lg text-center text-grey-6 text-subtitle1">
+        <q-item
+          v-if="filteredLogs.length === 0"
+          class="q-pa-lg text-center text-grey-6 text-subtitle1"
+        >
           Tidak ada log telemetri yang cocok dengan kriteria filter.
         </q-item>
 
         <q-item v-for="log in filteredLogs" :key="log.id" class="q-py-md">
           <q-item-section avatar top>
-            <q-avatar :color="getSeverityColor(log.status)" text-color="white" icon="analytics" size="md" />
+            <q-avatar
+              :color="getSeverityColor(log.status)"
+              text-color="white"
+              icon="analytics"
+              size="md"
+            />
           </q-item-section>
 
           <q-item-section>
@@ -106,14 +152,8 @@
 <script setup>
 import { useTelemetryLogs } from '@/composables/super/useTelemetryLogs'
 
-const {
-  loading,
-  errorState,
-  searchQuery,
-  statusFilter,
-  filteredLogs,
-  fetchLogs,
-} = useTelemetryLogs()
+const { loading, errorState, searchQuery, statusFilter, filteredLogs, fetchLogs } =
+  useTelemetryLogs()
 
 // ── UI-only constants & helpers (presentation concern, tetap di Vue)
 

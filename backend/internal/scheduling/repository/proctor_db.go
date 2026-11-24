@@ -136,6 +136,9 @@ func (r *ProctorDB) ListAllProctors(ctx context.Context) ([]map[string]any, erro
 
 // FindProctorByUsername — untuk login proctor (query ke tabel teachers)
 func (r *ProctorDB) FindProctorByUsername(ctx context.Context, tenantID, username string) (id, passwordHash, role string, err error) {
+	if tenantID == "" {
+		return "", "", "", fmt.Errorf("FindProctorByUsername: tenantID wajib")
+	}
 	const q = `SELECT id, password_hash, 'TEACHER' as role FROM teachers
 	           WHERE username = ? AND status = 'AKTIF'
 	           LIMIT 1`

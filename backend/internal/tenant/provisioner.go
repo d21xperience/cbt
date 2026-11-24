@@ -8,12 +8,10 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"time"
+	"sort"
 
-	platformDomain "cbt-engine-service/internal/platform/domain"
 	schedRepo "cbt-engine-service/internal/scheduling/repository"
 	schedUC "cbt-engine-service/internal/scheduling/usecase"
-
 	"cbt-engine-service/migrations"
 
 	"github.com/google/uuid"
@@ -23,30 +21,21 @@ var (
 	ErrProvisionFailed = errors.New("provision_failed")
 )
 
-// Provisioner — create + migrate + seed a new tenant DB.
-//
-// Idempotent: if called twice with same tenant, second call detects existing DB
-// and applies migrations again (idempotent by design).
-//
-// Rollback: on failure, tenant folder is deleted (best effort).
 type Provisioner struct {
-	BasePath string
+	BasePath   string
+	PlatformDB *sql.DB // FASE 3: kredensial admin di platform DB
 }
 
-func NewProvisioner(basePath string) *Provisioner {
-	return &Provisioner{BasePath: basePath}
+// NewProvisioner — basePath wajib; platformDB opsional (jika nil, seedAdmin fallback ke tenant DB).
+func NewProvisioner(basePath string, platformDB ...*sql.DB) *Provisioner {
+	p := &Provisioner{BasePath: basePath}
+	if len(platformDB) > 0 {
+		p.PlatformDB = platformDB[0]
+	}
+	return p
 }
 
 // Provision — orchestrates tenant DB creation.
-//
-// Steps:
-//  1. Create folder /var/lib/cbt/tenants/{tenantID}/
-//  2. Open SQLite (creates empty file)
-//  3. Apply all .up.sql migrations (embedded)
-//  4. Insert admin user into tenant DB
-//  5. Close DB
-//
-// On failure: rollback by deleting folder (best effort).
 func (p *Provisioner) Provision(
 	ctx context.Context,
 	tenantID, subdomain string,
@@ -60,10 +49,10 @@ func (p *Provisioner) Provision(
 	}
 
 	tenantDir := filepath.Join(p.BasePath, "tenants", tenantID)
-	dbPath := filepath.Join(tenantDir, "cbt.db")
+	dbPath := filepath.ToSlash(filepath.Join(tenantDir, "cbt.db"))
 
 	// === Step 1: Create folder ===
-	if err := os.MkdirAll(tenantDir, 0755); err != nil {
+	if err := os.MkdirAll(tenantDir, 0o755); err != nil {
 		return fmt.Errorf("%w: mkdir: %v", ErrProvisionFailed, err)
 	}
 
@@ -80,7 +69,9 @@ func (p *Provisioner) Provision(
 	}()
 
 	// === Step 2: Open SQLite (creates file) ===
-	db, err := sql.Open("sqlite3", dbPath+"?_journal_mode=WAL&_busy_timeout=5000")
+	dsn := fmt.Sprintf("file:%s?_journal_mode=WAL&_busy_timeout=5000", dbPath)
+	db, err := sql.Open("sqlite3", dsn)
+
 	if err != nil {
 		return fmt.Errorf("%w: open db: %v", ErrProvisionFailed, err)
 	}
@@ -89,7 +80,6 @@ func (p *Provisioner) Provision(
 	db.SetMaxOpenConns(1)
 	db.SetMaxIdleConns(1)
 
-	// Apply per-tenant PRAGMA
 	pragmas := []string{
 		"PRAGMA journal_mode=WAL;",
 		"PRAGMA synchronous=NORMAL;",
@@ -111,7 +101,9 @@ func (p *Provisioner) Provision(
 	}
 
 	// === Step 4: Seed admin user ===
-	if err := p.seedAdmin(ctx, db, subdomain, adminUsername, adminPassword); err != nil {
+	// FASE 3: admin dipindah ke platform DB. Jika PlatformDB tersedia, seed di sana.
+	// Jika tidak, fallback ke tenant DB (legacy).
+	if err := p.seedAdmin(ctx, db, tenantID, subdomain, adminUsername, adminPassword); err != nil {
 		return fmt.Errorf("%w: seed admin: %v", ErrProvisionFailed, err)
 	}
 
@@ -120,44 +112,16 @@ func (p *Provisioner) Provision(
 	return nil
 }
 
-// Reference: scripts/migrations-manifest.txt
 var skipInProvisioner = map[string]bool{
-	"000013_backfill_tenant_id.up.sql":         true,
-	"000014_add_tenant_status.up.sql":          true,
-	"000015_add_pending_admin_username.up.sql": true,
-	"000016_add_tenant_jenjang.up.sql":         true,
-	"000017_add_master_keahlian.up.sql":        true,
-
-	// FASE 2 FIX: migration legacy seed yang mengasumsikan kolom
-	// academic_period_id di tabel exam_sessions DAN exams — padahal
-	// kolom itu TIDAK PERNAH ditambahkan oleh migration manapun
-	// (lihat: 000002 hanya menambah semester_id; 000012 hanya tenant_id;
-	//  tidak ada ALTER TABLE ... ADD COLUMN academic_period_id).
-	//
-	// Migration ini hanya relevan untuk DB lama (dev) yang sudah punya
-	// data seed — TIDAK untuk fresh provisioning. Fresh tenant mulai
-	// dari schema bersih; seed data akan diisi oleh aplikasi saat
-	// admin sekolah membuat ujian pertamanya.
-	//
-	// Lihat riwayat: 000039, 000041 (INSERT exam_sessions.academic_period_id),
-	//                000042 (INSERT exams.academic_period_id),
-	//                000045 (UPDATE exams WHERE academic_period_id).
-	"000039_seed_exam_sessions.up.sql":      true,
-	"000041_seed_exam_sessions.up.sql":      true,
-	"000042_sync_legacy_schedules.up.sql":   true,
-	"000045_backfill_exam_relations.up.sql": true,
+	"006_tenant_master_keahlian.up.sql": true,
 }
 
-// applyMigrations — run embedded tenant migrations only.
-// Platform migrations (000014+) DILEWATI karena hanya untuk platform DB.
 func (p *Provisioner) applyMigrations(ctx context.Context, db *sql.DB) error {
 	entries, err := migrations.UpMigrations.ReadDir(".")
 	if err != nil {
 		return fmt.Errorf("read migrations dir: %w", err)
 	}
 
-	// Filter tenant-only migrations
-	// Filter migrations — skip yang bukan untuk fresh provisioning
 	var files []string
 	for _, e := range entries {
 		if e.IsDir() {
@@ -165,11 +129,13 @@ func (p *Provisioner) applyMigrations(ctx context.Context, db *sql.DB) error {
 		}
 		name := e.Name()
 		if skipInProvisioner[name] {
-			log.Printf("[PROVISIONER] Skip migration (not for fresh provisioning): %s", name)
+			log.Printf("[PROVISIONER] Skip migration: %s", name)
 			continue
 		}
 		files = append(files, name)
 	}
+
+	sort.Strings(files)
 
 	log.Printf("[PROVISIONER] Applying %d tenant migrations", len(files))
 
@@ -181,7 +147,6 @@ func (p *Provisioner) applyMigrations(ctx context.Context, db *sql.DB) error {
 
 		if _, err := db.ExecContext(ctx, string(content)); err != nil {
 			errStr := err.Error()
-			// Tolerate "duplicate column" / "already exists" (idempotent re-run)
 			if contains(errStr, "duplicate column") || contains(errStr, "already exists") {
 				log.Printf("[PROVISIONER] Skip (idempotent) %s: %v", name, err)
 				continue
@@ -193,27 +158,53 @@ func (p *Provisioner) applyMigrations(ctx context.Context, db *sql.DB) error {
 	return nil
 }
 
-// seedAdmin — insert admin user into tenant DB.
-// Uses subdomain as tenant_id (consistent with existing convention).
-func (p *Provisioner) seedAdmin(ctx context.Context, db *sql.DB, subdomain, username, password string) error {
-	adminRepo := schedRepo.NewAdminDB(db)
-
+// seedAdmin — FASE 3: INSERT admin ke PLATFORM DB (bukan tenant DB).
+// tenantID (UUID) dan subdomain dipakai untuk lookup compatibility.
+// Fallback: jika PlatformDB == nil, seed ke tenant DB (legacy).
+func (p *Provisioner) seedAdmin(
+	ctx context.Context,
+	tenantDB *sql.DB,
+	tenantID, subdomain, username, password string,
+) error {
 	hash, err := schedUC.HashPassword(password)
 	if err != nil {
 		return fmt.Errorf("hash password: %w", err)
 	}
 
-	return adminRepo.Upsert(ctx, &schedRepo.Admin{
+	// ── FASE 3: Seed ke platform DB
+	if p.PlatformDB != nil {
+		repo := schedRepo.NewAdminDB(p.PlatformDB)
+		if err := repo.Upsert(ctx, &schedRepo.Admin{
+			ID:           uuid.NewString(),
+			TenantID:     tenantID, 
+			Username:     username,
+			PasswordHash: hash,
+			Role:         "ADMIN",
+			IsActive:     true,
+		}); err != nil {
+			return fmt.Errorf("upsert admin (platform): %w", err)
+		}
+		log.Printf("[PROVISIONER] Admin '%s' seeded to PLATFORM DB (tenant=%s)", username, subdomain)
+		return nil
+	}
+
+	// ── Fallback: seed ke tenant DB (legacy — untuk dev tenant lama)
+	repo := schedRepo.NewAdminDB(tenantDB)
+	if err := repo.Upsert(ctx, &schedRepo.Admin{
 		ID:           uuid.NewString(),
-		TenantID:     subdomain, // subdomain (bukan UUID) — konsisten dengan existing
+		TenantID:     subdomain,
 		Username:     username,
 		PasswordHash: hash,
 		Role:         "ADMIN",
 		IsActive:     true,
-	})
+	}); err != nil {
+		return fmt.Errorf("upsert admin (tenant): %w", err)
+	}
+	log.Printf("[PROVISIONER] Admin '%s' seeded to TENANT DB (legacy)", username)
+	return nil
 }
 
-// contains — simple substring check (avoid import strings di file kecil).
+// contains — simple substring check.
 func contains(s, substr string) bool {
 	if len(substr) == 0 {
 		return true
@@ -228,15 +219,3 @@ func contains(s, substr string) bool {
 	}
 	return false
 }
-func containsHelper(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
-}
-
-// Ensure Tenant satisfies minimal interface for provisioner
-var _ = platformDomain.Tenant{}
-var _ = time.Now

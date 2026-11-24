@@ -16,8 +16,15 @@
         </div>
 
         <q-list bordered separator>
-          <q-item v-for="type in examTypes" :key="type.id" clickable v-ripple :active="type.id === selectedId"
-            active-class="bg-blue-1 text-primary" @click="$emit('select', type.id)">
+          <q-item
+            v-for="type in examTypes"
+            :key="type.id"
+            clickable
+            v-ripple
+            :active="type.id === selectedId"
+            active-class="bg-blue-1 text-primary"
+            @click="$emit('select', type.id)"
+          >
             <q-item-section avatar>
               <q-avatar color="primary" text-color="white" size="36px">
                 {{ type.kode.substring(0, 3) }}
@@ -40,9 +47,7 @@
         <div v-if="examTypes.length === 0" class="text-center q-pa-md text-grey-6">
           <q-icon name="warning" size="md" />
           <div class="q-mt-sm">Belum ada jenis ujian.</div>
-          <div class="text-caption">
-            Tambah di <b>/admin/references/exam-types</b>
-          </div>
+          <div class="text-caption">Tambah di <b>/admin/references/exam-types</b></div>
         </div>
       </q-card-section>
 
@@ -64,6 +69,11 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'select'])
 
 const isOpen = ref(false)
-watch(() => props.modelValue, (v) => { isOpen.value = v })
+watch(
+  () => props.modelValue,
+  (v) => {
+    isOpen.value = v
+  },
+)
 watch(isOpen, (v) => emit('update:modelValue', v))
 </script>

@@ -54,18 +54,20 @@ export function useLessons() {
   const subjectOptions = computed(() => {
     return subjects.value.map((s) => ({ label: `${s.kode} — ${s.nama}`, value: s.id }))
   })
-  
+
   const classOptions = computed(() =>
     classes.value.map((c) => ({ label: `${c.nama} (Tingkat ${c.tingkat})`, value: c.id })),
   )
-  
+
   const teacherOptions = computed(() =>
     teachers.value.map((t) => ({ label: `${t.nama}${t.nip ? ` (${t.nip})` : ''}`, value: t.id })),
   )
 
   const filteredLessons = computed(() => {
     const list = Array.isArray(lessons.value) ? lessons.value : []
-    const q = String(searchQuery.value || '').trim().toLowerCase()
+    const q = String(searchQuery.value || '')
+      .trim()
+      .toLowerCase()
 
     return list.filter((l) => {
       if (filterClass.value && l.class_id !== filterClass.value) return false
@@ -73,9 +75,15 @@ export function useLessons() {
 
       if (!q) return true
       return (
-        String(l.subject_nama || '').toLowerCase().includes(q) ||
-        String(l.class_nama || '').toLowerCase().includes(q) ||
-        String(l.teacher_nama || '').toLowerCase().includes(q)
+        String(l.subject_nama || '')
+          .toLowerCase()
+          .includes(q) ||
+        String(l.class_nama || '')
+          .toLowerCase()
+          .includes(q) ||
+        String(l.teacher_nama || '')
+          .toLowerCase()
+          .includes(q)
       )
     })
   })
@@ -106,10 +114,12 @@ export function useLessons() {
       loading.value = false
     }
   }
-  
+
   watch(
     () => academicStore.active_period_id,
-    () => { loadLessons() },
+    () => {
+      loadLessons()
+    },
   )
 
   const loadRefs = async () => {
@@ -139,7 +149,7 @@ export function useLessons() {
     editingId.value = row.id
     initialForm.value = {
       subject_id: row.subject_id || null,
-      class_ids: [row.class_id], 
+      class_ids: [row.class_id],
       teacher_id: row.teacher_id || null,
       is_exam_author: Boolean(row.is_exam_author), // Antisipasi return 1/0 dari SQLite
       academic_year: row.academic_year || '2025/2026',
@@ -176,12 +186,15 @@ export function useLessons() {
         }
         $q.notify({ type: 'positive', message: 'Pembelajaran diperbarui.' })
       } else {
-        const promises = classIds.map(cid => {
+        const promises = classIds.map((cid) => {
           return LessonService.create({ ...payload, class_id: cid })
         })
         await Promise.all(promises)
         await loadLessons()
-        $q.notify({ type: 'positive', message: `${classIds.length} Pembelajaran berhasil ditambahkan.` })
+        $q.notify({
+          type: 'positive',
+          message: `${classIds.length} Pembelajaran berhasil ditambahkan.`,
+        })
       }
       closeDialog()
       return { success: true }
@@ -211,7 +224,8 @@ export function useLessons() {
       return true
     } catch (err) {
       const errCode = err?.response?.data?.error
-      const msg = errCode === 'lesson_in_use'
+      const msg =
+        errCode === 'lesson_in_use'
           ? 'Pembelajaran tidak dapat dihapus karena masih dipakai di ujian.'
           : err?.response?.data?.message || 'Gagal menghapus data.'
       $q.notify({ type: 'negative', message: msg })
@@ -237,7 +251,10 @@ export function useLessons() {
     try {
       const res = await LessonService.downloadTemplate(format)
       const blob = new Blob([res.data], {
-        type: format === 'csv' ? 'text/csv;charset=utf-8' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        type:
+          format === 'csv'
+            ? 'text/csv;charset=utf-8'
+            : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')

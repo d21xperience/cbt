@@ -1,12 +1,7 @@
 // src/mocks/handlers/cardsHandlers.js
 // Handler Kartu Ujian — 2b-3a — tenant-aware
 
-import {
-  getCardsByTenant,
-  makeCardNumber,
-  makeQrToken,
-  makePin,
-} from '../data/cardsData'
+import { getCardsByTenant, makeCardNumber, makeQrToken, makePin } from '../data/cardsData'
 import { resolveTenant } from '../data/tenantHelpers'
 import { cloneMock } from '../data/keahlianData'
 

@@ -6,9 +6,7 @@
           <q-icon name="meeting_room" color="primary" size="sm" class="q-mr-sm" />
           Ruang Ujian
         </div>
-        <div class="text-caption text-grey-7">
-          Master data ruang untuk pelaksanaan ujian.
-        </div>
+        <div class="text-caption text-grey-7">Master data ruang untuk pelaksanaan ujian.</div>
       </div>
       <q-btn color="primary" icon="add" label="Tambah Ruang" no-caps @click="openCreateDialog" />
     </div>
@@ -22,16 +20,30 @@
           </q-input>
         </div>
         <div class="col-12 col-md-3">
-          <q-select v-model="filterGedung" :options="gedungOptions" label="Filter Gedung" outlined dense emit-value
-            map-options clearable />
+          <q-select
+            v-model="filterGedung"
+            :options="gedungOptions"
+            label="Filter Gedung"
+            outlined
+            dense
+            emit-value
+            map-options
+            clearable
+          />
         </div>
       </q-card-section>
     </q-card>
 
     <!-- Table -->
     <q-card flat bordered class="bg-white">
-      <q-table :rows="filteredRooms" :columns="columns" row-key="id" flat :loading="loading"
-        no-data-label="Belum ada ruang">
+      <q-table
+        :rows="filteredRooms"
+        :columns="columns"
+        row-key="id"
+        flat
+        :loading="loading"
+        no-data-label="Belum ada ruang"
+      >
         <template v-slot:body-cell-nama="props">
           <q-td :props="props">
             <div class="text-weight-medium">{{ props.row.nama }}</div>
@@ -55,7 +67,10 @@
 
         <template v-slot:body-cell-aktif="props">
           <q-td :props="props" class="text-center">
-            <q-badge :color="props.row.aktif ? 'positive' : 'grey'" :label="props.row.aktif ? 'Aktif' : 'Nonaktif'" />
+            <q-badge
+              :color="props.row.aktif ? 'positive' : 'grey'"
+              :label="props.row.aktif ? 'Aktif' : 'Nonaktif'"
+            />
           </q-td>
         </template>
 
@@ -64,7 +79,14 @@
             <q-btn flat round dense icon="edit" color="primary" @click="openEditDialog(props.row)">
               <q-tooltip>Edit</q-tooltip>
             </q-btn>
-            <q-btn flat round dense icon="delete" color="negative" @click="confirmDelete(props.row)">
+            <q-btn
+              flat
+              round
+              dense
+              icon="delete"
+              color="negative"
+              @click="confirmDelete(props.row)"
+            >
               <q-tooltip>Hapus</q-tooltip>
             </q-btn>
           </q-td>
@@ -73,8 +95,14 @@
     </q-card>
 
     <!-- Form Dialog -->
-    <RoomFormDialog v-model="dialogOpen" :is-editing="isEditing" :initial-form="initialForm" :submitting="submitting"
-      :gedung-options="gedungOptions" @submit="submitForm" />
+    <RoomFormDialog
+      v-model="dialogOpen"
+      :is-editing="isEditing"
+      :initial-form="initialForm"
+      :submitting="submitting"
+      :gedung-options="gedungOptions"
+      @submit="submitForm"
+    />
   </q-page>
 </template>
 
@@ -106,7 +134,13 @@ const {
 const columns = [
   { name: 'nama', label: 'Nama Ruang', field: 'nama', align: 'left', style: 'min-width: 140px' },
   { name: 'lokasi', label: 'Lokasi', field: 'gedung', align: 'left', style: 'min-width: 200px' },
-  { name: 'kapasitas', label: 'Kapasitas', field: 'kapasitas', align: 'center', style: 'width: 110px' },
+  {
+    name: 'kapasitas',
+    label: 'Kapasitas',
+    field: 'kapasitas',
+    align: 'center',
+    style: 'width: 110px',
+  },
   { name: 'keterangan', label: 'Keterangan', field: 'keterangan', align: 'left' },
   { name: 'aktif', label: 'Status', field: 'aktif', align: 'center', style: 'width: 100px' },
   { name: 'actions', label: 'Aksi', align: 'center', style: 'width: 110px' },

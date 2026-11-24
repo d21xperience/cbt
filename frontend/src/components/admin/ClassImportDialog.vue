@@ -1,5 +1,11 @@
 <template>
-  <q-dialog v-model="isOpen" persistent maximized transition-show="slide-up" transition-hide="slide-down">
+  <q-dialog
+    v-model="isOpen"
+    persistent
+    maximized
+    transition-show="slide-up"
+    transition-hide="slide-down"
+  >
     <q-card>
       <q-bar class="bg-primary text-white">
         <div class="text-subtitle1">Import Kelas / Rombel</div>
@@ -14,33 +20,56 @@
               <template v-slot:avatar>
                 <q-icon name="info" color="primary" />
               </template>
-              Format CSV: <code>nama,tingkat,kurikulum,jenis_rombel,program_keahlian,wali_kelas_nama</code>
+              Format CSV:
+              <code>nama,tingkat,kurikulum,jenis_rombel,program_keahlian,wali_kelas_nama</code>
             </q-banner>
 
             <div class="row q-col-gutter-sm q-mb-md">
               <div class="col-auto">
-                <q-btn outline color="primary" icon="download" label="Download Template CSV" no-caps
-                  :loading="downloadingTemplate" @click="onDownloadTemplate('csv')" />
+                <q-btn
+                  outline
+                  color="primary"
+                  icon="download"
+                  label="Download Template CSV"
+                  no-caps
+                  :loading="downloadingTemplate"
+                  @click="onDownloadTemplate('csv')"
+                />
               </div>
             </div>
 
             <q-form @submit.prevent="onUploadStep" class="q-gutter-md">
-              <q-file v-model="fileRef" label="File CSV" accept=".csv" outlined
-                :rules="[(val) => !!val || 'File CSV wajib dipilih']">
+              <q-file
+                v-model="fileRef"
+                label="File CSV"
+                accept=".csv"
+                outlined
+                :rules="[(val) => !!val || 'File CSV wajib dipilih']"
+              >
                 <template v-slot:prepend>
                   <q-icon name="attach_file" />
                 </template>
               </q-file>
 
               <div class="row q-gutter-sm">
-                <q-btn type="submit" color="primary" label="Lanjut ke Preview" :loading="importing" />
+                <q-btn
+                  type="submit"
+                  color="primary"
+                  label="Lanjut ke Preview"
+                  :loading="importing"
+                />
                 <q-btn flat color="grey" label="Batal" @click="onClose" />
               </div>
             </q-form>
           </q-step>
 
           <q-step :name="2" title="Preview & Validasi" icon="visibility">
-            <q-banner v-if="importErrors.length > 0" dense rounded class="bg-negative text-white q-mb-md">
+            <q-banner
+              v-if="importErrors.length > 0"
+              dense
+              rounded
+              class="bg-negative text-white q-mb-md"
+            >
               <template v-slot:avatar>
                 <q-icon name="error" />
               </template>
@@ -52,8 +81,15 @@
               </ul>
             </q-banner>
 
-            <q-table :rows="importPreview" :columns="previewColumns" row-key="_rowNumber" flat bordered dense
-              :rows-per-page-options="[10, 25, 50]">
+            <q-table
+              :rows="importPreview"
+              :columns="previewColumns"
+              row-key="_rowNumber"
+              flat
+              bordered
+              dense
+              :rows-per-page-options="[10, 25, 50]"
+            >
               <template v-slot:body-cell-_error="props">
                 <q-td :props="props">
                   <q-badge v-if="props.row._error" color="negative" :label="props.row._error" />
@@ -64,8 +100,13 @@
 
             <div class="row q-gutter-sm q-mt-md">
               <q-btn color="primary" flat label="Kembali" @click="step = 1" />
-              <q-btn color="positive" :label="`Import ${importValidCount} Kelas`" :disable="importValidCount === 0"
-                :loading="importing" @click="onConfirmImport" />
+              <q-btn
+                color="positive"
+                :label="`Import ${importValidCount} Kelas`"
+                :disable="importValidCount === 0"
+                :loading="importing"
+                @click="onConfirmImport"
+              />
               <q-btn flat color="grey" label="Batal" @click="onClose" />
             </div>
           </q-step>
@@ -102,7 +143,13 @@ const step = ref(1)
 const fileRef = ref(null)
 
 const previewColumns = [
-  { name: '_rowNumber', label: 'Baris', field: '_rowNumber', align: 'center', style: 'width: 70px' },
+  {
+    name: '_rowNumber',
+    label: 'Baris',
+    field: '_rowNumber',
+    align: 'center',
+    style: 'width: 70px',
+  },
   { name: 'nama', label: 'Nama Kelas', field: 'nama', align: 'left' },
   { name: 'tingkat', label: 'Tingkat', field: 'tingkat', align: 'center' },
   // { name: 'kurikulum', label: 'Kurikulum', field: 'kurikulum', align: 'center' },
@@ -111,20 +158,26 @@ const previewColumns = [
   { name: '_error', label: 'Status', field: '_error', align: 'center' },
 ]
 
-watch(() => props.modelValue, (val) => {
-  isOpen.value = val
-  if (val) {
-    step.value = props.importStep || 1
-    fileRef.value = null
-  }
-})
+watch(
+  () => props.modelValue,
+  (val) => {
+    isOpen.value = val
+    if (val) {
+      step.value = props.importStep || 1
+      fileRef.value = null
+    }
+  },
+)
 watch(isOpen, (val) => emit('update:modelValue', val))
 watch(step, (val) => emit('update:importStep', val))
 
 // ✅ FIX: Pantau perubahan importStep dari induk (useClasses.js)
-watch(() => props.importStep, (val) => {
-  if (val) step.value = val
-})
+watch(
+  () => props.importStep,
+  (val) => {
+    if (val) step.value = val
+  },
+)
 
 const onDownloadTemplate = (format) => emit('download-template', format)
 const onUploadStep = () => emit('parse-import', fileRef.value)

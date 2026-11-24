@@ -11,7 +11,14 @@
       <q-btn color="primary" icon="add" label="Daftarkan Sekolah Baru" @click="openDialog()" />
     </div>
     <!-- Table -->
-    <q-table :rows="store.schools" :columns="columns" row-key="id" flat bordered :table-row-class-fn="rowClass">
+    <q-table
+      :rows="store.schools"
+      :columns="columns"
+      row-key="id"
+      flat
+      bordered
+      :table-row-class-fn="rowClass"
+    >
       <template v-slot:body-cell-npsn="props">
         <q-td :props="props">
           {{ props.row.npsn }}
@@ -23,7 +30,13 @@
           <q-chip v-if="props.row.is_suspended" dense color="red-7" text-color="white" icon="block">
             SUSPENDED
           </q-chip>
-          <q-chip v-else-if="props.row.is_active === false" dense color="grey-6" text-color="white" icon="pause_circle">
+          <q-chip
+            v-else-if="props.row.is_active === false"
+            dense
+            color="grey-6"
+            text-color="white"
+            icon="pause_circle"
+          >
             INACTIVE
           </q-chip>
           <q-chip v-else dense color="green-6" text-color="white" icon="check_circle">
@@ -35,12 +48,21 @@
       <template v-slot:body-cell-package="props">
         <q-td :props="props">
           <div class="column q-gutter-xs">
-            <q-chip dense :color="tierColor(props.row.package_tier)" text-color="white"
-              :icon="tierIcon(props.row.package_tier)" class="text-weight-bold">
-              {{ (props.row.package_tier || 'BASIC') }}
+            <q-chip
+              dense
+              :color="tierColor(props.row.package_tier)"
+              text-color="white"
+              :icon="tierIcon(props.row.package_tier)"
+              class="text-weight-bold"
+            >
+              {{ props.row.package_tier || 'BASIC' }}
             </q-chip>
-            <q-chip dense outline :color="props.row.billing_type === 'MONTHLY' ? 'indigo' : 'teal'"
-              :icon="props.row.billing_type === 'MONTHLY' ? 'event_repeat' : 'quiz'">
+            <q-chip
+              dense
+              outline
+              :color="props.row.billing_type === 'MONTHLY' ? 'indigo' : 'teal'"
+              :icon="props.row.billing_type === 'MONTHLY' ? 'event_repeat' : 'quiz'"
+            >
               {{ props.row.billing_type === 'MONTHLY' ? 'Bulanan' : 'Per Ujian' }}
             </q-chip>
           </div>
@@ -57,9 +79,13 @@
 
       <template v-slot:body-cell-sync="props">
         <q-td :props="props" class="text-center">
-          <q-btn dense :color="props.row.sync_locked ? 'red-5' : 'green-5'"
-            :icon="props.row.sync_locked ? 'lock' : 'lock_open'" :label="props.row.sync_locked ? 'Locked' : 'Allowed'"
-            @click="toggleSyncLock(props.row)">
+          <q-btn
+            dense
+            :color="props.row.sync_locked ? 'red-5' : 'green-5'"
+            :icon="props.row.sync_locked ? 'lock' : 'lock_open'"
+            :label="props.row.sync_locked ? 'Locked' : 'Allowed'"
+            @click="toggleSyncLock(props.row)"
+          >
             <q-tooltip>Kunci akses sinkronisasi database lokal sekolah</q-tooltip>
           </q-btn>
         </q-td>
@@ -67,25 +93,109 @@
 
       <template v-slot:body-cell-actions="props">
         <q-td :props="props" class="q-gutter-xs text-center">
-          <q-btn flat round dense color="indigo-9" icon="settings" @click="openSaasConfig(props.row)">
+          <q-btn
+            flat
+            round
+            dense
+            color="indigo-9"
+            icon="settings"
+            @click="openSaasConfig(props.row)"
+          >
             <q-tooltip>Konfigurasi Fitur & Domain SaaS</q-tooltip>
           </q-btn>
           <q-btn flat round dense color="primary" icon="edit" @click="openDialog(props.row)" />
+          <q-btn
+            flat
+            round
+            dense
+            color="orange"
+            icon="vpn_key"
+            @click="openResetPwdDialog(props.row)"
+          >
+            <q-tooltip>Reset Password Admin</q-tooltip>
+          </q-btn>
           <!-- Suspend / Unsuspend dinamis -->
-          <q-btn v-if="!props.row.is_suspended" flat round dense color="negative" icon="block"
-            @click="suspendSchool(props.row)">
+          <q-btn
+            v-if="!props.row.is_suspended"
+            flat
+            round
+            dense
+            color="negative"
+            icon="block"
+            @click="suspendSchool(props.row)"
+          >
             <q-tooltip>Tangguhkan akses sekolah</q-tooltip>
           </q-btn>
-          <q-btn v-else flat round dense color="positive" icon="check_circle" @click="unsuspendSchool(props.row)">
+          <q-btn
+            v-else
+            flat
+            round
+            dense
+            color="positive"
+            icon="check_circle"
+            @click="unsuspendSchool(props.row)"
+          >
             <q-tooltip>Aktifkan kembali sekolah</q-tooltip>
           </q-btn>
         </q-td>
       </template>
     </q-table>
     <!-- Dialogs -->
-    <school-form-dialog v-model="dialogOpen" :edit-data="selectedSchool" @saved="store.getSchoolsAction()" />
+    <school-form-dialog
+      v-model="dialogOpen"
+      :edit-data="selectedSchool"
+      @saved="store.getSchoolsAction()"
+    />
 
-    <saas-config-dialog v-model="saasDialogOpen" :school-id="selectedSchoolId" @success="store.getSchoolsAction()" />
+    <!-- Dialog Reset Password -->
+    <q-dialog v-model="resetPwdDialogOpen" persistent>
+      <q-card style="min-width: 350px">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6">Reset Password Admin</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+
+        <q-card-section>
+          <div class="text-caption text-grey-7 q-mb-md">
+            Sekolah: <strong>{{ selectedSchoolName }}</strong
+            ><br />
+            Tenant ID: {{ selectedTenantId }}
+          </div>
+          <q-input
+            v-model="newPassword"
+            label="Password Baru"
+            outlined
+            dense
+            :type="showPwd ? 'text' : 'password'"
+          >
+            <template v-slot:append>
+              <q-icon
+                :name="showPwd ? 'visibility_off' : 'visibility'"
+                class="cursor-pointer"
+                @click="showPwd = !showPwd"
+              />
+            </template>
+          </q-input>
+        </q-card-section>
+
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Batal" v-close-popup />
+          <q-btn
+            color="primary"
+            label="Simpan Password"
+            @click="submitResetPwd"
+            :loading="isResetting"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <saas-config-dialog
+      v-model="saasDialogOpen"
+      :school-id="selectedSchoolId"
+      @success="store.getSchoolsAction()"
+    />
   </q-page>
 </template>
 
@@ -93,6 +203,7 @@
 import { ref, onMounted } from 'vue'
 import { useSuperAdminStore } from '@/stores/super/superTenant'
 import { useQuasar } from 'quasar'
+import { SuperSchoolService } from '@/services/super/SuperSchoolService'
 import SchoolFormDialog from '@/components/superadmin/SchoolFormDialog.vue'
 import SaasConfigDialog from '@/components/superadmin/SaasConfigDialog.vue'
 
@@ -106,9 +217,15 @@ const selectedSchoolId = ref('')
 
 const columns = [
   { name: 'npsn', label: 'NPSN', field: 'npsn', align: 'left', style: 'width: 110px' },
-  { name: 'nama', label: 'Nama Sekolah', field: 'school_name', align: 'left', style: 'min-width: 200px' },
+  {
+    name: 'nama',
+    label: 'Nama Sekolah',
+    field: 'school_name',
+    align: 'left',
+    style: 'min-width: 200px',
+  },
   { name: 'status', label: 'Status', align: 'center', style: 'width: 130px' },
-  { name: 'package', label: 'Paket', align: 'left', style: 'min-width: 160px' },   // ← BARU
+  { name: 'package', label: 'Paket', align: 'left', style: 'min-width: 160px' }, // ← BARU
   { name: 'kuota', label: 'Kuota', align: 'left', style: 'width: 130px' },
   { name: 'sync', label: 'Izin Sync', align: 'center', style: 'width: 140px' },
   { name: 'actions', label: 'Aksi', align: 'center', style: 'width: 180px' },
@@ -201,24 +318,68 @@ const rowClass = (row) => {
 // ── Tier presentation helpers
 const tierColor = (tier) => {
   switch (tier) {
-    case 'PREMIUM': return 'deep-purple'
-    case 'VIP': return 'indigo'
+    case 'PREMIUM':
+      return 'deep-purple'
+    case 'VIP':
+      return 'indigo'
     case 'BASIC':
-    default: return 'grey-7'
+    default:
+      return 'grey-7'
   }
 }
 
 const tierIcon = (tier) => {
   switch (tier) {
-    case 'PREMIUM': return 'workspace_premium'
-    case 'VIP': return 'star'
+    case 'PREMIUM':
+      return 'workspace_premium'
+    case 'VIP':
+      return 'star'
     case 'BASIC':
-    default: return 'star_border'
+    default:
+      return 'star_border'
   }
 }
 onMounted(() => {
   store.getSchoolsAction()
 })
+
+// ── STATE & LOGIC RESET PASSWORD ──
+const resetPwdDialogOpen = ref(false)
+const selectedTenantId = ref('')
+const selectedSchoolName = ref('')
+const adminUsername = ref('admin')
+const newPassword = ref('')
+const showPwd = ref(false)
+const isResetting = ref(false)
+
+const openResetPwdDialog = (row) => {
+  adminUsername.value = 'admin' // Default username admin tenant
+  selectedTenantId.value = row.tenant_id || row.id
+  selectedSchoolName.value = row.name || row.nama_sekolah || row.subdomain
+  newPassword.value = ''
+  resetPwdDialogOpen.value = true
+}
+
+const submitResetPwd = async () => {
+  if (!newPassword.value || newPassword.value.length < 6) {
+    $q.notify({ type: 'warning', message: 'Password minimal 6 karakter' })
+    return
+  }
+  isResetting.value = true
+  try {
+    await SuperSchoolService.resetAdminPassword(
+      selectedTenantId.value,
+      adminUsername.value,
+      newPassword.value,
+    )
+    $q.notify({ type: 'positive', message: 'Password admin berhasil direset' })
+    resetPwdDialogOpen.value = false
+  } catch (err) {
+    $q.notify({ type: 'negative', message: err.response?.data?.error || 'Gagal reset password' })
+  } finally {
+    isResetting.value = false
+  }
+}
 </script>
 <style scoped>
 .row-suspended {

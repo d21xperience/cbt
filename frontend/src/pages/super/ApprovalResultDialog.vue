@@ -26,13 +26,34 @@
           </template>
         </q-input>
 
-        <q-input :model-value="data.temp_password" label="Temp Password" readonly outlined dense class="bg-yellow-1">
+        <q-input
+          :model-value="data.temp_password"
+          label="Temp Password"
+          readonly
+          outlined
+          dense
+          class="bg-yellow-1"
+        >
           <template v-slot:append>
-            <q-btn flat dense round icon="content_copy" color="primary" @click="copy(data.temp_password)" />
+            <q-btn
+              flat
+              dense
+              round
+              icon="content_copy"
+              color="primary"
+              @click="copy(data.temp_password)"
+            />
           </template>
         </q-input>
 
-        <q-input v-if="data.login_url" :model-value="data.login_url" label="Login URL" readonly outlined dense>
+        <q-input
+          v-if="data.login_url"
+          :model-value="data.login_url"
+          label="Login URL"
+          readonly
+          outlined
+          dense
+        >
           <template v-slot:append>
             <q-btn flat dense round icon="open_in_new" @click="openUrl(data.login_url)" />
           </template>

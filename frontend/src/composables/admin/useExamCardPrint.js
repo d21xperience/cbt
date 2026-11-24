@@ -36,7 +36,15 @@ export function useExamCardPrint() {
   }
 
   // ✅ PERBAIKAN: Tambah parameter examMode
-  const printCards = async ({ cards, school, tenant, exams = [], examMode = 'UJIAN', settings = {}, mode = 'open' }) => {
+  const printCards = async ({
+    cards,
+    school,
+    tenant,
+    exams = [],
+    examMode = 'UJIAN',
+    settings = {},
+    mode = 'open',
+  }) => {
     if (!cards || cards.length === 0) return
     generating.value = true
     try {

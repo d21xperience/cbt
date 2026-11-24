@@ -1,8 +1,12 @@
 <!-- src/components/questions/MatchingQuestion.vue -->
 <template>
   <div class="matching-question">
-    <div v-for="(pair, idx) in pairs" :key="pair.id" class="match-row"
-      :class="{ 'match-row--answered': !!modelValue[pair.id] }">
+    <div
+      v-for="(pair, idx) in pairs"
+      :key="pair.id"
+      class="match-row"
+      :class="{ 'match-row--answered': !!modelValue[pair.id] }"
+    >
       <div class="match-row-header">
         <div class="match-row-number">{{ idx + 1 }}</div>
         <MathText :content="pair.left" class="match-row-premis" />
@@ -10,10 +14,21 @@
 
       <div class="match-row-body">
         <q-icon name="arrow_forward" color="grey-6" size="18px" class="match-row-arrow" />
-        <q-select :model-value="modelValue[pair.id] || null" :options="rightOptions" option-value="id"
-          option-label="text" emit-value map-options outlined dense clearable label="Pilih pasangan..."
-          class="match-row-select bg-white" popup-content-class="match-row-popup"
-          @update:model-value="(v) => select(pair.id, v)">
+        <q-select
+          :model-value="modelValue[pair.id] || null"
+          :options="rightOptions"
+          option-value="id"
+          option-label="text"
+          emit-value
+          map-options
+          outlined
+          dense
+          clearable
+          label="Pilih pasangan..."
+          class="match-row-select bg-white"
+          popup-content-class="match-row-popup"
+          @update:model-value="(v) => select(pair.id, v)"
+        >
           <template v-slot:option="scope">
             <q-item v-bind="scope.itemProps">
               <q-item-section>
@@ -64,21 +79,17 @@ const shuffle = (arr) => {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-      ;[a[i], a[j]] = [a[j], a[i]]
+    ;[a[i], a[j]] = [a[j], a[i]]
   }
   return a
 }
 
 // Scramble once at setup (avoid re-shuffle saat reactive)
 const rightOptions = ref(
-  shuffle(
-    (props.question.pairs || []).map((p) => ({ id: p.id, text: p.right })),
-  ),
+  shuffle((props.question.pairs || []).map((p) => ({ id: p.id, text: p.right }))),
 )
 
-const answeredCount = computed(
-  () => Object.values(props.modelValue).filter((v) => !!v).length,
-)
+const answeredCount = computed(() => Object.values(props.modelValue).filter((v) => !!v).length)
 
 const select = (premisId, rightId) => {
   const next = { ...props.modelValue }
@@ -103,7 +114,9 @@ const select = (premisId, rightId) => {
   border-radius: 10px;
   background: #fff;
   padding: 12px 14px;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .match-row:hover {

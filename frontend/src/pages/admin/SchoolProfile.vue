@@ -13,32 +13,74 @@
       </div>
       <div class="q-gutter-sm">
         <template v-if="!isEditing">
-          <q-btn color="primary" icon="edit" label="Edit Profil" no-caps :disable="loading" @click="startEditing" />
+          <q-btn
+            color="primary"
+            icon="edit"
+            label="Edit Profil"
+            no-caps
+            :disable="loading"
+            @click="startEditing"
+          />
         </template>
         <template v-else>
-          <q-btn flat color="grey-7" icon="close" label="Batal" no-caps :disable="saving" @click="cancelEditing" />
-          <q-btn color="primary" icon="save" label="Simpan" no-caps :loading="saving" :disable="!canSubmit"
-            @click="saveProfile" />
+          <q-btn
+            flat
+            color="grey-7"
+            icon="close"
+            label="Batal"
+            no-caps
+            :disable="saving"
+            @click="cancelEditing"
+          />
+          <q-btn
+            color="primary"
+            icon="save"
+            label="Simpan"
+            no-caps
+            :loading="saving"
+            :disable="!canSubmit"
+            @click="saveProfile"
+          />
         </template>
       </div>
     </div>
 
     <!-- Error banners -->
-    <q-banner v-if="errorState === 'endpoint_not_ready'" dense rounded class="bg-blue-grey-2 text-blue-grey-9 q-mb-md">
+    <q-banner
+      v-if="errorState === 'endpoint_not_ready'"
+      dense
+      rounded
+      class="bg-blue-grey-2 text-blue-grey-9 q-mb-md"
+    >
       <template v-slot:avatar><q-icon name="construction" /></template>
       Endpoint profil sekolah belum tersedia di backend. Menampilkan data mock.
     </q-banner>
-    <q-banner v-else-if="errorState === 'network_error'" dense rounded class="bg-orange-1 text-orange-9 q-mb-md">
+    <q-banner
+      v-else-if="errorState === 'network_error'"
+      dense
+      rounded
+      class="bg-orange-1 text-orange-9 q-mb-md"
+    >
       <template v-slot:avatar><q-icon name="wifi_off" color="orange" /></template>
       Koneksi terputus. Data terakhir tetap ditampilkan.
     </q-banner>
-    <q-banner v-else-if="errorState === 'server_error'" dense rounded class="bg-red-1 text-red-9 q-mb-md">
+    <q-banner
+      v-else-if="errorState === 'server_error'"
+      dense
+      rounded
+      class="bg-red-1 text-red-9 q-mb-md"
+    >
       <template v-slot:avatar><q-icon name="error" color="red" /></template>
       Server error. Klik refresh untuk coba lagi.
     </q-banner>
 
     <!-- Dirty hint -->
-    <q-banner v-if="isEditing && !isDirty" dense rounded class="bg-blue-grey-1 text-blue-grey-9 q-mb-md">
+    <q-banner
+      v-if="isEditing && !isDirty"
+      dense
+      rounded
+      class="bg-blue-grey-1 text-blue-grey-9 q-mb-md"
+    >
       <template v-slot:avatar><q-icon name="info" /></template>
       Tidak ada perubahan yang perlu disimpan.
     </q-banner>
@@ -70,10 +112,25 @@
                 Akan tampil di kartu ujian dan landing page.
               </div>
               <div v-if="isEditing" class="q-gutter-sm">
-                <q-btn color="primary" icon="upload_file" label="Pilih Logo" no-caps dense outline
-                  @click="onPickLogo" />
-                <q-btn v-if="form.logo_url" flat color="negative" icon="delete" label="Hapus Logo" no-caps dense
-                  @click="onClearLogo" />
+                <q-btn
+                  color="primary"
+                  icon="upload_file"
+                  label="Pilih Logo"
+                  no-caps
+                  dense
+                  outline
+                  @click="onPickLogo"
+                />
+                <q-btn
+                  v-if="form.logo_url"
+                  flat
+                  color="negative"
+                  icon="delete"
+                  label="Hapus Logo"
+                  no-caps
+                  dense
+                  @click="onClearLogo"
+                />
               </div>
               <div v-else class="text-caption text-grey-6" style="font-style: italic">
                 <q-icon name="info" size="xs" class="q-mr-xs" />
@@ -82,8 +139,13 @@
             </div>
           </div>
 
-          <input ref="logoFileInput" type="file" accept="image/png,image/jpeg,image/webp" hidden
-            @change="onLogoSelected" />
+          <input
+            ref="logoFileInput"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            hidden
+            @change="onLogoSelected"
+          />
 
           <q-separator class="q-my-md" />
           <!-- ═══ Section 1: Identitas ═══ -->
@@ -100,29 +162,57 @@
             <div class="col-12 col-md-8">
               <!-- <q-input v-model="form.nama" label="Nama Sekolah" outlined dense :readonly="!isEditing"
                 :rules="[(v) => !!v || 'Nama wajib diisi']" /> -->
-              <q-input v-model="form.nama_sekolah" label="Nama Sekolah" outlined dense disable
-                hint="Nama sekolah dikelola oleh Superadmin" />
+              <q-input
+                v-model="form.nama_sekolah"
+                label="Nama Sekolah"
+                outlined
+                dense
+                disable
+                hint="Nama sekolah dikelola oleh Superadmin"
+              />
             </div>
             <div class="col-12 col-md-4">
               <!-- <q-select v-model="form.jenjang" :options="jenjangOptions" label="Jenjang" outlined dense emit-value
                 map-options :readonly="!isEditing" :rules="[(v) => !!v || 'Jenjang wajib']" /> -->
-              <q-select v-model="form.jenjang" :options="jenjangOptions" label="Jenjang" outlined dense emit-value
-                map-options disable hint="Jenjang dikelola oleh Superadmin" />
+              <q-select
+                v-model="form.jenjang"
+                :options="jenjangOptions"
+                label="Jenjang"
+                outlined
+                dense
+                emit-value
+                map-options
+                disable
+                hint="Jenjang dikelola oleh Superadmin"
+              />
             </div>
           </div>
 
           <div class="row q-col-gutter-md">
             <div class="col-12 col-md-4">
               <!-- <q-input v-model="form.npsn" label="NPSN" outlined dense :readonly="!isEditing" mask="########" /> -->
-              <q-input v-model="form.npsn" label="NPSN" outlined dense mask="########" disable
-                hint="NPSN dikelola oleh Superadmin" />
+              <q-input
+                v-model="form.npsn"
+                label="NPSN"
+                outlined
+                dense
+                mask="########"
+                disable
+                hint="NPSN dikelola oleh Superadmin"
+              />
             </div>
             <div class="col-12 col-md-4">
               <q-input v-model="form.nss" label="NSS" outlined dense :readonly="!isEditing" />
             </div>
             <div class="col-12 col-md-4">
-              <q-input v-model="form.kode_sekolah" label="Kode Sekolah (internal CBT)" outlined dense
-                :readonly="!isEditing" hint="Prefix invoice / kartu ujian" />
+              <q-input
+                v-model="form.kode_sekolah"
+                label="Kode Sekolah (internal CBT)"
+                outlined
+                dense
+                :readonly="!isEditing"
+                hint="Prefix invoice / kartu ujian"
+              />
             </div>
           </div>
 
@@ -130,8 +220,17 @@
             <div class="col-12 col-md-4">
               <!-- <q-input v-model.number="form.program_duration_years" type="number" label="Durasi Program (tahun)"
                 outlined dense :readonly="!isEditing" :min="1" :max="6" hint="3 tahun (default) atau 4 tahun (SMK)" /> -->
-              <q-input v-model.number="form.program_duration_years" type="number" label="Durasi Program (tahun)"
-                outlined dense :min="1" :max="6" disable hint="Durasi program dikelola oleh Superadmin" />
+              <q-input
+                v-model.number="form.program_duration_years"
+                type="number"
+                label="Durasi Program (tahun)"
+                outlined
+                dense
+                :min="1"
+                :max="6"
+                disable
+                hint="Durasi program dikelola oleh Superadmin"
+              />
             </div>
           </div>
 
@@ -143,27 +242,63 @@
             Alamat
           </div>
 
-          <q-input v-model="form.alamat_jalan" label="Jalan" outlined dense :readonly="!isEditing" />
+          <q-input
+            v-model="form.alamat_jalan"
+            label="Jalan"
+            outlined
+            dense
+            :readonly="!isEditing"
+          />
 
           <div class="row q-col-gutter-md">
             <div class="col-12 col-md-4">
-              <q-input v-model="form.alamat_desa" label="Desa / Kelurahan" outlined dense :readonly="!isEditing" />
+              <q-input
+                v-model="form.alamat_desa"
+                label="Desa / Kelurahan"
+                outlined
+                dense
+                :readonly="!isEditing"
+              />
             </div>
             <div class="col-12 col-md-4">
-              <q-input v-model="form.alamat_kecamatan" label="Kecamatan" outlined dense :readonly="!isEditing" />
+              <q-input
+                v-model="form.alamat_kecamatan"
+                label="Kecamatan"
+                outlined
+                dense
+                :readonly="!isEditing"
+              />
             </div>
             <div class="col-12 col-md-4">
-              <q-input v-model="form.alamat_kabupaten" label="Kabupaten / Kota" outlined dense :readonly="!isEditing" />
+              <q-input
+                v-model="form.alamat_kabupaten"
+                label="Kabupaten / Kota"
+                outlined
+                dense
+                :readonly="!isEditing"
+              />
             </div>
           </div>
 
           <div class="row q-col-gutter-md">
             <div class="col-12 col-md-6">
-              <q-input v-model="form.alamat_provinsi" label="Provinsi" outlined dense :readonly="!isEditing" />
+              <q-input
+                v-model="form.alamat_provinsi"
+                label="Provinsi"
+                outlined
+                dense
+                :readonly="!isEditing"
+              />
             </div>
             <div class="col-12 col-md-6">
-              <q-input v-model="form.alamat_kode_pos" label="Kode Pos" outlined dense :readonly="!isEditing"
-                mask="#####" />
+              <q-input
+                v-model="form.alamat_kode_pos"
+                label="Kode Pos"
+                outlined
+                dense
+                :readonly="!isEditing"
+                mask="#####"
+              />
             </div>
           </div>
 
@@ -177,13 +312,32 @@
 
           <div class="row q-col-gutter-md">
             <div class="col-12 col-md-4">
-              <q-input v-model="form.telp" label="Telp / Fax" outlined dense :readonly="!isEditing" />
+              <q-input
+                v-model="form.telp"
+                label="Telp / Fax"
+                outlined
+                dense
+                :readonly="!isEditing"
+              />
             </div>
             <div class="col-12 col-md-4">
-              <q-input v-model="form.email" type="email" label="Email" outlined dense :readonly="!isEditing" />
+              <q-input
+                v-model="form.email"
+                type="email"
+                label="Email"
+                outlined
+                dense
+                :readonly="!isEditing"
+              />
             </div>
             <div class="col-12 col-md-4">
-              <q-input v-model="form.website" label="Website" outlined dense :readonly="!isEditing" />
+              <q-input
+                v-model="form.website"
+                label="Website"
+                outlined
+                dense
+                :readonly="!isEditing"
+              />
             </div>
           </div>
 
@@ -197,11 +351,22 @@
 
           <div class="row q-col-gutter-md">
             <div class="col-12 col-md-8">
-              <q-input v-model="form.kepala_sekolah_nama" label="Nama Kepala Sekolah" outlined dense
-                :readonly="!isEditing" />
+              <q-input
+                v-model="form.kepala_sekolah_nama"
+                label="Nama Kepala Sekolah"
+                outlined
+                dense
+                :readonly="!isEditing"
+              />
             </div>
             <div class="col-12 col-md-4">
-              <q-input v-model="form.kepala_sekolah_nip" label="NIP" outlined dense :readonly="!isEditing" />
+              <q-input
+                v-model="form.kepala_sekolah_nip"
+                label="NIP"
+                outlined
+                dense
+                :readonly="!isEditing"
+              />
             </div>
           </div>
         </q-form>

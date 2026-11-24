@@ -16,12 +16,26 @@
       <q-space />
 
       <!-- Auto refresh toggle -->
-      <q-toggle :model-value="autoRefresh" label="Auto-refresh" color="primary" dense class="q-mr-md"
-        @update:model-value="toggleAutoRefresh">
+      <q-toggle
+        :model-value="autoRefresh"
+        label="Auto-refresh"
+        color="primary"
+        dense
+        class="q-mr-md"
+        @update:model-value="toggleAutoRefresh"
+      >
         <q-tooltip>Refresh otomatis setiap {{ refreshIntervalSec }} detik</q-tooltip>
       </q-toggle>
 
-      <q-btn flat round dense icon="refresh" color="primary" :loading="refreshing" @click="manualRefresh">
+      <q-btn
+        flat
+        round
+        dense
+        icon="refresh"
+        color="primary"
+        :loading="refreshing"
+        @click="manualRefresh"
+      >
         <q-tooltip>Refresh sekarang</q-tooltip>
       </q-btn>
     </div>
@@ -47,13 +61,19 @@
               </div>
               <div class="col-6">
                 <div class="text-caption text-grey-7">Status</div>
-                <q-badge :color="statusColor(session.status)" :label="statusLabel(session.status)" />
+                <q-badge
+                  :color="statusColor(session.status)"
+                  :label="statusLabel(session.status)"
+                />
               </div>
               <div class="col-6">
                 <div class="text-caption text-grey-7">Jadwal</div>
                 <div class="text-body2">
                   {{ fmtShortDate(session.tanggal) }} • {{ session.jam_mulai }}–{{
-                    calcEndTime(session.jam_mulai, session.durasi_menit + (session.extended_minutes || 0))
+                    calcEndTime(
+                      session.jam_mulai,
+                      session.durasi_menit + (session.extended_minutes || 0),
+                    )
                   }}
                 </div>
               </div>
@@ -80,21 +100,73 @@
           <div class="col-12 col-md-6">
             <div class="text-caption text-grey-7 q-mb-sm">Aksi Cepat</div>
             <div class="q-gutter-sm">
-              <q-btn v-if="session.status === 'SCHEDULED'" color="positive" icon="play_arrow" label="Mulai" no-caps
-                size="sm" @click="actionStart" />
-              <q-btn v-if="session.status === 'ACTIVE'" color="orange" icon="pause" label="Pause" no-caps size="sm"
-                @click="actionPause" />
-              <q-btn v-if="session.status === 'PAUSED'" color="positive" icon="play_arrow" label="Lanjutkan" no-caps
-                size="sm" @click="actionResume" />
+              <q-btn
+                v-if="session.status === 'SCHEDULED'"
+                color="positive"
+                icon="play_arrow"
+                label="Mulai"
+                no-caps
+                size="sm"
+                @click="actionStart"
+              />
+              <q-btn
+                v-if="session.status === 'ACTIVE'"
+                color="orange"
+                icon="pause"
+                label="Pause"
+                no-caps
+                size="sm"
+                @click="actionPause"
+              />
+              <q-btn
+                v-if="session.status === 'PAUSED'"
+                color="positive"
+                icon="play_arrow"
+                label="Lanjutkan"
+                no-caps
+                size="sm"
+                @click="actionResume"
+              />
 
-              <q-btn v-if="session.status === 'ACTIVE' || session.status === 'PAUSED'" outline color="indigo"
-                icon="more_time" label="Extend" no-caps size="sm" @click="extendOpen = true" />
-              <q-btn v-if="session.status !== 'COMPLETED'" outline color="deep-orange" icon="bolt" label="Force Submit"
-                no-caps size="sm" @click="forceOpen = true" />
-              <q-btn outline color="deep-purple" icon="vpn_key" label="Token Baru" no-caps size="sm"
-                @click="onRegenToken" />
-              <q-btn v-if="session.status !== 'COMPLETED'" outline color="negative" icon="stop" label="Akhiri" no-caps
-                size="sm" @click="endOpen = true" />
+              <q-btn
+                v-if="session.status === 'ACTIVE' || session.status === 'PAUSED'"
+                outline
+                color="indigo"
+                icon="more_time"
+                label="Extend"
+                no-caps
+                size="sm"
+                @click="extendOpen = true"
+              />
+              <q-btn
+                v-if="session.status !== 'COMPLETED'"
+                outline
+                color="deep-orange"
+                icon="bolt"
+                label="Force Submit"
+                no-caps
+                size="sm"
+                @click="forceOpen = true"
+              />
+              <q-btn
+                outline
+                color="deep-purple"
+                icon="vpn_key"
+                label="Token Baru"
+                no-caps
+                size="sm"
+                @click="onRegenToken"
+              />
+              <q-btn
+                v-if="session.status !== 'COMPLETED'"
+                outline
+                color="negative"
+                icon="stop"
+                label="Akhiri"
+                no-caps
+                size="sm"
+                @click="endOpen = true"
+              />
             </div>
             <div v-if="lastRefreshAt" class="text-caption text-grey-6 q-mt-sm">
               Refresh terakhir: {{ fmtTime(lastRefreshAt) }}
@@ -157,7 +229,14 @@
 
       <!-- TABS -->
       <q-card flat bordered class="bg-white">
-        <q-tabs v-model="tab" dense align="left" class="text-primary" active-color="primary" indicator-color="primary">
+        <q-tabs
+          v-model="tab"
+          dense
+          align="left"
+          class="text-primary"
+          active-color="primary"
+          indicator-color="primary"
+        >
           <q-tab name="peserta" icon="groups" :label="`Peserta (${participants.length})`" />
           <q-tab name="pelanggaran" icon="warning" :label="`Pelanggaran (${violations.length})`" />
           <q-tab name="aktivitas" icon="history" :label="`Aktivitas (${activities.length})`" />
@@ -168,19 +247,33 @@
         <q-tab-panels v-model="tab" animated>
           <!-- TAB PESERTA -->
           <q-tab-panel name="peserta" class="q-pa-none">
-            <q-table :rows="participants" :columns="participantColumns" row-key="student_id" flat dense
-              :pagination="{ rowsPerPage: 25 }" no-data-label="Tidak ada peserta">
+            <q-table
+              :rows="participants"
+              :columns="participantColumns"
+              row-key="student_id"
+              flat
+              dense
+              :pagination="{ rowsPerPage: 25 }"
+              no-data-label="Tidak ada peserta"
+            >
               <template #body-cell-status="props">
                 <q-td :props="props" class="text-center">
-                  <q-badge :color="pStatusColor(props.row.status)" :label="pStatusLabel(props.row.status)" />
+                  <q-badge
+                    :color="pStatusColor(props.row.status)"
+                    :label="pStatusLabel(props.row.status)"
+                  />
                 </q-td>
               </template>
               <template #body-cell-progress="props">
                 <q-td :props="props">
                   <div class="row items-center q-gutter-xs">
-                    <q-linear-progress :value="props.row.progress_percent / 100"
-                      :color="progressColor(props.row.progress_percent)" track-color="grey-3" size="8px"
-                      style="min-width: 100px; flex: 1" />
+                    <q-linear-progress
+                      :value="props.row.progress_percent / 100"
+                      :color="progressColor(props.row.progress_percent)"
+                      track-color="grey-3"
+                      size="8px"
+                      style="min-width: 100px; flex: 1"
+                    />
                     <div class="text-caption" style="width: 42px; text-align: right">
                       {{ props.row.progress_percent }}%
                     </div>
@@ -189,8 +282,11 @@
               </template>
               <template #body-cell-violations_count="props">
                 <q-td :props="props" class="text-center">
-                  <q-badge v-if="props.row.violations_count > 0" color="negative"
-                    :label="`${props.row.violations_count}`" />
+                  <q-badge
+                    v-if="props.row.violations_count > 0"
+                    color="negative"
+                    :label="`${props.row.violations_count}`"
+                  />
                   <span v-else class="text-grey-5">—</span>
                 </q-td>
               </template>
@@ -207,11 +303,21 @@
 
           <!-- TAB PELANGGARAN -->
           <q-tab-panel name="pelanggaran" class="q-pa-none">
-            <q-table :rows="violations" :columns="violationColumns" row-key="id" flat dense
-              :pagination="{ rowsPerPage: 25 }" no-data-label="Tidak ada pelanggaran">
+            <q-table
+              :rows="violations"
+              :columns="violationColumns"
+              row-key="id"
+              flat
+              dense
+              :pagination="{ rowsPerPage: 25 }"
+              no-data-label="Tidak ada pelanggaran"
+            >
               <template #body-cell-action="props">
                 <q-td :props="props" class="text-center">
-                  <q-badge :color="props.row.action === 'BLOCK' ? 'negative' : 'orange'" :label="props.row.action" />
+                  <q-badge
+                    :color="props.row.action === 'BLOCK' ? 'negative' : 'orange'"
+                    :label="props.row.action"
+                  />
                 </q-td>
               </template>
               <template #body-cell-timestamp="props">
@@ -225,7 +331,12 @@
           <!-- TAB AKTIVITAS -->
           <q-tab-panel name="aktivitas">
             <q-timeline color="primary" v-if="activities.length > 0">
-              <q-timeline-entry v-for="act in activities" :key="act.id" :icon="act.icon" :color="act.color">
+              <q-timeline-entry
+                v-for="act in activities"
+                :key="act.id"
+                :icon="act.icon"
+                :color="act.color"
+              >
                 <template #title>
                   <div class="text-body2">
                     {{ act.description }}
@@ -252,7 +363,14 @@
     <div v-else class="text-center text-grey-7 q-pa-xl">
       <q-icon name="error_outline" size="4rem" />
       <div class="text-h6 q-mt-md">Sesi tidak ditemukan</div>
-      <q-btn class="q-mt-md" flat color="primary" icon="arrow_back" label="Kembali" :to="{ name: 'admin-sessions' }" />
+      <q-btn
+        class="q-mt-md"
+        flat
+        color="primary"
+        icon="arrow_back"
+        label="Kembali"
+        :to="{ name: 'admin-sessions' }"
+      />
     </div>
 
     <!-- Dialog Extend -->
@@ -263,11 +381,26 @@
         </q-card-section>
         <q-card-section class="q-gutter-md">
           <div class="row q-gutter-sm">
-            <q-btn v-for="p in [5, 10, 15, 30]" :key="p" outline color="indigo" :label="`+${p} mnt`" size="sm"
-              @click="extendCustom = p" />
+            <q-btn
+              v-for="p in [5, 10, 15, 30]"
+              :key="p"
+              outline
+              color="indigo"
+              :label="`+${p} mnt`"
+              size="sm"
+              @click="extendCustom = p"
+            />
           </div>
-          <q-input v-model.number="extendCustom" type="number" label="Custom (menit)" outlined dense min="1" max="120"
-            suffix="menit" />
+          <q-input
+            v-model.number="extendCustom"
+            type="number"
+            label="Custom (menit)"
+            outlined
+            dense
+            min="1"
+            max="120"
+            suffix="menit"
+          />
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Batal" v-close-popup />
@@ -286,14 +419,17 @@
           <div>
             Peserta belum selesai: <b>{{ stats.aktif + stats.belum_mulai + stats.terblokir }}</b>
           </div>
-          <div class="text-caption text-grey-7">
-            Ketik <b>AKHIRI</b> untuk konfirmasi:
-          </div>
+          <div class="text-caption text-grey-7">Ketik <b>AKHIRI</b> untuk konfirmasi:</div>
           <q-input v-model="endConfirmText" outlined dense placeholder="AKHIRI" />
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Batal" v-close-popup />
-          <q-btn color="negative" label="Akhiri Saja" :disable="endConfirmText !== 'AKHIRI'" @click="applyEnd" />
+          <q-btn
+            color="negative"
+            label="Akhiri Saja"
+            :disable="endConfirmText !== 'AKHIRI'"
+            @click="applyEnd"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -309,15 +445,18 @@
             <template #avatar><q-icon name="warning" color="orange" /></template>
             Semua peserta aktif akan dipaksa submit. Sesi langsung <b>selesai</b>.
           </q-banner>
-          <div class="text-caption text-grey-7 q-mt-md">
-            Ketik <b>FORCE</b> untuk konfirmasi:
-          </div>
+          <div class="text-caption text-grey-7 q-mt-md">Ketik <b>FORCE</b> untuk konfirmasi:</div>
           <q-input v-model="forceConfirmText" outlined dense placeholder="FORCE" class="q-mt-sm" />
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Batal" v-close-popup />
-          <q-btn color="deep-orange" icon="bolt" label="Force Submit" :disable="forceConfirmText !== 'FORCE'"
-            @click="applyForce" />
+          <q-btn
+            color="deep-orange"
+            icon="bolt"
+            label="Force Submit"
+            :disable="forceConfirmText !== 'FORCE'"
+            @click="applyForce"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -369,9 +508,27 @@ const participantColumns = [
   { name: 'nis', label: 'NIS', field: 'nis', align: 'left', style: 'width: 100px' },
   { name: 'nama', label: 'Nama', field: 'nama', align: 'left' },
   { name: 'status', label: 'Status', field: 'status', align: 'center', style: 'width: 120px' },
-  { name: 'progress', label: 'Progress', field: 'progress_percent', align: 'left', style: 'min-width: 180px' },
-  { name: 'violations_count', label: 'Pelanggaran', field: 'violations_count', align: 'center', style: 'width: 110px' },
-  { name: 'last_seen', label: 'Terakhir Aktif', field: 'last_seen', align: 'left', style: 'min-width: 130px' },
+  {
+    name: 'progress',
+    label: 'Progress',
+    field: 'progress_percent',
+    align: 'left',
+    style: 'min-width: 180px',
+  },
+  {
+    name: 'violations_count',
+    label: 'Pelanggaran',
+    field: 'violations_count',
+    align: 'center',
+    style: 'width: 110px',
+  },
+  {
+    name: 'last_seen',
+    label: 'Terakhir Aktif',
+    field: 'last_seen',
+    align: 'left',
+    style: 'min-width: 130px',
+  },
 ]
 
 const violationColumns = [
@@ -416,7 +573,11 @@ const progressColor = (p) => {
 
 const fmtShortDate = (d) => {
   if (!d) return '-'
-  return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+  return new Date(d).toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
 }
 const fmtTime = (iso) => {
   if (!iso) return '-'

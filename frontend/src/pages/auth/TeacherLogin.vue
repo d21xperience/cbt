@@ -18,8 +18,14 @@
         <br />
         <span class="text-caption">(Kode: TENANT_SUSPENDED)</span>
       </div>
-      <q-btn class="q-mt-lg" color="primary" outline label="Kembali ke Beranda" icon="home"
-        @click="$router.push('/')" />
+      <q-btn
+        class="q-mt-lg"
+        color="primary"
+        outline
+        label="Kembali ke Beranda"
+        icon="home"
+        @click="$router.push('/')"
+      />
     </div>
     <q-card v-else style="width: 380px; max-width: 90vw" class="shadow-2 rounded-borders">
       <q-card-section class="bg-teal text-white text-center q-pa-md">
@@ -30,24 +36,46 @@
 
       <q-card-section class="q-pt-lg">
         <q-form @submit.prevent="onSubmit" class="q-gutter-md">
-          <q-input v-model="username" label="Username" outlined stack-label dense
-            :rules="[(val) => !!val || 'Username wajib diisi']">
+          <q-input
+            v-model="username"
+            label="Username"
+            outlined
+            stack-label
+            dense
+            :rules="[(val) => !!val || 'Username wajib diisi']"
+          >
             <template v-slot:prepend><q-icon name="person" color="teal" /></template>
           </q-input>
 
-          <PasswordInput v-model="password" label="Kata Sandi" dense :rules="[(val) => !!val || 'Sandi wajib diisi']"
-            class="q-mb-md" />
+          <PasswordInput
+            v-model="password"
+            label="Kata Sandi"
+            dense
+            :rules="[(val) => !!val || 'Sandi wajib diisi']"
+            class="q-mb-md"
+          />
 
           <div>
-            <q-btn label="Masuk Ruang Proktor" type="submit" color="teal" class="full-width text-weight-bold"
-              :loading="loading" />
+            <q-btn
+              label="Masuk Ruang Proktor"
+              type="submit"
+              color="teal"
+              class="full-width text-weight-bold"
+              :loading="loading"
+            />
           </div>
         </q-form>
       </q-card-section>
 
       <q-card-actions align="center" class="q-pb-md">
-        <q-btn flat no-caps label="Beralih Ke Login Siswa" color="grey-7" icon="arrow_back"
-          :to="{ name: 'participant-login', query: $route.query }" />
+        <q-btn
+          flat
+          no-caps
+          label="Beralih Ke Login Siswa"
+          color="grey-7"
+          icon="arrow_back"
+          :to="{ name: 'participant-login', query: $route.query }"
+        />
       </q-card-actions>
     </q-card>
   </q-page>

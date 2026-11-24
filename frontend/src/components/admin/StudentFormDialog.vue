@@ -10,45 +10,90 @@
       <q-card-section class="q-gutter-md q-pt-md">
         <div class="row q-col-gutter-sm">
           <div class="col-12 col-sm-6">
-            <q-input v-model="localForm.nisn" label="NISN" outlined dense :rules="[
-              (v) => !!v || 'NISN wajib diisi',
-              (v) => /^\d{10}$/.test(v) || 'NISN harus 10 digit',
-            ]" mask="##########" />
+            <q-input
+              v-model="localForm.nisn"
+              label="NISN"
+              outlined
+              dense
+              :rules="[
+                (v) => !!v || 'NISN wajib diisi',
+                (v) => /^\d{10}$/.test(v) || 'NISN harus 10 digit',
+              ]"
+              mask="##########"
+            />
           </div>
           <div class="col-12 col-sm-6">
             <q-input v-model="localForm.nis" label="NIS (lokal, opsional)" outlined dense />
           </div>
         </div>
-
-        <q-input v-model="localForm.nama" label="Nama Lengkap" outlined dense
-          :rules="[(v) => !!v || 'Nama wajib diisi']" />
-
         <div class="row q-col-gutter-sm">
-          <div class="col-12 col-sm-4">
-            <q-select v-model="localForm.jenis_kelamin" :options="genderOptions" label="Jenis Kelamin" outlined dense
-              emit-value map-options />
+          <q-input
+            v-model="localForm.nama"
+            label="Nama Lengkap"
+            outlined
+            dense
+            :rules="[(v) => !!v || 'Nama wajib diisi']"
+            class="col-12 col-sm-6"
+          />
+          <div class="col-12 col-sm-3">
+            <q-select
+              v-model="localForm.jenis_kelamin"
+              :options="genderOptions"
+              label="Jenis Kelamin"
+              outlined
+              dense
+              emit-value
+              map-options
+            />
           </div>
-          <div class="col-12 col-sm-8">
-            <q-input v-model="localForm.tanggal_lahir" type="date" label="Tanggal Lahir" outlined dense stack-label />
+          <div class="col-12 col-sm-3">
+            <q-input
+              v-model="localForm.tanggal_lahir"
+              type="date"
+              label="Tanggal Lahir"
+              outlined
+              dense
+              stack-label
+            />
           </div>
         </div>
 
         <div class="row q-col-gutter-sm">
           <div class="col-12 col-sm-8">
-            <q-select v-model="localForm.kelas_id" :options="classOptions" label="Kelas" outlined dense emit-value
-              map-options :rules="[(v) => !!v || 'Kelas wajib dipilih']" />
+            <q-select
+              v-model="localForm.kelas_id"
+              :options="classOptions"
+              label="Kelas"
+              outlined
+              dense
+              emit-value
+              map-options
+              :rules="[(v) => !!v || 'Kelas wajib dipilih']"
+            />
           </div>
           <div class="col-12 col-sm-4">
-            <q-select v-model="localForm.status" :options="statusOptions" label="Status" outlined dense emit-value
-              map-options />
+            <q-select
+              v-model="localForm.status"
+              :options="statusOptions"
+              label="Status"
+              outlined
+              dense
+              emit-value
+              map-options
+            />
           </div>
         </div>
       </q-card-section>
 
       <q-card-actions align="right" class="q-pb-md q-pr-md">
         <q-btn flat label="Batal" color="grey-7" v-close-popup />
-        <q-btn color="primary" :label="isEditing ? 'Simpan Perubahan' : 'Simpan'" :loading="submitting"
-          :disable="!canSubmitInternal" @click="onSubmit" />
+        <q-btn
+          color="primary"
+          :label="isEditing ? 'Simpan Perubahan' : 'Simpan'"
+          :loading="submitting"
+          :disable="!canSubmitInternal"
+          @click="onSubmit"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>

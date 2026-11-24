@@ -9,37 +9,73 @@
         <q-btn icon="close" flat round dense v-close-popup />
       </q-card-section>
 
-      <q-card-section class="q-gutter-md q-pt-md">
+      <q-card-section class="q-pt-md">
         <div class="row q-col-gutter-sm">
-          <div class="col-12 col-sm-5">
-            <q-input v-model="localForm.kode" label="Kode Mapel" outlined dense
-              :rules="[(v) => !!v || 'Kode wajib diisi']" hint="Contoh: MTK-10, DDK-TKJ-10" />
+          <div class="col-12 col-sm-4">
+            <q-input
+              v-model="localForm.nama_singkat"
+              @update:model-value="(val) => (localForm.nama_singkat = val ? val.toUpperCase() : '')"
+              label="Nama Singkat"
+              outlined
+              dense
+              maxlength="6"
+              :rules="[(v) => !!v || 'Nama singkat wajib diisi']"
+              hint="Contoh: MTK, B.IND"
+            />
           </div>
-          <div class="col-12 col-sm-7">
-            <q-input v-model="localForm.nama_singkat" label="Nama Singkat" outlined dense
-              :rules="[(v) => !!v || 'Nama singkat wajib diisi']" hint="Contoh: MTK, B.IND" />
+          <div class="col-12 col-sm-8">
+            <q-input
+              v-model="localForm.nama"
+              @update:model-value="(val) => (localForm.nama = toTitleCase(val))"
+              label="Nama Mata Pelajaran"
+              outlined
+              dense
+              input-class="text-capitalize"
+              :rules="[(v) => !!v || 'Nama wajib diisi']"
+            />
           </div>
         </div>
-
-        <q-input v-model="localForm.nama" label="Nama Mata Pelajaran" outlined dense
-          :rules="[(v) => !!v || 'Nama wajib diisi']" />
-
-        <div class="row q-col-gutter-sm">
-          <div class="col-12 col-sm-6">
-            <q-select v-model="localForm.kelompok" :options="kelompokOptions" label="Kelompok" outlined dense emit-value
-              map-options :rules="[(v) => !!v || 'Kelompok wajib']" @update:model-value="onKelompokChange" />
-          </div>
-          <div class="col-12 col-sm-6">
-            <q-select v-model="localForm.tingkat" :options="tingkatOptions" label="Tingkat" outlined dense emit-value
-              map-options :rules="[(v) => !!v || 'Tingkat wajib']" />
-          </div>
+        <div class="row q-col-gutter-sm q-mt-sm">
+          <q-select
+            class="col-12 col-sm-6"
+            v-model="localForm.tingkat"
+            :options="tingkatOptions"
+            label="Tingkat"
+            outlined
+            dense
+            emit-value
+            map-options
+            :rules="[(v) => !!v || 'Tingkat wajib']"
+          />
+          <q-select
+            class="col-12 col-sm-6"
+            v-model="localForm.kelompok"
+            :options="kelompokOptions"
+            label="Kelompok"
+            outlined
+            dense
+            emit-value
+            map-options
+            :rules="[(v) => !!v || 'Kelompok wajib']"
+            @update:model-value="onKelompokChange"
+          />
         </div>
 
-        <div v-if="localForm.kelompok === 'KEJURUAN'">
-          <q-select v-model="localForm.jurusan_id" :options="jurusanOptions" label="Jurusan (Program Keahlian)" outlined
-            dense emit-value map-options use-input input-debounce="200" :loading="loadingContext"
+        <div v-if="localForm.kelompok === 'KEJURUAN'" class="col-12 col-sm-6">
+          <q-select
+            v-model="localForm.jurusan_id"
+            :options="jurusanOptions"
+            label="Jurusan (Program Keahlian)"
+            outlined
+            dense
+            emit-value
+            map-options
+            use-input
+            input-debounce="200"
+            :loading="loadingContext"
             :disable="loadingContext || jurusanOptions.length === 0"
-            :rules="[(v) => !!v || 'Jurusan wajib untuk mapel kejuruan']">
+            :rules="[(v) => !!v || 'Jurusan wajib untuk mapel kejuruan']"
+          >
             <template v-slot:no-option>
               <q-item>
                 <q-item-section class="text-grey">
@@ -55,8 +91,12 @@
             </template>
           </q-select>
 
-          <q-banner v-if="!loadingContext && jurusanOptions.length === 0" dense rounded
-            class="bg-orange-1 text-orange-9 q-mt-sm">
+          <q-banner
+            v-if="!loadingContext && jurusanOptions.length === 0"
+            dense
+            rounded
+            class="bg-orange-1 text-orange-9 q-mt-sm"
+          >
             <template v-slot:avatar>
               <q-icon name="info" color="orange" />
             </template>
@@ -70,8 +110,13 @@
 
       <q-card-actions align="right" class="q-pb-md q-pr-md">
         <q-btn flat label="Batal" color="grey-7" v-close-popup />
-        <q-btn color="primary" :label="isEditing ? 'Simpan Perubahan' : 'Simpan'" :loading="submitting"
-          :disable="!canSubmitInternal" @click="onSubmit" />
+        <q-btn
+          color="primary"
+          :label="isEditing ? 'Simpan Perubahan' : 'Simpan'"
+          :loading="submitting"
+          :disable="!canSubmitInternal"
+          @click="onSubmit"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -125,7 +170,7 @@ const isDirty = computed(() => {
 })
 
 const canSubmitInternal = computed(() => {
-  if (!localForm.kode?.trim()) return false
+  // if (!localForm.kode?.trim()) return false
   if (!localForm.nama?.trim()) return false
   if (!localForm.nama_singkat?.trim()) return false
   if (!localForm.tingkat) return false
@@ -138,5 +183,13 @@ const onKelompokChange = (val) => {
   if (val !== 'KEJURUAN') localForm.jurusan_id = null
 }
 
-const onSubmit = () => emit('submit', { ...localForm })
+const onSubmit = () => {
+  localForm.kode = `${localForm.nama_singkat}-${localForm.tingkat} `
+  emit('submit', { ...localForm })
+}
+
+const toTitleCase = (str) => {
+  if (!str) return ''
+  return str.replace(/\b\w/g, (char) => char.toUpperCase())
+}
 </script>

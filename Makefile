@@ -43,20 +43,19 @@ check-be:
 		echo "[ERROR] Folder backend tidak ditemukan"; \
 		exit 1; \
 	fi
+	@echo "-> [1/3] gofmt check..."
 	@cd "$(BE_DIR)" && \
-	if go fmt ./... > /dev/null 2>&1 && \
-	   go vet ./... > /dev/null 2>&1 && \
-	   go build ./... > /dev/null 2>&1; then \
-		echo "[OK] Backend build succeeded"; \
-	else \
-		echo "[ERROR] Backend build failed!"; \
+	UNFORMATTED=$$(gofmt -l .) && \
+	if [ -n "$$UNFORMATTED" ]; then \
+		echo "[ERROR] File tidak ter-format:"; \
+		echo "$$UNFORMATTED"; \
 		exit 1; \
 	fi
-
-dev-be: check-be
-	@echo "-> Menjalankan Golang Backend Server..."
-	@cd "$(BE_DIR)" && go run ./cmd/server
-
+	@echo "-> [2/3] go vet..."
+	@cd "$(BE_DIR)" && go vet ./... || { echo "[ERROR] go vet gagal (lihat di atas)"; exit 1; }
+	@echo "-> [3/3] go build..."
+	@cd "$(BE_DIR)" && go build ./... || { echo "[ERROR] go build gagal (lihat di atas)"; exit 1; }
+	@echo "[OK] Backend build succeeded"
 # =========================================================
 # FRONTEND
 # =========================================================
@@ -73,6 +72,21 @@ dev-fe:
 	@echo "-> Menjalankan Quasar Frontend..."
 	@cd "$(FE_DIR)" && npm run dev
 
+# =========================================================
+# BACKEND
+# =========================================================
+dev-be:
+	@echo "================================================="
+	@echo "[START] MEMULAI SERVER DEVELOPMENT"
+	@echo "================================================="
+	@echo "-> Menjalankan Golang Backend Server..."
+
+	@cd "$(BE_DIR)" && go run ./cmd/server & \
+	BACKEND_PID=$$!; \
+	trap 'echo ""; echo "[STOP] Menghentikan server..."; kill $$BACKEND_PID 2>/dev/null; wait $$BACKEND_PID 2>/dev/null' INT TERM EXIT; \
+	sleep 2; \
+	echo ""; \
+	echo "-------------------------------------------------"; 
 # =========================================================
 # FRONTEND BUILD
 # =========================================================

@@ -11,10 +11,15 @@
               {{ examStore.answeredCount }}/{{ examStore.totalQuestions }}
             </div>
             <div class="dot-strip">
-              <div v-for="(q, i) in examStore.questions" :key="q.id" class="dot" :class="{
-                'dot-answered': !!examStore.answers[q.id],
-                'dot-current': i === examStore.currentIndex,
-              }" />
+              <div
+                v-for="(q, i) in examStore.questions"
+                :key="q.id"
+                class="dot"
+                :class="{
+                  'dot-answered': !!examStore.answers[q.id],
+                  'dot-current': i === examStore.currentIndex,
+                }"
+              />
             </div>
           </div>
         </div>
@@ -30,17 +35,33 @@
     <div v-if="examStore.currentQuestion" :class="isMobile ? '' : 'row q-col-gutter-md'">
       <!-- Soal -->
       <div :class="isMobile ? '' : 'col-12 col-md-8'">
-        <QuestionRenderer :question="examStore.currentQuestion"
-          :answer="examStore.answers[examStore.currentQuestion.id]" @update:answer="onAnswerChange" />
+        <QuestionRenderer
+          :question="examStore.currentQuestion"
+          :answer="examStore.answers[examStore.currentQuestion.id]"
+          @update:answer="onAnswerChange"
+        />
 
         <!-- Navigasi bawah (desktop only) -->
         <div v-if="!isMobile" class="row q-mt-md q-gutter-md justify-between">
-          <q-btn icon="arrow_back" label="Sebelumnya" color="grey-7" :disable="examStore.currentIndex === 0"
-            @click="prevQuestion" />
+          <q-btn
+            icon="arrow_back"
+            label="Sebelumnya"
+            color="grey-7"
+            :disable="examStore.currentIndex === 0"
+            @click="prevQuestion"
+          />
 
           <!-- Next -->
-          <q-btn v-if="examStore.currentIndex < examStore.totalQuestions - 1" flat round icon="arrow_forward"
-            color="primary" size="lg" aria-label="Selanjutnya" @click="nextQuestion" />
+          <q-btn
+            v-if="examStore.currentIndex < examStore.totalQuestions - 1"
+            flat
+            round
+            icon="arrow_forward"
+            color="primary"
+            size="lg"
+            aria-label="Selanjutnya"
+            @click="nextQuestion"
+          />
 
           <!-- Selesai (muncul HANYA di soal terakhir)
           <q-btn v-else color="positive" icon="check_circle" label="Selesai" no-caps size="md" @click="confirmSubmit" />-->
@@ -57,10 +78,13 @@
             <q-item>
               <q-item-section>
                 <q-item-label>Progress</q-item-label>
-                <q-linear-progress :value="examStore.progressPercentage / 100" color="primary" class="q-mt-sm" />
+                <q-linear-progress
+                  :value="examStore.progressPercentage / 100"
+                  color="primary"
+                  class="q-mt-sm"
+                />
                 <q-item-label caption>
-                  {{ examStore.answeredCount }} dari
-                  {{ examStore.totalQuestions }} dijawab
+                  {{ examStore.answeredCount }} dari {{ examStore.totalQuestions }} dijawab
                 </q-item-label>
               </q-item-section>
             </q-item>
@@ -90,14 +114,20 @@
   <div v-if="isMobile && examStore.currentQuestion" class="sticky-bottom-nav">
     <div class="row items-center no-wrap q-gutter-xs">
       <!-- Prev -->
-      <q-btn flat round icon="arrow_back" color="grey-7" size="lg" :disable="examStore.currentIndex === 0"
-        aria-label="Sebelumnya" @click="prevQuestion" />
+      <q-btn
+        flat
+        round
+        icon="arrow_back"
+        color="grey-7"
+        size="lg"
+        :disable="examStore.currentIndex === 0"
+        aria-label="Sebelumnya"
+        @click="prevQuestion"
+      />
 
       <!-- Progress text -->
       <div class="col text-center">
-        <div class="text-caption text-grey-7">
-          Soal
-        </div>
+        <div class="text-caption text-grey-7">Soal</div>
         <div class="text-subtitle1 text-weight-bold">
           {{ examStore.currentIndex + 1 }} / {{ examStore.totalQuestions }}
         </div>
@@ -105,17 +135,37 @@
 
       <!-- Next -->
       <!-- Next (muncul kalau belum soal terakhir) -->
-      <q-btn v-if="examStore.currentIndex < examStore.totalQuestions - 1" flat round icon="arrow_forward"
-        color="primary" size="lg" aria-label="Selanjutnya" @click="nextQuestion" />
+      <q-btn
+        v-if="examStore.currentIndex < examStore.totalQuestions - 1"
+        flat
+        round
+        icon="arrow_forward"
+        color="primary"
+        size="lg"
+        aria-label="Selanjutnya"
+        @click="nextQuestion"
+      />
 
       <!-- Selesai (muncul HANYA di soal terakhir) -->
-      <q-btn v-else color="positive" icon="check_circle" label="Selesai" no-caps size="md" @click="confirmSubmit" />
+      <q-btn
+        v-else
+        color="positive"
+        icon="check_circle"
+        label="Selesai"
+        no-caps
+        size="md"
+        @click="confirmSubmit"
+      />
     </div>
   </div>
 
   <!-- Lock Overlay -->
-  <ExamLockOverlay :is-locked="examStore.isLocked" :lock-level="examStore.lockLevel"
-    :violation-count="examStore.violationLog.length" @dev-unlock="onDevUnlock" />
+  <ExamLockOverlay
+    :is-locked="examStore.isLocked"
+    :lock-level="examStore.lockLevel"
+    :violation-count="examStore.violationLog.length"
+    @dev-unlock="onDevUnlock"
+  />
 </template>
 
 <script setup>
@@ -127,7 +177,6 @@ import { useAuthStore } from '@/stores/auth'
 import QuestionRenderer from '@/components/questions/QuestionRenderer.vue'
 import ExamLockOverlay from '@/components/exam/ExamLockOverlay.vue'
 import { useExamDeviceGuard } from '@/composables/useExamDeviceGuard'
-
 
 const $q = useQuasar()
 const router = useRouter()

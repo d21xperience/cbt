@@ -45,7 +45,11 @@ export const roomsHandlers = (mock) => {
       return [400, { error: 'validation_failed', message: 'nama wajib' }, { delay: DELAY }]
     }
     if (store.find((r) => r.nama.toLowerCase() === body.nama.toLowerCase())) {
-      return [409, { error: 'nama_taken', message: `Ruang '${body.nama}' sudah ada` }, { delay: DELAY }]
+      return [
+        409,
+        { error: 'nama_taken', message: `Ruang '${body.nama}' sudah ada` },
+        { delay: DELAY },
+      ]
     }
     const newRoom = {
       id: `room-${Date.now()}`,

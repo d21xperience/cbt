@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"cbt-engine-service/internal/config"
@@ -15,6 +16,9 @@ import (
 )
 
 func main() {
+	if env := os.Getenv("APP_ENV"); env != "loadtest" {
+		log.Fatalf("refuse: APP_ENV=%q, harus 'loadtest'", env)
+	}
 	cfg, err := config.LoadConfig(".")
 	if err != nil {
 		log.Fatalf("config: %v", err)

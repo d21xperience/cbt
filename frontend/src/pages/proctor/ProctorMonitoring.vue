@@ -7,7 +7,13 @@
       </template>
       Dashboard monitoring real-time akan tersedia di iterasi berikutnya.
     </q-banner>
-    <q-btn class="q-mt-md" flat icon="arrow_back" label="Kembali" :to="{ name: 'proctor-dashboard' }" />
+    <q-btn
+      class="q-mt-md"
+      flat
+      icon="arrow_back"
+      label="Kembali"
+      :to="{ name: 'proctor-dashboard' }"
+    />
   </q-page>
 </template>
 

@@ -5,8 +5,16 @@
     <q-header elevated class="bg-dark text-white">
       <q-toolbar :class="isMobile ? 'q-py-xs' : ''">
         <!-- MOBILE: ☰ toggle drawer -->
-        <q-btn v-if="isMobile" flat round dense icon="menu" @click="showNav = !showNav" class="q-mr-sm"
-          aria-label="Menu" />
+        <q-btn
+          v-if="isMobile"
+          flat
+          round
+          dense
+          icon="menu"
+          @click="showNav = !showNav"
+          class="q-mr-sm"
+          aria-label="Menu"
+        />
 
         <!-- Title (truncated on mobile) -->
         <q-toolbar-title :class="isMobile ? 'text-body2 ellipsis' : 'text-subtitle1'">
@@ -15,15 +23,26 @@
         </q-toolbar-title>
 
         <!-- Nomor soal (mobile, compact) -->
-        <q-chip v-if="isMobile && examStore.totalQuestions > 0" dense color="primary" text-color="white"
-          class="q-mr-xs">
+        <q-chip
+          v-if="isMobile && examStore.totalQuestions > 0"
+          dense
+          color="primary"
+          text-color="white"
+          class="q-mr-xs"
+        >
           {{ examStore.currentIndex + 1 }}/{{ examStore.totalQuestions }}
         </q-chip>
 
         <!-- Fullscreen Toggle (desktop only) -->
         <template v-if="!isMobile">
-          <q-btn v-if="!examStore.fullscreenEnabled" flat round dense icon="fullscreen"
-            @click="examStore.enableFullscreen()">
+          <q-btn
+            v-if="!examStore.fullscreenEnabled"
+            flat
+            round
+            dense
+            icon="fullscreen"
+            @click="examStore.enableFullscreen()"
+          >
             <q-tooltip>Aktifkan Fullscreen</q-tooltip>
           </q-btn>
           <q-chip v-else color="positive" text-color="white" icon="fullscreen_exit" dense>
@@ -33,26 +52,48 @@
         </template>
 
         <!-- Timer -->
-        <q-chip color="negative" text-color="white" icon="timer" :dense="isMobile"
-          :class="isMobile ? 'text-caption' : ''">
+        <q-chip
+          color="negative"
+          text-color="white"
+          icon="timer"
+          :dense="isMobile"
+          :class="isMobile ? 'text-caption' : ''"
+        >
           {{ formattedTime }}
         </q-chip>
       </q-toolbar>
     </q-header>
 
     <!-- DRAWER — desktop persistent, mobile overlay dari kiri -->
-    <q-drawer v-model="showNav" show-if-above bordered :width="220" :breakpoint="1023" class="bg-white">
+    <q-drawer
+      v-model="showNav"
+      show-if-above
+      bordered
+      :width="220"
+      :breakpoint="1023"
+      class="bg-white"
+    >
       <div class="q-pa-md">
         <div class="text-caption text-grey-7 q-mb-sm text-uppercase">
           <q-icon name="grid_view" size="xs" class="q-mr-xs" />Navigasi Soal
         </div>
         <div class="grid-navigation">
-          <q-btn v-for="(q, i) in examStore.questions" :key="q.id" :color="examStore.answers[q.id]
-            ? 'positive'
-            : i === examStore.currentIndex
-              ? 'primary'
-              : 'grey-4'
-            " text-color="white" unelevated class="nav-btn" :aria-label="`Soal ${i + 1}`" @click="onNavClick(i)">
+          <q-btn
+            v-for="(q, i) in examStore.questions"
+            :key="q.id"
+            :color="
+              examStore.answers[q.id]
+                ? 'positive'
+                : i === examStore.currentIndex
+                  ? 'primary'
+                  : 'grey-4'
+            "
+            text-color="white"
+            unelevated
+            class="nav-btn"
+            :aria-label="`Soal ${i + 1}`"
+            @click="onNavClick(i)"
+          >
             {{ i + 1 }}
           </q-btn>
         </div>
@@ -61,20 +102,30 @@
 
         <div class="text-caption text-grey-7">
           <div class="row items-center q-mb-xs">
-            <div class="legend-dot bg-positive q-mr-xs" /> Dijawab
+            <div class="legend-dot bg-positive q-mr-xs" />
+            Dijawab
           </div>
           <div class="row items-center q-mb-xs">
-            <div class="legend-dot bg-primary q-mr-xs" /> Sedang dibuka
+            <div class="legend-dot bg-primary q-mr-xs" />
+            Sedang dibuka
           </div>
           <div class="row items-center">
-            <div class="legend-dot bg-grey-4 q-mr-xs" /> Belum dijawab
+            <div class="legend-dot bg-grey-4 q-mr-xs" />
+            Belum dijawab
           </div>
         </div>
       </div>
 
       <div class="q-pa-md" style="position: absolute; bottom: 0; left: 0; right: 0">
-        <q-btn color="negative" label="Kumpulkan Ujian" icon="check_circle" class="full-width" no-caps size="lg"
-          @click="onSubmitClick" />
+        <q-btn
+          color="negative"
+          label="Kumpulkan Ujian"
+          icon="check_circle"
+          class="full-width"
+          no-caps
+          size="lg"
+          @click="onSubmitClick"
+        />
       </div>
     </q-drawer>
 
@@ -84,8 +135,10 @@
         <template v-slot:avatar>
           <q-icon name="warning" color="black" />
         </template>
-        <strong>PERINGATAN MODE UJIAN:</strong> Anda sedang dalam sesi <strong>{{ authStore.examMode }}</strong>. 
-        Dilarang membuka tab baru, meninggalkan ruangan, atau melakukan tindakan yang melanggar tata tertib.
+        <strong>PERINGATAN MODE UJIAN:</strong> Anda sedang dalam sesi
+        <strong>{{ authStore.examMode }}</strong
+        >. Dilarang membuka tab baru, meninggalkan ruangan, atau melakukan tindakan yang melanggar
+        tata tertib.
       </q-banner>
 
       <router-view />

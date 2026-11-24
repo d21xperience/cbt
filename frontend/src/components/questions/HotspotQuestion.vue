@@ -8,24 +8,38 @@
 
     <!-- Canvas area -->
     <div class="hotspot-canvas-wrap">
-      <div ref="canvasRef" class="hotspot-canvas" :style="{ cursor: loading ? 'wait' : 'crosshair' }"
-        @click="onCanvasClick">
-        <img :src="imageUrl" class="hotspot-image" alt="Gambar soal" draggable="false" @load="loading = false"
-          @error="onImageError" />
+      <div
+        ref="canvasRef"
+        class="hotspot-canvas"
+        :style="{ cursor: loading ? 'wait' : 'crosshair' }"
+        @click="onCanvasClick"
+      >
+        <img
+          :src="imageUrl"
+          class="hotspot-image"
+          alt="Gambar soal"
+          draggable="false"
+          @load="loading = false"
+          @error="onImageError"
+        />
 
         <!-- Markers -->
-        <div v-for="(m, idx) in markers" :key="`m-${idx}`" class="hotspot-marker" :style="{
-          left: `${m.x}%`,
-          top: `${m.y}%`,
-        }" @click.stop="removeMarker(idx)">
+        <div
+          v-for="(m, idx) in markers"
+          :key="`m-${idx}`"
+          class="hotspot-marker"
+          :style="{
+            left: `${m.x}%`,
+            top: `${m.y}%`,
+          }"
+          @click.stop="removeMarker(idx)"
+        >
           <span class="hotspot-marker-label">{{ idx + 1 }}</span>
         </div>
       </div>
     </div>
 
-    <div v-if="imageError" class="text-negative text-caption q-mt-xs">
-      ⚠️ Gambar gagal dimuat.
-    </div>
+    <div v-if="imageError" class="text-negative text-caption q-mt-xs">⚠️ Gambar gagal dimuat.</div>
 
     <!-- Counter + clear -->
     <div class="hotspot-footer row items-center justify-between q-mt-sm">
@@ -33,8 +47,17 @@
         <q-icon name="place" size="xs" />
         {{ markers.length }} / {{ MAX_MARKERS }} titik ditandai
       </div>
-      <q-btn v-if="markers.length > 0" flat dense no-caps color="negative" icon="delete_sweep" label="Hapus semua"
-        size="sm" @click="clearAll" />
+      <q-btn
+        v-if="markers.length > 0"
+        flat
+        dense
+        no-caps
+        color="negative"
+        icon="delete_sweep"
+        label="Hapus semua"
+        size="sm"
+        @click="clearAll"
+      />
     </div>
   </div>
 </template>
@@ -57,13 +80,9 @@ const imageError = ref(false)
 
 const MAX_MARKERS = 10
 
-const imageUrl = computed(
-  () => props.question.image_url || props.question.media_url || '',
-)
+const imageUrl = computed(() => props.question.image_url || props.question.media_url || '')
 
-const markers = computed(() =>
-  Array.isArray(props.modelValue) ? props.modelValue : [],
-)
+const markers = computed(() => (Array.isArray(props.modelValue) ? props.modelValue : []))
 
 const onImageError = () => {
   imageError.value = true
@@ -92,10 +111,7 @@ const onCanvasClick = (e) => {
     return
   }
 
-  const next = [
-    ...markers.value,
-    { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 },
-  ]
+  const next = [...markers.value, { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 }]
   emit('update:modelValue', next)
 }
 

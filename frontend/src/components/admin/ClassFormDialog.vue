@@ -9,49 +9,114 @@
         <q-btn icon="close" flat round dense v-close-popup />
       </q-card-section>
 
-      <q-card-section class="q-gutter-md q-pt-md">
-        <q-input v-model="localForm.nama" label="Nama Kelas / Rombel" outlined dense
-          :rules="[(v) => !!v || 'Nama kelas wajib diisi']" hint="Contoh: 10 IPA 1, X TKJ A" />
-
+      <q-card-section class="q-col-gutter-md q-pt-md">
+        <div class="row q-col-gutter-sm">
+          <div class="col-12 col-sm-4">
+            <q-select
+              v-model="localForm.tingkat"
+              :options="tingkatOptions"
+              label="Tingkat"
+              outlined
+              dense
+              emit-value
+              map-options
+              :rules="[(v) => !!v || 'Tingkat wajib dipilih']"
+            />
+          </div>
+          <div class="col-12 col-sm-8">
+            <q-input
+              v-if="props.isEditing"
+              v-model="localForm.nama"
+              label="Nama Kelas / Rombel"
+              outlined
+              dense
+              :rules="[(v) => !!v || 'Nama kelas wajib diisi']"
+              hint="Contoh: X IPA 1, X TKJ A"
+              @update:model-value="(val) => (localForm.nama = val.toUpperCase())"
+            />
+            <q-input
+              v-else
+              v-model="localForm.nama"
+              label="Nama Kelas / Rombel"
+              outlined
+              dense
+              :rules="[(v) => !!v || 'Nama kelas wajib diisi']"
+              hint="Contoh: X IPA 1, X TKJ A"
+              :prefix="toRoman(localForm.tingkat)"
+              @update:model-value="(val) => (localForm.nama = val.toUpperCase())"
+            />
+          </div>
+        </div>
         <div class="row q-col-gutter-sm">
           <div class="col-12 col-sm-6">
-            <q-select v-model="localForm.tingkat" :options="tingkatOptions" label="Tingkat" outlined dense emit-value
-              map-options :rules="[(v) => !!v || 'Tingkat wajib dipilih']" />
+            <q-select
+              v-model="localForm.kurikulum"
+              :options="kurikulumOptions"
+              label="Kurikulum"
+              outlined
+              dense
+              emit-value
+              map-options
+            />
           </div>
           <div class="col-12 col-sm-6">
-            <q-select v-model="localForm.kurikulum" :options="kurikulumOptions" label="Kurikulum" outlined dense
-              emit-value map-options />
+            <q-select
+              v-model="localForm.jenis_rombel"
+              :options="jenisRombelOptions"
+              label="Jenis Rombel"
+              outlined
+              dense
+              emit-value
+              map-options
+            />
           </div>
         </div>
 
         <div class="row q-col-gutter-sm">
-          <div class="col-12 col-sm-6">
-            <q-select v-model="localForm.jenis_rombel" :options="jenisRombelOptions" label="Jenis Rombel" outlined dense
-              emit-value map-options />
-          </div>
           <div v-if="showProgramKeahlian" class="col-12 col-sm-6">
-            <q-input v-model="localForm.program_keahlian_id" label="Program Keahlian (opsional)" outlined dense
-              hint="Khusus SMK/MAK" />
+            <q-input
+              v-model="localForm.program_keahlian_id"
+              label="Program Keahlian (opsional)"
+              outlined
+              dense
+              hint="Khusus SMK/MAK"
+            />
           </div>
         </div>
 
-        <q-select v-model="localForm.wali_kelas_id" :options="teacherOptions" label="Wali Kelas (opsional)" outlined
-          dense emit-value map-options clearable use-input input-debounce="200">
+        <q-select
+          v-model="localForm.wali_kelas_id"
+          :options="teacherOptions"
+          label="Wali Kelas (opsional)"
+          outlined
+          dense
+          emit-value
+          map-options
+          clearable
+          use-input
+          input-debounce="200"
+        >
           <template v-slot:prepend>
             <q-icon name="person" />
           </template>
-          <template v-slot:hint>
-            Kosongkan jika belum ada wali kelas
-          </template>
+          <template v-slot:hint> Kosongkan jika belum ada wali kelas </template>
         </q-select>
-        <q-select v-model="localForm.ruang_id" :options="ruangOptions" label="Ruang Ujian (opsional)" outlined dense
-          emit-value map-options clearable use-input input-debounce="200">
+        <q-select
+          v-model="localForm.ruang_id"
+          :options="ruangOptions"
+          label="Ruang Ujian (opsional)"
+          outlined
+          dense
+          emit-value
+          map-options
+          clearable
+          use-input
+          input-debounce="200"
+        >
           <template v-slot:prepend>
             <q-icon name="meeting_room" />
           </template>
-          <template v-slot:hint>
-            Ruang default untuk pelaksanaan ujian kelas ini
-          </template>
+          <template v-slot:hint> Ruang default untuk pelaksanaan ujian kelas ini </template>
         </q-select>
         <q-banner v-if="ruangConflictInfo" dense rounded class="bg-orange-1 text-orange-9 q-mt-sm">
           <template v-slot:avatar>
@@ -69,8 +134,13 @@
 
       <q-card-actions align="right" class="q-pb-md q-pr-md">
         <q-btn flat label="Batal" color="grey-7" v-close-popup />
-        <q-btn color="primary" :label="isEditing ? 'Simpan Perubahan' : 'Simpan'" :loading="submitting"
-          :disable="!canSubmitInternal" @click="onSubmit" />
+        <q-btn
+          color="primary"
+          :label="isEditing ? 'Simpan Perubahan' : 'Simpan'"
+          :loading="submitting"
+          :disable="!canSubmitInternal"
+          @click="onSubmit"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -78,7 +148,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
-
+import { toRoman } from '@/utils/eduHelper'
 const props = defineProps({
   modelValue: Boolean,
   isEditing: Boolean,
@@ -146,5 +216,8 @@ const ruangConflictInfo = computed(() => {
     names: conflicts.map((c) => c.nama).join(', '),
   }
 })
-const onSubmit = () => emit('submit', { ...localForm })
+const onSubmit = () => {
+  localForm.nama = `${toRoman(localForm.tingkat)} ${localForm.nama}`
+  emit('submit', { ...localForm })
+}
 </script>

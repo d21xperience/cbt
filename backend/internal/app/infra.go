@@ -15,6 +15,7 @@ import (
 	cbtUC "cbt-engine-service/internal/cbt/usecase"
 	"cbt-engine-service/internal/config"
 	"cbt-engine-service/internal/crypto"
+	"cbt-engine-service/internal/platform/migration"
 	platformRepo "cbt-engine-service/internal/platform/repository"
 	platformUC "cbt-engine-service/internal/platform/usecase"
 	proctoringRepo "cbt-engine-service/internal/proctoring/repository"
@@ -37,6 +38,7 @@ type Infrastructure struct {
 	PlatformDB       *sql.DB
 	PlatformUser     *platformRepo.PlatformUserDB
 	PlatformKeahlian *platformRepo.KeahlianDB
+	PlatformAdminDB  *schedulingRepo.AdminDB
 	TenantMgr        *tenant.Manager
 	TenantUC         *platformUC.TenantUseCase
 	Factory          *tenant.Factory
@@ -120,13 +122,30 @@ func (i *Infrastructure) initPlatformDB() error {
 	platformDB, err := sql.Open("sqlite3",
 		i.Cfg.PlatformDBPath+"?_journal_mode=WAL&_busy_timeout=5000")
 	if err != nil {
-		return err
+		return fmt.Errorf("open platform database: %w", err)
 	}
 	platformDB.SetMaxOpenConns(1)
 	if err := platformDB.Ping(); err != nil {
 		platformDB.Close()
-		return err
+		return fmt.Errorf("ping platform database: %w", err)
 	}
+
+	// Jalankan migrasi sebelum database digunakan repository.
+	ctx, cancel := context.WithTimeout(
+		context.Background(),
+		30*time.Second,
+	)
+	defer cancel()
+
+	if err := migration.Up(ctx, platformDB); err != nil {
+		platformDB.Close()
+
+		return fmt.Errorf(
+			"run platform database migrations: %w",
+			err,
+		)
+	}
+
 	i.PlatformDB = platformDB
 	log.Info().Str("path", i.Cfg.PlatformDBPath).Msg("✅ Platform DB siap")
 	return nil
@@ -139,7 +158,12 @@ func (i *Infrastructure) initTenantManager() error {
 	)
 	tenantRepo := platformRepo.NewTenantDB(i.PlatformDB)
 	subRepo := platformRepo.NewSubscriptionDB(i.PlatformDB)
-	provisioner := tenant.NewProvisioner(i.Cfg.TenantBasePath)
+	// provisioner := tenant.NewProvisioner(i.Cfg.TenantBasePath, i.PlatformDB)
+	// FASE 3: AdminDB untuk platform DB (kredensial admin sekolah)
+	i.PlatformAdminDB = schedulingRepo.NewAdminDB(i.PlatformDB)
+
+	// FASE 3: inject platform DB ke provisioner
+	provisioner := tenant.NewProvisioner(i.Cfg.TenantBasePath, i.PlatformDB)
 
 	i.TenantUC = platformUC.NewTenantUseCaseFull(
 		tenantRepo,
@@ -199,10 +223,11 @@ func (i *Infrastructure) initJWT() error {
 func (i *Infrastructure) initDefaultTenant() error {
 	ctx := context.Background()
 
-	// Subdomain dari config (default: "default", dev: "dev")
+	// Subdomain wajib diset di .env (DEFAULT_TENANT_SUBDOMAIN).
+	// Tidak ada fallback hardcoded — jika kosong, server gagal start (fail-fast).
 	subdomain := i.Cfg.DefaultTenantSubdomain
 	if subdomain == "" {
-		subdomain = "default"
+		return fmt.Errorf("DEFAULT_TENANT_SUBDOMAIN wajib diset di .env")
 	}
 
 	res, err := i.TenantUC.ResolveBySubdomain(ctx, subdomain)

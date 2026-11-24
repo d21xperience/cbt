@@ -11,7 +11,13 @@
       </q-card-section>
 
       <q-list separator>
-        <q-item v-for="script in scripts" :key="script.id" clickable v-ripple @click="onPick(script)">
+        <q-item
+          v-for="script in scripts"
+          :key="script.id"
+          clickable
+          v-ripple
+          @click="onPick(script)"
+        >
           <q-item-section avatar>
             <q-icon :name="script.icon" color="primary" />
           </q-item-section>
@@ -48,7 +54,12 @@ const { SCRIPTS } = useScriptPicker()
 const scripts = SCRIPTS
 
 const isOpen = ref(false)
-watch(() => props.modelValue, (v) => { isOpen.value = v })
+watch(
+  () => props.modelValue,
+  (v) => {
+    isOpen.value = v
+  },
+)
 watch(isOpen, (v) => emit('update:modelValue', v))
 
 const onPick = (script) => {

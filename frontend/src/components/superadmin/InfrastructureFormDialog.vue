@@ -11,75 +11,178 @@
       <q-card-section class="q-gutter-md q-pt-md">
         <!-- ═══════════ VPS Fields ═══════════ -->
         <template v-if="resourceType === 'vps'">
-          <q-input v-model="form.vendor" label="Vendor VPS" outlined dense :rules="[required]"
-            placeholder="DigitalOcean / AWS / Biznet" />
-          <q-input v-model="form.package" label="Paket / Spesifikasi" outlined dense :rules="[required]"
-            placeholder="VPS 4GB / 2 vCPU" />
+          <q-input
+            v-model="form.vendor"
+            label="Vendor VPS"
+            outlined
+            dense
+            :rules="[required]"
+            placeholder="DigitalOcean / AWS / Biznet"
+          />
+          <q-input
+            v-model="form.package"
+            label="Paket / Spesifikasi"
+            outlined
+            dense
+            :rules="[required]"
+            placeholder="VPS 4GB / 2 vCPU"
+          />
 
-          <q-input v-model="biayaBulananDisplay" label="Biaya Bulanan" outlined dense prefix="Rp"
-            :rules="[requiredRupiah]" placeholder="100.000">
+          <q-input
+            v-model="biayaBulananDisplay"
+            label="Biaya Bulanan"
+            outlined
+            dense
+            prefix="Rp"
+            :rules="[requiredRupiah]"
+            placeholder="100.000"
+          >
             <template v-slot:hint> Format otomatis dengan pemisah ribuan</template>
           </q-input>
 
           <div class="row q-col-gutter-sm">
             <div class="col-12 col-sm-6">
-              <q-input v-model="form.tanggal_sewa" type="date" label="Tanggal Sewa" outlined dense stack-label
-                :rules="[required]" />
+              <q-input
+                v-model="form.tanggal_sewa"
+                type="date"
+                label="Tanggal Sewa"
+                outlined
+                dense
+                stack-label
+                :rules="[required]"
+              />
             </div>
             <div class="col-12 col-sm-6">
-              <q-select v-model="form.durasi_sewa" :options="durasiOptions" label="Durasi Sewa" outlined dense
-                emit-value map-options :rules="[required]" />
+              <q-select
+                v-model="form.durasi_sewa"
+                :options="durasiOptions"
+                label="Durasi Sewa"
+                outlined
+                dense
+                emit-value
+                map-options
+                :rules="[required]"
+              />
             </div>
           </div>
         </template>
 
         <!-- ═══════════ Domain Fields ═══════════ -->
         <template v-else-if="resourceType === 'domains'">
-          <q-input v-model="form.domain" label="Domain" outlined dense :rules="[required]" placeholder="ujian.pw" />
-          <q-input v-model="form.registrar" label="Registrar" outlined dense :rules="[required]"
-            placeholder="Namecheap / Cloudflare / IDCloudHost" />
+          <q-input
+            v-model="form.domain"
+            label="Domain"
+            outlined
+            dense
+            :rules="[required]"
+            placeholder="ujian.pw"
+          />
+          <q-input
+            v-model="form.registrar"
+            label="Registrar"
+            outlined
+            dense
+            :rules="[required]"
+            placeholder="Namecheap / Cloudflare / IDCloudHost"
+          />
 
-          <q-input v-model="biayaTahunanDisplay" label="Biaya Tahunan" outlined dense prefix="Rp"
-            :rules="[requiredRupiah]" placeholder="180.000">
+          <q-input
+            v-model="biayaTahunanDisplay"
+            label="Biaya Tahunan"
+            outlined
+            dense
+            prefix="Rp"
+            :rules="[requiredRupiah]"
+            placeholder="180.000"
+          >
             <template v-slot:hint> Format otomatis dengan pemisah ribuan</template>
           </q-input>
 
           <div class="row q-col-gutter-sm">
             <div class="col-12 col-sm-6">
-              <q-input v-model="form.tanggal_registrasi" type="date" label="Tanggal Registrasi" outlined dense
-                stack-label :rules="[required]" />
+              <q-input
+                v-model="form.tanggal_registrasi"
+                type="date"
+                label="Tanggal Registrasi"
+                outlined
+                dense
+                stack-label
+                :rules="[required]"
+              />
             </div>
             <div class="col-12 col-sm-6">
-              <q-select v-model="form.durasi_sewa" :options="durasiOptions" label="Durasi Sewa" outlined dense
-                emit-value map-options :rules="[required]" />
+              <q-select
+                v-model="form.durasi_sewa"
+                :options="durasiOptions"
+                label="Durasi Sewa"
+                outlined
+                dense
+                emit-value
+                map-options
+                :rules="[required]"
+              />
             </div>
           </div>
         </template>
 
         <!-- ═══════════ TLS Fields ═══════════ -->
         <template v-else-if="resourceType === 'tls'">
-          <q-input v-model="form.domain" label="Domain / Wildcard" outlined dense :rules="[required]"
-            placeholder="*.ujian.pw atau ujian.pw" />
+          <q-input
+            v-model="form.domain"
+            label="Domain / Wildcard"
+            outlined
+            dense
+            :rules="[required]"
+            placeholder="*.ujian.pw atau ujian.pw"
+          />
 
           <div class="row q-col-gutter-sm">
             <div class="col-12 col-sm-8">
-              <q-input v-model="form.issuer" label="Issuer" outlined dense :rules="[required]"
-                placeholder="Let's Encrypt" />
+              <q-input
+                v-model="form.issuer"
+                label="Issuer"
+                outlined
+                dense
+                :rules="[required]"
+                placeholder="Let's Encrypt"
+              />
             </div>
             <div class="col-12 col-sm-4">
-              <q-select v-model="form.tipe" :options="tlsTypeOptions" label="Tipe" outlined dense emit-value
-                map-options />
+              <q-select
+                v-model="form.tipe"
+                :options="tlsTypeOptions"
+                label="Tipe"
+                outlined
+                dense
+                emit-value
+                map-options
+              />
             </div>
           </div>
 
           <div class="row q-col-gutter-sm">
             <div class="col-12 col-sm-6">
-              <q-input v-model="form.tanggal_issue" type="date" label="Tanggal Issue" outlined dense stack-label
-                :rules="[required]" />
+              <q-input
+                v-model="form.tanggal_issue"
+                type="date"
+                label="Tanggal Issue"
+                outlined
+                dense
+                stack-label
+                :rules="[required]"
+              />
             </div>
             <div class="col-12 col-sm-6">
-              <q-select v-model="form.durasi_sewa" :options="durasiOptions" label="Durasi Sertifikat" outlined dense
-                emit-value map-options :rules="[required]" />
+              <q-select
+                v-model="form.durasi_sewa"
+                :options="durasiOptions"
+                label="Durasi Sertifikat"
+                outlined
+                dense
+                emit-value
+                map-options
+                :rules="[required]"
+              />
             </div>
           </div>
         </template>
@@ -103,13 +206,25 @@
         </q-banner>
 
         <!-- Common: Notes -->
-        <q-input v-model="form.notes" type="textarea" label="Catatan (opsional)" outlined autogrow :rows="2" />
+        <q-input
+          v-model="form.notes"
+          type="textarea"
+          label="Catatan (opsional)"
+          outlined
+          autogrow
+          :rows="2"
+        />
       </q-card-section>
 
       <q-card-actions align="right" class="q-pb-md q-pr-md">
         <q-btn flat label="Batal" v-close-popup color="grey-7" />
-        <q-btn color="primary" :label="isEditing ? 'Simpan Perubahan' : 'Simpan'" :loading="submitting"
-          :disable="!form.tanggal_expiry" @click="submit" />
+        <q-btn
+          color="primary"
+          :label="isEditing ? 'Simpan Perubahan' : 'Simpan'"
+          :loading="submitting"
+          :disable="!form.tanggal_expiry"
+          @click="submit"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -223,7 +338,12 @@ const computeExpiry = (startDate, durationMonths) => {
 
 // Watch tanggal_sewa + durasi_sewa → auto-update tanggal_expiry
 watch(
-  [() => form.value.tanggal_sewa, () => form.value.durasi_sewa, () => form.value.tanggal_registrasi, () => form.value.tanggal_issue],
+  [
+    () => form.value.tanggal_sewa,
+    () => form.value.durasi_sewa,
+    () => form.value.tanggal_registrasi,
+    () => form.value.tanggal_issue,
+  ],
   ([sewa, durasi, registrasi, issue]) => {
     // Prioritas: tanggal_sewa (VPS) > tanggal_registrasi (domain) > tanggal_issue (TLS)
     const startDate = sewa || registrasi || issue

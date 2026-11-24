@@ -16,8 +16,16 @@
     </div>
 
     <!-- Table -->
-    <q-table v-else :rows="exams" :columns="columns" row-key="session_id" :filter="filter" flat bordered
-      :pagination="{ rowsPerPage: 10 }">
+    <q-table
+      v-else
+      :rows="exams"
+      :columns="columns"
+      row-key="session_id"
+      :filter="filter"
+      flat
+      bordered
+      :pagination="{ rowsPerPage: 10 }"
+    >
       <template v-slot:top-right>
         <q-input v-model="filter" dense outlined debounce="200" placeholder="Cari mapel" clearable>
           <template v-slot:prepend><q-icon name="search" /></template>
@@ -43,10 +51,15 @@
 
       <template v-slot:body-cell-action="props">
         <q-td :props="props" class="text-center">
-          <q-btn :label="accessOf(props.row).canEnter ? 'Masuk' : 'Lihat'"
-            :color="accessOf(props.row).canEnter ? 'primary' : 'grey-7'" :disable="!accessOf(props.row).canEnter"
-            :icon="accessOf(props.row).canEnter ? 'login' : 'lock_clock'" size="sm" no-caps
-            @click="handleExamAction(props.row)" />
+          <q-btn
+            :label="accessOf(props.row).canEnter ? 'Masuk' : 'Lihat'"
+            :color="accessOf(props.row).canEnter ? 'primary' : 'grey-7'"
+            :disable="!accessOf(props.row).canEnter"
+            :icon="accessOf(props.row).canEnter ? 'login' : 'lock_clock'"
+            size="sm"
+            no-caps
+            @click="handleExamAction(props.row)"
+          />
         </q-td>
       </template>
     </q-table>

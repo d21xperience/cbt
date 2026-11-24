@@ -1,5 +1,11 @@
 <template>
-  <q-dialog v-model="isOpen" persistent maximized transition-show="slide-up" transition-hide="slide-down">
+  <q-dialog
+    v-model="isOpen"
+    persistent
+    maximized
+    transition-show="slide-up"
+    transition-hide="slide-down"
+  >
     <q-card>
       <q-bar class="bg-primary text-white">
         <div class="text-subtitle1">Import Mata Pelajaran</div>
@@ -20,13 +26,26 @@
               Kolom <b>jurusan_kode</b> hanya diisi untuk kelompok <b>KEJURUAN</b>.
             </q-banner>
 
-            <q-btn outline color="primary" icon="download" label="Download Template CSV" no-caps class="q-mb-md"
-              :loading="downloadingTemplate" @click="onDownloadTemplate('csv')" />
+            <q-btn
+              outline
+              color="primary"
+              icon="download"
+              label="Download Template CSV"
+              no-caps
+              class="q-mb-md"
+              :loading="downloadingTemplate"
+              @click="onDownloadTemplate('csv')"
+            />
 
             <!-- Drop Zone -->
-            <div class="drop-zone" :class="{ 'drop-zone--active': isDragOver, 'drop-zone--has-file': !!selectedFile }"
-              @dragover.prevent="isDragOver = true" @dragleave.prevent="isDragOver = false" @drop.prevent="onDrop"
-              @click="triggerFileInput">
+            <div
+              class="drop-zone"
+              :class="{ 'drop-zone--active': isDragOver, 'drop-zone--has-file': !!selectedFile }"
+              @dragover.prevent="isDragOver = true"
+              @dragleave.prevent="isDragOver = false"
+              @drop.prevent="onDrop"
+              @click="triggerFileInput"
+            >
               <input ref="fileInputRef" type="file" accept=".csv" hidden @change="onFileChange" />
 
               <template v-if="!selectedFile">
@@ -43,21 +62,39 @@
                 <div class="text-caption text-grey-6">
                   {{ formatFileSize(selectedFile.size) }}
                 </div>
-                <q-btn flat color="negative" icon="close" label="Hapus File" size="sm" class="q-mt-sm"
-                  @click.stop="clearFile" />
+                <q-btn
+                  flat
+                  color="negative"
+                  icon="close"
+                  label="Hapus File"
+                  size="sm"
+                  class="q-mt-sm"
+                  @click.stop="clearFile"
+                />
               </template>
             </div>
 
             <div class="row q-gutter-sm q-mt-md">
-              <q-btn type="button" color="primary" label="Lanjut ke Preview" :loading="importing"
-                :disable="!selectedFile" @click="onUploadStep" />
+              <q-btn
+                type="button"
+                color="primary"
+                label="Lanjut ke Preview"
+                :loading="importing"
+                :disable="!selectedFile"
+                @click="onUploadStep"
+              />
               <q-btn flat color="grey" label="Batal" @click="onClose" />
             </div>
           </q-step>
 
           <!-- ═══ Step 2 — Preview ═══ -->
           <q-step :name="2" title="Preview & Validasi" icon="visibility">
-            <q-banner v-if="importErrors.length > 0" dense rounded class="bg-negative text-white q-mb-md">
+            <q-banner
+              v-if="importErrors.length > 0"
+              dense
+              rounded
+              class="bg-negative text-white q-mb-md"
+            >
               <template v-slot:avatar><q-icon name="error" /></template>
               <b>{{ importErrors.length }} error:</b>
               <ul class="q-mb-none">
@@ -67,8 +104,15 @@
               </ul>
             </q-banner>
 
-            <q-table :rows="importPreview" :columns="previewColumns" row-key="_rowNumber" flat bordered dense
-              :rows-per-page-options="[10, 25, 50]">
+            <q-table
+              :rows="importPreview"
+              :columns="previewColumns"
+              row-key="_rowNumber"
+              flat
+              bordered
+              dense
+              :rows-per-page-options="[10, 25, 50]"
+            >
               <template v-slot:body-cell-_error="props">
                 <q-td :props="props">
                   <q-badge v-if="props.row._error" color="negative" :label="props.row._error" />
@@ -79,8 +123,13 @@
 
             <div class="row q-gutter-sm q-mt-md">
               <q-btn color="primary" flat label="Kembali" @click="step = 1" />
-              <q-btn color="positive" :label="`Import ${importValidCount} Mapel`" :disable="importValidCount === 0"
-                :loading="importing" @click="onConfirmImport" />
+              <q-btn
+                color="positive"
+                :label="`Import ${importValidCount} Mapel`"
+                :disable="importValidCount === 0"
+                :loading="importing"
+                @click="onConfirmImport"
+              />
               <q-btn flat color="grey" label="Batal" @click="onClose" />
             </div>
           </q-step>
@@ -121,7 +170,13 @@ const fileInputRef = ref(null)
 const isDragOver = ref(false)
 
 const previewColumns = [
-  { name: '_rowNumber', label: 'Baris', field: '_rowNumber', align: 'center', style: 'width: 60px' },
+  {
+    name: '_rowNumber',
+    label: 'Baris',
+    field: '_rowNumber',
+    align: 'center',
+    style: 'width: 60px',
+  },
   { name: 'kode', label: 'Kode', field: 'kode', align: 'left' },
   { name: 'nama', label: 'Nama', field: 'nama', align: 'left' },
   { name: 'nama_singkat', label: 'Singkat', field: 'nama_singkat', align: 'left' },
@@ -132,19 +187,25 @@ const previewColumns = [
 ]
 
 // ── Sync dialog state + auto-advance dari parent
-watch(() => props.modelValue, (val) => {
-  isOpen.value = val
-  if (val) {
-    step.value = props.importStep || 1
-    selectedFile.value = null
-    isDragOver.value = false
-  }
-})
+watch(
+  () => props.modelValue,
+  (val) => {
+    isOpen.value = val
+    if (val) {
+      step.value = props.importStep || 1
+      selectedFile.value = null
+      isDragOver.value = false
+    }
+  },
+)
 watch(isOpen, (val) => emit('update:modelValue', val))
 watch(step, (val) => emit('update:importStep', val))
-watch(() => props.importStep, (val) => {
-  if (val !== step.value) step.value = val
-})
+watch(
+  () => props.importStep,
+  (val) => {
+    if (val !== step.value) step.value = val
+  },
+)
 
 // ── File selection
 const validateFile = (file) => {
@@ -153,7 +214,7 @@ const validateFile = (file) => {
     $q.notify({ type: 'negative', message: 'Hanya file CSV yang didukung.' })
     return false
   }
-  const maxSize = 5 * 1024 * 1024  // 5 MB
+  const maxSize = 5 * 1024 * 1024 // 5 MB
   if (file.size > maxSize) {
     $q.notify({ type: 'negative', message: 'Ukuran file maksimal 5 MB.' })
     return false

@@ -7,25 +7,66 @@
         <q-btn icon="close" flat round dense v-close-popup />
       </q-card-section>
       <q-card-section class="q-gutter-md q-pt-md">
-        <q-select v-model="localForm.teacher_id" :options="teacherOptions" label="Guru Pengampu" outlined dense
-          emit-value map-options use-input input-debounce="200" :rules="[(v) => !!v || 'Guru wajib dipilih']" />
-        
-        <q-select v-model="localForm.subject_id" :options="subjectOptions" label="Mata Pelajaran" outlined dense
-          emit-value map-options use-input input-debounce="200" :rules="[(v) => !!v || 'Mapel wajib dipilih']"
-          @update:model-value="onSubjectChange" />
+        <q-select
+          v-model="localForm.teacher_id"
+          :options="teacherOptions"
+          label="Guru Pengampu"
+          outlined
+          dense
+          emit-value
+          map-options
+          use-input
+          input-debounce="200"
+          :rules="[(v) => !!v || 'Guru wajib dipilih']"
+        />
 
-        <q-select v-model="localForm.class_ids" :options="availableClassOptions" label="Kelas (Bisa pilih lebih dari 1)"
-          outlined dense emit-value map-options use-input use-chips multiple input-debounce="200"
-          :disable="isEditing" hint="Kelas yang sudah diampu guru lain untuk mapel ini otomatis disembunyikan."
-          :rules="[(v) => (v && v.length > 0) || 'Minimal 1 kelas wajib dipilih']" />
+        <q-select
+          v-model="localForm.subject_id"
+          :options="subjectOptions"
+          label="Mata Pelajaran"
+          outlined
+          dense
+          emit-value
+          map-options
+          use-input
+          input-debounce="200"
+          :rules="[(v) => !!v || 'Mapel wajib dipilih']"
+          @update:model-value="onSubjectChange"
+        />
 
-        <q-toggle v-model="localForm.is_exam_author" label="Tunjuk sebagai Penyusun Soal (Ujian)" color="primary" />
+        <q-select
+          v-model="localForm.class_ids"
+          :options="availableClassOptions"
+          label="Kelas (Bisa pilih lebih dari 1)"
+          outlined
+          dense
+          emit-value
+          map-options
+          use-input
+          use-chips
+          multiple
+          input-debounce="200"
+          :disable="isEditing"
+          hint="Kelas yang sudah diampu guru lain untuk mapel ini otomatis disembunyikan."
+          :rules="[(v) => (v && v.length > 0) || 'Minimal 1 kelas wajib dipilih']"
+        />
+
+        <q-toggle
+          v-model="localForm.is_exam_author"
+          label="Tunjuk sebagai Penyusun Soal (Ujian)"
+          color="primary"
+        />
       </q-card-section>
 
       <q-card-actions align="right" class="q-pb-md q-pr-md">
         <q-btn flat label="Batal" color="grey-7" v-close-popup />
-        <q-btn color="primary" :label="isEditing ? 'Simpan Perubahan' : 'Simpan'" :loading="submitting"
-          :disable="!canSubmitInternal" @click="onSubmit" />
+        <q-btn
+          color="primary"
+          :label="isEditing ? 'Simpan Perubahan' : 'Simpan'"
+          :loading="submitting"
+          :disable="!canSubmitInternal"
+          @click="onSubmit"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>

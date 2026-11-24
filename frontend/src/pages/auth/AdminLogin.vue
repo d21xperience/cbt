@@ -21,8 +21,14 @@
         <br />
         <span class="text-caption">(Kode: TENANT_SUSPENDED)</span>
       </div>
-      <q-btn class="q-mt-lg" color="primary" outline label="Kembali ke Beranda" icon="home"
-        @click="$router.push('/')" />
+      <q-btn
+        class="q-mt-lg"
+        color="primary"
+        outline
+        label="Kembali ke Beranda"
+        icon="home"
+        @click="$router.push('/')"
+      />
     </div>
     <!-- Tampilan Utama Form Login Jika Tenant Valid -->
     <q-card v-else style="width: 380px; max-width: 90vw" class="shadow-2 rounded-borders">
@@ -34,23 +40,46 @@
 
       <q-card-section class="q-pt-lg">
         <q-form @submit.prevent="onSubmit" class="q-gutter-md">
-          <q-input v-model="username" label="Username Admin" outlined stack-label dense
-            :rules="[(val) => !!val || 'Username Admin wajib diisi']">
+          <q-input
+            v-model="username"
+            label="Username Admin"
+            outlined
+            stack-label
+            dense
+            :rules="[(val) => !!val || 'Username Admin wajib diisi']"
+          >
             <template v-slot:prepend><q-icon name="person" /></template>
           </q-input>
 
-          <PasswordInput v-model="password" label="Kata Sandi Admin" dense
-            :rules="[(val) => !!val || 'Password wajib diisi']" class="q-mb-md" />
+          <PasswordInput
+            v-model="password"
+            label="Kata Sandi Admin"
+            dense
+            :rules="[(val) => !!val || 'Password wajib diisi']"
+            class="q-mb-md"
+          />
 
           <div>
-            <q-btn label="Masuk ke Dashboard" type="submit" color="primary" class="full-width" :loading="loading" />
+            <q-btn
+              label="Masuk ke Dashboard"
+              type="submit"
+              color="primary"
+              class="full-width"
+              :loading="loading"
+            />
           </div>
         </q-form>
       </q-card-section>
 
       <q-card-actions align="center" class="q-pb-md">
-        <q-btn flat no-caps label="Beralih Ke Login Peserta Ujian" color="primary" icon="launch"
-          :to="{ name: 'participant-login', query: $route.query }" />
+        <q-btn
+          flat
+          no-caps
+          label="Beralih Ke Login Peserta Ujian"
+          color="primary"
+          icon="launch"
+          :to="{ name: 'participant-login', query: $route.query }"
+        />
       </q-card-actions>
     </q-card>
   </q-page>
@@ -104,11 +133,9 @@ const onSubmit = async () => {
     } else {
       $q.notify({
         type: 'negative',
-        message:
-          'Login gagal. Periksa kembali kredensial proktor Anda.',
+        message: 'Login gagal. Periksa kembali kredensial proktor Anda.',
       })
     }
-
   } catch (err) {
     console.log(err)
     $q.notify({

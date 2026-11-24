@@ -69,9 +69,7 @@ const isSelected = (id) => props.modelValue.includes(id)
 
 const toggle = (id) => {
   const current = props.modelValue || []
-  const next = current.includes(id)
-    ? current.filter((x) => x !== id)
-    : [...current, id]
+  const next = current.includes(id) ? current.filter((x) => x !== id) : [...current, id]
   emit('update:modelValue', next)
 }
 </script>
@@ -91,7 +89,10 @@ const toggle = (id) => {
   border-radius: 10px;
   background: #fff;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    box-shadow 0.15s;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   margin-bottom: 8px;

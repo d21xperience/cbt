@@ -19,12 +19,12 @@
         <q-icon name="construction" />
       </template>
       <span v-if="isAdminView">
-        Fitur ini akan menampilkan <b>peserta & non-peserta ujian semua kelas</b>.
-        Backend: <b>CR-002 (Peserta ujian per kelas)</b>.
+        Fitur ini akan menampilkan <b>peserta & non-peserta ujian semua kelas</b>. Backend:
+        <b>CR-002 (Peserta ujian per kelas)</b>.
       </span>
       <span v-else>
-        Fitur ini akan menampilkan <b>peserta & non-peserta ujian kelas yang Anda ampu</b>.
-        Backend: <b>CR-002 (Peserta ujian per kelas)</b>.
+        Fitur ini akan menampilkan <b>peserta & non-peserta ujian kelas yang Anda ampu</b>. Backend:
+        <b>CR-002 (Peserta ujian per kelas)</b>.
       </span>
       <b>Implementasi di Batch C2.</b>
     </q-banner>
@@ -34,9 +34,11 @@
         <q-icon name="groups" size="xl" />
         <div class="text-subtitle1 q-mt-md">Peserta & Non-Peserta Ujian</div>
         <div class="text-caption q-mt-sm">
-          {{ isAdminView
-            ? 'Menampilkan status keikutsertaan semua siswa per ujian.'
-            : 'Menampilkan status keikutsertaan siswa kelas yang Anda ampu per ujian.' }}
+          {{
+            isAdminView
+              ? 'Menampilkan status keikutsertaan semua siswa per ujian.'
+              : 'Menampilkan status keikutsertaan siswa kelas yang Anda ampu per ujian.'
+          }}
         </div>
       </q-card-section>
     </q-card>

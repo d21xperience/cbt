@@ -51,7 +51,7 @@ export const useAuthStore = defineStore('auth', {
       if (eligibleExams !== undefined) {
         LocalStorage.set('cbt_eligible_exams', eligibleExams || [])
       }
-      
+
       if (examMode !== undefined) {
         if (examMode) {
           LocalStorage.set('cbt_exam_mode', examMode)
@@ -67,11 +67,11 @@ export const useAuthStore = defineStore('auth', {
         const response = await AuthService.login(credentials, role)
         const { token, user, exam_mode } = response.data
         this._persistAuth({ token, role, user, examMode: exam_mode })
-        
+
         // ✅ Sinkronisasi instan ke academicStore
         const academicStore = useAcademicStore()
         academicStore.setExamModeLocal(exam_mode)
-        
+
         return { success: true, user }
       } catch (error) {
         console.error('Login failed:', error)
@@ -83,29 +83,29 @@ export const useAuthStore = defineStore('auth', {
       const response = await AuthService.login(credentials, 'PROCTOR')
       const { token, role, user, exam_mode } = response.data
       this._persistAuth({ token, role: role || 'PROCTOR', user, examMode: exam_mode })
-      
+
       // ✅ Sinkronisasi instan ke academicStore
       const academicStore = useAcademicStore()
       academicStore.setExamModeLocal(exam_mode)
-      
+
       return { success: true, user, role: this.role }
     },
 
     async participantLogin(credentials) {
       const response = await AuthService.login(credentials, 'participant')
       const { token, user, role, eligible_exams, exam_mode } = response.data
-      this._persistAuth({ 
-        token, 
-        role: role || 'PARTICIPANT', 
-        user, 
-        eligibleExams: eligible_exams, 
-        examMode: exam_mode 
+      this._persistAuth({
+        token,
+        role: role || 'PARTICIPANT',
+        user,
+        eligibleExams: eligible_exams,
+        examMode: exam_mode,
       })
-      
+
       // ✅ Sinkronisasi instan ke academicStore
       const academicStore = useAcademicStore()
       academicStore.setExamModeLocal(exam_mode)
-      
+
       return { success: true, user, eligibleExams: eligible_exams, examMode: exam_mode }
     },
 
@@ -118,9 +118,9 @@ export const useAuthStore = defineStore('auth', {
         'cbt_exam_id',
         'cbt_exam_token',
         'cbt_exam_mode',
-        'cbt_academic_context' // ✅ Tambahan: bersihkan juga context akademik saat logout
+        'cbt_academic_context', // ✅ Tambahan: bersihkan juga context akademik saat logout
       ]
-      keysToRemove.forEach(key => LocalStorage.remove(key))
+      keysToRemove.forEach((key) => LocalStorage.remove(key))
 
       this.token = null
       this.cbtExamToken = null
@@ -142,7 +142,7 @@ export const useAuthStore = defineStore('auth', {
       const role = LocalStorage.getItem('cbt_role')
       const user = LocalStorage.getItem('cbt_user')
       const examMode = LocalStorage.getItem('cbt_exam_mode') || ''
-      
+
       if (token && role && user) {
         this.token = token
         this.cbtExamToken = examToken || null

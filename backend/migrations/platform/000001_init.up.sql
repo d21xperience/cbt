@@ -3,6 +3,21 @@
 -- Berisi data cross-tenant (bukan per-sekolah)
 -- ============================================
 
+-- Platform users (super admin, staff pusat)
+CREATE TABLE IF NOT EXISTS platform_users (
+    id              TEXT PRIMARY KEY,
+    username        TEXT UNIQUE NOT NULL,
+    password_hash   TEXT NOT NULL,
+    role            TEXT NOT NULL DEFAULT 'SUPER_ADMIN',
+    full_name       TEXT DEFAULT '',
+    is_active       INTEGER NOT NULL DEFAULT 1,
+    created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_platform_users_username ON platform_users(username);
+-- ============================================
+
 CREATE TABLE IF NOT EXISTS tenants (
     tenant_id       TEXT PRIMARY KEY,           -- UUID internal
     npsn            TEXT UNIQUE NOT NULL,       -- 8 digit NPSN global unique
@@ -22,20 +37,6 @@ CREATE TABLE IF NOT EXISTS tenants (
 CREATE INDEX IF NOT EXISTS idx_tenants_subdomain ON tenants(subdomain);
 CREATE INDEX IF NOT EXISTS idx_tenants_npsn ON tenants(npsn);
 CREATE INDEX IF NOT EXISTS idx_tenants_active ON tenants(is_active, is_suspended);
-
--- Platform users (super admin, staff pusat)
-CREATE TABLE IF NOT EXISTS platform_users (
-    id              TEXT PRIMARY KEY,
-    username        TEXT UNIQUE NOT NULL,
-    password_hash   TEXT NOT NULL,
-    role            TEXT NOT NULL DEFAULT 'SUPER_ADMIN',
-    full_name       TEXT DEFAULT '',
-    is_active       INTEGER NOT NULL DEFAULT 1,
-    created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX IF NOT EXISTS idx_platform_users_username ON platform_users(username);
 
 -- Subscription (billing)
 CREATE TABLE IF NOT EXISTS subscriptions (
@@ -67,3 +68,19 @@ CREATE TABLE IF NOT EXISTS platform_audit_log (
 
 CREATE INDEX IF NOT EXISTS idx_audit_actor ON platform_audit_log(actor_id);
 CREATE INDEX IF NOT EXISTS idx_audit_created ON platform_audit_log(created_at);
+
+
+-- ----- ADMINS (005) -----
+CREATE TABLE IF NOT EXISTS admins (
+    id            TEXT PRIMARY KEY,
+    tenant_id     TEXT NOT NULL DEFAULT 'default',
+    username      TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
+    role          TEXT NOT NULL DEFAULT 'ADMIN',
+    is_active     INTEGER NOT NULL DEFAULT 1,
+    created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(tenant_id, username)
+);
+CREATE INDEX IF NOT EXISTS idx_admins_tenant ON admins(tenant_id);
+-- seed user dan password

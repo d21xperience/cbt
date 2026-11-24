@@ -1,5 +1,11 @@
 <template>
-  <q-dialog v-model="isOpen" persistent maximized transition-show="slide-up" transition-hide="slide-down">
+  <q-dialog
+    v-model="isOpen"
+    persistent
+    maximized
+    transition-show="slide-up"
+    transition-hide="slide-down"
+  >
     <q-card class="column no-wrap" style="height: 100vh">
       <!-- Top bar -->
       <q-bar class="bg-primary text-white">
@@ -16,17 +22,39 @@
           <div class="row q-col-gutter-md">
             <!-- KOLOM KIRI (Editor & Opsi) -->
             <div class="col-12 col-md-8">
-
               <!-- Pengaturan Horizontal -->
               <div class="row q-col-gutter-sm q-mb-md">
                 <div class="col-12 col-sm-5">
-                  <q-select v-model="localForm.question_type" :options="typeOptions" label="Tipe Soal" outlined dense emit-value map-options />
+                  <q-select
+                    v-model="localForm.question_type"
+                    :options="typeOptions"
+                    label="Tipe Soal"
+                    outlined
+                    dense
+                    emit-value
+                    map-options
+                  />
                 </div>
                 <div class="col-12 col-sm-2">
-                  <q-input v-model.number="localForm.score" type="number" label="Skor" outlined dense :min="1" :rules="[(v) => (v > 0) || 'Skor harus > 0']" />
+                  <q-input
+                    v-model.number="localForm.score"
+                    type="number"
+                    label="Skor"
+                    outlined
+                    dense
+                    :min="1"
+                    :rules="[(v) => v > 0 || 'Skor harus > 0']"
+                  />
                 </div>
                 <div class="col-12 col-sm-5">
-                  <q-input v-if="!isAudioVideo" v-model="localForm.media_url" label="URL Media (opsional)" outlined dense hint="Atau klik icon">
+                  <q-input
+                    v-if="!isAudioVideo"
+                    v-model="localForm.media_url"
+                    label="URL Media (opsional)"
+                    outlined
+                    dense
+                    hint="Atau klik icon"
+                  >
                     <template v-slot:append>
                       <q-btn flat round dense icon="image" color="primary" @click="onPickMainMedia">
                         <q-tooltip>Insert gambar (max 1 MB)</q-tooltip>
@@ -44,35 +72,95 @@
                     Teks Soal (dukung LaTeX <code>$...$</code>, HTML, non-Latin)
                   </div>
                   <div class="row q-gutter-xs">
-                    <q-btn flat dense icon="translate" label="Aksara" no-caps size="sm" color="primary" @click="scriptPickerOpen = true" />
-                    <q-btn flat dense icon="functions" label="Simbol" no-caps size="sm" color="primary" @click="mathPickerOpen = true" />
+                    <q-btn
+                      flat
+                      dense
+                      icon="translate"
+                      label="Aksara"
+                      no-caps
+                      size="sm"
+                      color="primary"
+                      @click="scriptPickerOpen = true"
+                    />
+                    <q-btn
+                      flat
+                      dense
+                      icon="functions"
+                      label="Simbol"
+                      no-caps
+                      size="sm"
+                      color="primary"
+                      @click="mathPickerOpen = true"
+                    />
                   </div>
                 </div>
-                <q-editor ref="editorRef" v-model="localForm.question_text" :definitions="editorDefinitions"
-                  :toolbar="editorToolbar" min-height="200px" placeholder="Tulis soal di sini..." @paste="onPasteEditor" />
+                <q-editor
+                  ref="editorRef"
+                  v-model="localForm.question_text"
+                  :definitions="editorDefinitions"
+                  :toolbar="editorToolbar"
+                  min-height="200px"
+                  placeholder="Tulis soal di sini..."
+                  @paste="onPasteEditor"
+                />
               </div>
 
-              <QuestionMediaUpload v-if="isAudioVideo" v-model="localForm.media_url" :is-audio="isAudio" />
+              <QuestionMediaUpload
+                v-if="isAudioVideo"
+                v-model="localForm.media_url"
+                :is-audio="isAudio"
+              />
 
               <!-- Opsi & Tipe Soal Lainnya -->
               <div v-if="isPGType" class="q-mb-md">
                 <!-- <div class="text-caption text-grey-7 q-mb-xs"><q-icon name="list" size="xs" class="q-mr-xs" /> Opsi Jawaban</div> -->
-                <QuestionOptions v-model="localForm.options" :multi-correct="localForm.question_type === 'PG_COMPLEX'" @media="onPickOptionMedia" />
+                <QuestionOptions
+                  v-model="localForm.options"
+                  :multi-correct="localForm.question_type === 'PG_COMPLEX'"
+                  @media="onPickOptionMedia"
+                />
               </div>
 
-              <div v-if="localForm.question_type === 'MATCHING'" class="q-mb-md"><QuestionMatching v-model="localForm.pairs" /></div>
-              <div v-if="localForm.question_type === 'TRUE_FALSE'" class="q-mb-md"><QuestionTrueFalse v-model="localForm.statements" /></div>
+              <div v-if="localForm.question_type === 'MATCHING'" class="q-mb-md">
+                <QuestionMatching v-model="localForm.pairs" />
+              </div>
+              <div v-if="localForm.question_type === 'TRUE_FALSE'" class="q-mb-md">
+                <QuestionTrueFalse v-model="localForm.statements" />
+              </div>
               <div v-if="localForm.question_type === 'SHORT_ANSWER'" class="q-mb-md">
-                <QuestionShortAnswer v-model="localForm.accepted_answers" :case-sensitive="localForm.case_sensitive" :trim-whitespace="localForm.trim_whitespace" @update:case-sensitive="localForm.case_sensitive = $event" @update:trim-whitespace="localForm.trim_whitespace = $event" />
+                <QuestionShortAnswer
+                  v-model="localForm.accepted_answers"
+                  :case-sensitive="localForm.case_sensitive"
+                  :trim-whitespace="localForm.trim_whitespace"
+                  @update:case-sensitive="localForm.case_sensitive = $event"
+                  @update:trim-whitespace="localForm.trim_whitespace = $event"
+                />
               </div>
               <div v-if="localForm.question_type === 'CODING'" class="q-mb-md">
-                <QuestionCoding v-model="localForm.test_cases" :language="localForm.language" :starter-code="localForm.starter_code" @update:language="localForm.language = $event" @update:starter-code="localForm.starter_code = $event" />
+                <QuestionCoding
+                  v-model="localForm.test_cases"
+                  :language="localForm.language"
+                  :starter-code="localForm.starter_code"
+                  @update:language="localForm.language = $event"
+                  @update:starter-code="localForm.starter_code = $event"
+                />
               </div>
               <div v-if="localForm.question_type === 'HOTSPOT'" class="q-mb-md">
-                <QuestionHotspot v-model="localForm.hotspots" :image-url="localForm.image_url" @update:image-url="localForm.image_url = $event" />
+                <QuestionHotspot
+                  v-model="localForm.hotspots"
+                  :image-url="localForm.image_url"
+                  @update:image-url="localForm.image_url = $event"
+                />
               </div>
               <div v-if="localForm.question_type === 'ESSAY'" class="q-mb-md">
-                <q-input v-model="localForm.rubric" type="textarea" label="Rubrik Penilaian (opsional)" outlined autogrow :rows="3" />
+                <q-input
+                  v-model="localForm.rubric"
+                  type="textarea"
+                  label="Rubrik Penilaian (opsional)"
+                  outlined
+                  autogrow
+                  :rows="3"
+                />
               </div>
             </div>
 
@@ -103,15 +191,25 @@
                     <q-icon name="visibility" size="xs" class="q-mr-xs" /> Preview Soal
                   </div>
                   <div class="preview-box bg-white q-pa-md rounded-borders">
-                    <QuestionPreviewInline :question="{
-                      question_type: localForm.question_type, question_text: localForm.question_text,
-                      options: localForm.options, pairs: localForm.pairs, statements: localForm.statements,
-                      accepted_answers: localForm.accepted_answers, case_sensitive: localForm.case_sensitive,
-                      trim_whitespace: localForm.trim_whitespace, language: localForm.language,
-                      starter_code: localForm.starter_code, test_cases: localForm.test_cases,
-                      image_url: localForm.image_url, hotspots: localForm.hotspots,
-                      media_url: localForm.media_url, rubric: localForm.rubric,
-                    }" />
+                    <QuestionPreviewInline
+                      :question="{
+                        question_type: localForm.question_type,
+                        question_text: localForm.question_text,
+                        options: localForm.options,
+                        pairs: localForm.pairs,
+                        statements: localForm.statements,
+                        accepted_answers: localForm.accepted_answers,
+                        case_sensitive: localForm.case_sensitive,
+                        trim_whitespace: localForm.trim_whitespace,
+                        language: localForm.language,
+                        starter_code: localForm.starter_code,
+                        test_cases: localForm.test_cases,
+                        image_url: localForm.image_url,
+                        hotspots: localForm.hotspots,
+                        media_url: localForm.media_url,
+                        rubric: localForm.rubric,
+                      }"
+                    />
                   </div>
                 </q-card-section>
               </q-card>
@@ -124,16 +222,31 @@
       <q-separator />
       <q-card-actions align="right" class="q-pa-md bg-white">
         <q-btn flat label="Batal" color="grey-7" @click="onCancel" />
-        <q-btn color="primary" :label="isEditing ? 'Simpan Perubahan' : 'Tambah Soal'" :loading="submitting"
-          :disable="!canSubmit" @click="onSubmit" />
+        <q-btn
+          color="primary"
+          :label="isEditing ? 'Simpan Perubahan' : 'Tambah Soal'"
+          :loading="submitting"
+          :disable="!canSubmit"
+          @click="onSubmit"
+        />
       </q-card-actions>
     </q-card>
 
     <!-- Hidden file inputs -->
-    <input ref="mainMediaInput" type="file" accept="image/png,image/jpeg,image/webp" hidden
-      @change="onMainMediaSelected" />
-    <input ref="optionMediaInput" type="file" accept="image/png,image/jpeg,image/webp" hidden
-      @change="onOptionMediaSelected" />
+    <input
+      ref="mainMediaInput"
+      type="file"
+      accept="image/png,image/jpeg,image/webp"
+      hidden
+      @change="onMainMediaSelected"
+    />
+    <input
+      ref="optionMediaInput"
+      type="file"
+      accept="image/png,image/jpeg,image/webp"
+      hidden
+      @change="onOptionMediaSelected"
+    />
 
     <!-- Popups -->
     <MathEquationEditor v-model="mathPickerOpen" @insert="onInsertMathEquation" />
@@ -170,9 +283,13 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'submit', 'cancel', 'load-question', 'create-new'])
 
 const $q = useQuasar()
-const { createDefaultOptions, createDefaultPairs, createDefaultStatements, createDefaultAnswers, createDefaultTestCases } = useDynamicOptions()
-
-
+const {
+  createDefaultOptions,
+  createDefaultPairs,
+  createDefaultStatements,
+  createDefaultAnswers,
+  createDefaultTestCases,
+} = useDynamicOptions()
 
 // const { QUICK_SNIPPETS, buildInsert } = useMathToolbar()
 const { buildScriptWrapper } = useScriptPicker()
@@ -260,47 +377,45 @@ const editorToolbar = [
 
 const editorDefinitions = {}
 
-watch(
-  [() => props.modelValue, () => props.initialForm],
-  ([val, init]) => {
-    isOpen.value = val
-    if (val) {
-      init = init || {}
-      localForm.question_type = init.question_type || 'PG'
-      localForm.question_text = init.question_text || ''
-      localForm.options = Array.isArray(init.options) && init.options.length > 0
+watch([() => props.modelValue, () => props.initialForm], ([val, init]) => {
+  isOpen.value = val
+  if (val) {
+    init = init || {}
+    localForm.question_type = init.question_type || 'PG'
+    localForm.question_text = init.question_text || ''
+    localForm.options =
+      Array.isArray(init.options) && init.options.length > 0
         ? init.options
         : createDefaultOptions(4)
-      localForm.pairs = Array.isArray(init.pairs) && init.pairs.length > 0
-        ? init.pairs
-        : createDefaultPairs()
-      localForm.statements = Array.isArray(init.statements) && init.statements.length > 0
+    localForm.pairs =
+      Array.isArray(init.pairs) && init.pairs.length > 0 ? init.pairs : createDefaultPairs()
+    localForm.statements =
+      Array.isArray(init.statements) && init.statements.length > 0
         ? init.statements
         : createDefaultStatements()
-      localForm.accepted_answers = Array.isArray(init.accepted_answers) && init.accepted_answers.length > 0
+    localForm.accepted_answers =
+      Array.isArray(init.accepted_answers) && init.accepted_answers.length > 0
         ? init.accepted_answers
         : createDefaultAnswers()
-      localForm.case_sensitive = !!init.case_sensitive
-      localForm.trim_whitespace = init.trim_whitespace !== false
-      // CODING
-      localForm.language = init.language || 'javascript'
-      localForm.starter_code = init.starter_code || ''
-      localForm.test_cases = Array.isArray(init.test_cases) && init.test_cases.length > 0
+    localForm.case_sensitive = !!init.case_sensitive
+    localForm.trim_whitespace = init.trim_whitespace !== false
+    // CODING
+    localForm.language = init.language || 'javascript'
+    localForm.starter_code = init.starter_code || ''
+    localForm.test_cases =
+      Array.isArray(init.test_cases) && init.test_cases.length > 0
         ? init.test_cases
         : createDefaultTestCases()
-      // HOTSPOT
-      localForm.image_url = init.image_url || ''
-      localForm.hotspots = Array.isArray(init.hotspots) ? init.hotspots : []
+    // HOTSPOT
+    localForm.image_url = init.image_url || ''
+    localForm.hotspots = Array.isArray(init.hotspots) ? init.hotspots : []
 
-
-
-      localForm.score = Number(init.score) || 10
-      localForm.media_url = init.media_url || ''
-      localForm.rubric = init.rubric || ''
-      activeScriptId.value = 'latin'
-    }
-  },
-)
+    localForm.score = Number(init.score) || 10
+    localForm.media_url = init.media_url || ''
+    localForm.rubric = init.rubric || ''
+    activeScriptId.value = 'latin'
+  }
+})
 watch(isOpen, (val) => emit('update:modelValue', val))
 
 const canSubmit = computed(() => {
@@ -342,9 +457,8 @@ const canSubmit = computed(() => {
   if (t === 'CODING') {
     if (!localForm.language) return false
     if (localForm.test_cases.length < 1) return false
-    if (localForm.test_cases.some(
-      (tc) => !tc.input?.trim() || !tc.expected_output?.trim(),
-    )) return false
+    if (localForm.test_cases.some((tc) => !tc.input?.trim() || !tc.expected_output?.trim()))
+      return false
   }
 
   if (t === 'HOTSPOT') {
@@ -474,14 +588,13 @@ const onSubmit = () => {
   const payload = {
     question_type: t,
     question_text: localForm.question_text,
-    options: (t === 'PG' || t === 'PG_COMPLEX' || t === 'AUDIO' || t === 'VIDEO')
-      ? localForm.options.map((o) => ({ ...o }))
-      : [],
+    options:
+      t === 'PG' || t === 'PG_COMPLEX' || t === 'AUDIO' || t === 'VIDEO'
+        ? localForm.options.map((o) => ({ ...o }))
+        : [],
     pairs: t === 'MATCHING' ? localForm.pairs.map((p) => ({ ...p })) : [],
     statements: t === 'TRUE_FALSE' ? localForm.statements.map((s) => ({ ...s })) : [],
-    accepted_answers: t === 'SHORT_ANSWER'
-      ? localForm.accepted_answers.map((a) => ({ ...a }))
-      : [],
+    accepted_answers: t === 'SHORT_ANSWER' ? localForm.accepted_answers.map((a) => ({ ...a })) : [],
     case_sensitive: t === 'SHORT_ANSWER' ? localForm.case_sensitive : false,
     trim_whitespace: t === 'SHORT_ANSWER' ? localForm.trim_whitespace : true,
     // CODING

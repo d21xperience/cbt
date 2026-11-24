@@ -12,14 +12,26 @@
 
       <q-card-section style="max-height: 60vh; overflow-y: auto">
         <q-tabs v-model="tab" dense align="left" class="text-primary q-mb-md">
-          <q-tab v-for="cat in categories" :key="cat.name" :name="cat.name" :icon="cat.icon" :label="cat.name" />
+          <q-tab
+            v-for="cat in categories"
+            :key="cat.name"
+            :name="cat.name"
+            :icon="cat.icon"
+            :label="cat.name"
+          />
         </q-tabs>
 
         <q-tab-panels v-model="tab" animated>
           <q-tab-panel v-for="cat in categories" :key="cat.name" :name="cat.name" class="q-pa-none">
             <div class="row q-col-gutter-sm">
               <div v-for="key in cat.keys" :key="key" class="col-6 col-sm-4 col-md-3">
-                <q-btn outline color="primary" no-caps class="full-width q-pa-md symbol-btn" @click="onPick(key)">
+                <q-btn
+                  outline
+                  color="primary"
+                  no-caps
+                  class="full-width q-pa-md symbol-btn"
+                  @click="onPick(key)"
+                >
                   <div class="column items-center">
                     <div class="text-caption text-grey-6">{{ snippets[key].label }}</div>
                     <div class="text-body2 q-mt-xs math-preview" v-html="renderPreview(key)" />
@@ -55,7 +67,12 @@ const tab = ref(CATEGORIES[0].name)
 const snippets = SNIPPETS
 const categories = CATEGORIES
 
-watch(() => props.modelValue, (v) => { isOpen.value = v })
+watch(
+  () => props.modelValue,
+  (v) => {
+    isOpen.value = v
+  },
+)
 watch(isOpen, (v) => emit('update:modelValue', v))
 
 const renderPreview = (key) => {

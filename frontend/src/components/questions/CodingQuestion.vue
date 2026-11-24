@@ -7,9 +7,7 @@
         <q-icon name="code" size="14px" class="q-mr-xs" />
         {{ languageLabel }}
       </q-badge>
-      <span class="text-caption text-grey-7">
-        Tulis kode, lalu sistem uji otomatis.
-      </span>
+      <span class="text-caption text-grey-7"> Tulis kode, lalu sistem uji otomatis. </span>
     </div>
 
     <!-- Test cases (non-hidden) -->
@@ -36,12 +34,20 @@
 
     <!-- Code editor -->
     <div class="coding-editor">
-      <div class="text-caption text-weight-bold text-grey-7 q-mb-xs text-uppercase">
-        Kode Anda
-      </div>
-      <q-input :model-value="currentCode" type="textarea" outlined autogrow :input-style="inputStyle"
-        class="coding-input" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"
-        @update:model-value="onCodeChange">
+      <div class="text-caption text-weight-bold text-grey-7 q-mb-xs text-uppercase">Kode Anda</div>
+      <q-input
+        :model-value="currentCode"
+        type="textarea"
+        outlined
+        autogrow
+        :input-style="inputStyle"
+        class="coding-input"
+        spellcheck="false"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        @update:model-value="onCodeChange"
+      >
         <template v-slot:prepend>
           <q-icon name="terminal" color="primary" />
         </template>
@@ -77,7 +83,7 @@ const LANG_LABELS = {
 }
 
 const languageLabel = computed(
-  () => LANG_LABELS[props.question.language] || (props.question.language || 'Code'),
+  () => LANG_LABELS[props.question.language] || props.question.language || 'Code',
 )
 
 const visibleTestCases = computed(() => {
