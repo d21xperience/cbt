@@ -17,6 +17,8 @@ type QuestionRepository interface {
 	CreateQuestion(ctx context.Context, q *domain.Question) error
 	UpdateQuestion(ctx context.Context, q *domain.Question) error
 	DeleteQuestion(ctx context.Context, id string) error
+	DeleteQuestionsByExamID(ctx context.Context, examID string) error
+	GetQuestionByID(ctx context.Context, id string) (*domain.Question, error)
 }
 
 // AnswerRepository untuk buffer jawaban real-time (Redis)

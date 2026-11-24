@@ -78,11 +78,17 @@
             <div class="col">
               <div class="row items-center q-gutter-xs q-mb-sm">
                 <q-badge :color="q.question_type === 'PG' ? 'blue' : 'orange'" :label="q.question_type" />
-                <q-badge outline color="primary" :label="`Skor ${q.score}`" />
+                <!-- Input Skor Realtime -->
+                <q-input v-model.number="q.score" type="number" dense outlined style="width: 80px;"
+                  input-class="text-caption text-center q-py-none" hide-bottom-space bg-color="white">
+                  <template v-slot:prepend><q-icon name="stars" size="xs" color="primary" /></template>
+                </q-input>
               </div>
               <QuestionPreviewInline :question="q" class="q-mt-sm" />
             </div>
             <div class="column q-gutter-xs">
+              <!-- <q-badge :color="q.question_type === 'PG' ? 'blue' : 'orange'" :label="q.question_type" /> -->
+              <q-badge outline color="primary" :label="`Skor ${q.score}`" />
               <q-btn flat round dense icon="edit" color="primary" @click="openEdit(q)">
                 <q-tooltip>Edit</q-tooltip>
               </q-btn>
@@ -96,10 +102,7 @@
     </div>
 
     <!-- Dialog -->
-    <QuestionEditDialog
-      :questions="questions"
-      :editing-id="editingId"
-      @load-question="openEdit"
+    <QuestionEditDialog :questions="questions" :editing-id="editingId" @load-question="openEdit"
       @create-new="openCreate" v-model="dialogOpen" :is-editing="isEditing" :initial-form="initialForm"
       :submitting="submitting" @submit="submitForm" @cancel="closeDialog" />
   </q-page>

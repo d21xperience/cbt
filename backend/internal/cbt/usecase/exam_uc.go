@@ -769,3 +769,20 @@ func (uc *ExamUseCase) EnsureParticipantSession(ctx context.Context, participant
 	}
 	return nil
 }
+
+// GetQuestionByID — ambil 1 soal untuk editor.
+func (uc *ExamUseCase) GetQuestionByID(ctx context.Context, id string) (*domain.Question, error) {
+	return uc.questionRepo.GetQuestionByID(ctx, id)
+}
+
+// DeleteQuestionsByExamID — hapus semua soal dalam satu ujian.
+func (uc *ExamUseCase) DeleteQuestionsByExamID(ctx context.Context, examID string) error {
+	if err := uc.questionRepo.DeleteQuestionsByExamID(ctx, examID); err != nil {
+		return err
+	}
+	// Invalidate cache agar soal yang dihapus tidak tersisa di memory
+	uc.mu.Lock()
+	delete(uc.activeQuestions, examID)
+	uc.mu.Unlock()
+	return nil
+}

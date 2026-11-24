@@ -11,16 +11,22 @@
           Pilih jenis ujian → mata pelajaran → kelas untuk mengelola soal.
         </div>
       </div>
-      <div class="row q-gutter-sm">
+      <!-- <div class="row q-gutter-sm">
         <template v-if="selectedExamType">
           <q-chip color="primary" text-color="white" icon="assignment" class="text-weight-bold">
             {{ selectedExamType.kode }} — {{ selectedExamType.nama }}
           </q-chip>
-          <q-btn outline color="primary" icon="swap_horiz" label="Ganti Jenis" no-caps @click="changeExamType" />
+          <q-btn
+            outline
+            color="primary"
+            icon="swap_horiz"
+            label="Ganti Jenis"
+            no-caps
+            @click="changeExamType"
+          />
         </template>
-        <q-btn v-else color="primary" icon="assignment" label="Pilih Jenis Ujian" no-caps
-          @click="examTypePickerOpen = true" />
-      </div>
+<q-btn v-else color="primary" icon="assignment" label="Pilih Jenis Ujian" no-caps @click="examTypePickerOpen = true" />
+</div> -->
     </div>
 
     <!-- Error banner -->
@@ -44,7 +50,6 @@
 
     <!-- STATE 2: Sudah pilih jenis ujian -->
     <template v-else>
-      <!-- Picker Bar: Mata Pelajaran -->
       <!-- Picker Bar: Tingkat & Kelas -->
       <q-card flat bordered class="q-mb-md bg-white">
         <q-card-section class="row q-col-gutter-md items-end">
@@ -78,30 +83,26 @@
           <q-icon name="filter_list" size="60px" color="grey-4" />
           <div class="text-h6 q-mt-md">Pilih Tingkat atau Kelas</div>
           <div class="text-caption q-mt-sm">
-            Pilih tingkat (10, 11, 12) atau kelas spesifik untuk melihat daftar mata pelajaran.
+            Pilih tingkat (10, 11, 12).
           </div>
         </q-card-section>
       </q-card>
 
-      <!-- STATE 2a: Belum pilih mapel -->
-      <!-- <q-card v-if="!selectedSubjectId" flat bordered class="bg-white">
-        <q-card-section class="text-center q-pa-xl text-grey-6">
-          <q-icon name="menu_book" size="60px" color="grey-4" />
-          <div class="text-h6 q-mt-md">Pilih Mata Pelajaran</div>
-          <div class="text-caption q-mt-sm">
-            Setelah memilih mata pelajaran, daftar kelas yang mengikuti akan muncul.
-          </div>
-        </q-card-section>
-      </q-card> -->
-
       <!-- STATE 2b: Mapel sudah dipilih -->
       <SubjectQuestionTable v-else :rows="subjectTable" :loading="loading" :stats="stats" @edit="onEdit"
-        @preview="onPreview" @delete="onDelete" />
+        @preview="onPreview" @delete="onDelete" @import="onImport" />
     </template>
 
     <!-- Exam Type Picker Dialog -->
     <ExamTypePickerDialog v-model="examTypePickerOpen" :exam-types="examTypes" :selected-id="examTypeId"
       @select="selectExamType" />
+
+    <!-- Question Preview Dialog -->
+    <QuestionPreviewDialog v-model="previewDialogOpen" :exam-id="previewExamId" :exam-title="previewExamTitle" />
+
+    <!-- Question Import Dialog -->
+    <QuestionImportDialog v-model="importDialogOpen" :exam-id="importExamId" :exam-title="importExamTitle"
+      @success="onImportSuccess" />
   </q-page>
 </template>
 
@@ -110,12 +111,26 @@ import { useQuasar } from 'quasar'
 import { useQuestionsV2 } from '@/composables/admin/useQuestionsV2'
 import ExamTypePickerDialog from '@/components/admin/ExamTypePickerDialog.vue'
 import SubjectQuestionTable from '@/components/admin/SubjectQuestionTable.vue'
+import QuestionPreviewDialog from '@/components/admin/QuestionPreviewDialog.vue'
+import QuestionImportDialog from '@/components/admin/QuestionImportDialog.vue'
 import { useRouter } from 'vue-router'
 import { useAcademicStore } from '@/stores/academic'
 import { ExamService } from '@/services/admin/ExamService'
+import { ClassService } from '@/services/admin/ClassService'
+import { ref, onMounted } from 'vue'
 
 const router = useRouter()
 const $q = useQuasar()
+const academicStore = useAcademicStore()
+
+const classes = ref([])
+const previewDialogOpen = ref(false)
+const previewExamId = ref(null)
+const previewExamTitle = ref('')
+
+const importDialogOpen = ref(false)
+const importExamId = ref(null)
+const importExamTitle = ref('')
 
 const {
   loading,
@@ -123,7 +138,6 @@ const {
   examTypes,
   examTypeId,
   classOptions,
-  // selectedClass,
   selectedTingkat,
   selectedClassId,
   examTypePickerOpen,
@@ -131,14 +145,20 @@ const {
   subjectTable,
   stats,
   selectExamType,
-  changeExamType,
+  // changeExamType,
   selectTingkat,
   onClassChange,
 } = useQuestionsV2()
 
-const academicStore = useAcademicStore()
+onMounted(async () => {
+  try {
+    const res = await ClassService.list()
+    classes.value = Array.isArray(res?.data?.data) ? res.data.data : []
+  } catch (err) {
+    console.warn('Gagal load kelas untuk fallback:', err)
+  }
+})
 
-// ── Aksi
 const onEdit = async (row) => {
   if (row.exam_id) {
     router.push({ name: 'admin-question-editor', params: { examId: row.exam_id } })
@@ -146,35 +166,120 @@ const onEdit = async (row) => {
   }
 
   try {
+    const classIdsInTingkat = classes.value
+      .filter((c) => String(c.tingkat) === String(row.tingkat))
+      .map((c) => c.id)
+
+    const classIdToUse = row.class_id || (classIdsInTingkat.length > 0 ? classIdsInTingkat[0] : null)
+
+    if (!classIdToUse) {
+      $q.notify({ type: 'negative', message: 'Tidak ada kelas yang terdaftar di tingkat ini.' })
+      return
+    }
+
     const res = await ExamService.findOrCreate({
       jenis_ujian_id: examTypeId.value,
       subject_id: row.subject_id,
-      class_id: row.class_id, // Diambil dari baris tabel
+      class_id: classIdToUse,
       academic_period_id: academicStore.active_period_id,
     })
+
     const exam = res?.data?.data
     if (exam?.id) {
       router.push({ name: 'admin-question-editor', params: { examId: exam.id } })
     }
   } catch (err) {
-    $q.notify({ type: 'negative', message: `Gagal membuka editor. \n ${err}` })
+    const msg = err?.response?.data?.message || err.message
+    $q.notify({ type: 'negative', message: `Gagal membuka editor. \n ${msg}` })
   }
 }
 
 const onPreview = (row) => {
-  $q.notify({ type: 'info', icon: 'construction', message: `Preview soal "${row.nama}" akan tersedia di Fase 2b.` })
+  if (!row.exam_id) {
+    $q.notify({
+      type: 'warning',
+      icon: 'warning',
+      message: `Belum ada soal untuk mata pelajaran "${row.nama}". Silakan buat soal terlebih dahulu.`,
+    })
+    return
+  }
+  previewExamId.value = row.exam_id
+  previewExamTitle.value = `${row.nama} (Tingkat ${row.tingkat})`
+  previewDialogOpen.value = true
+}
+
+const onImport = async (row) => {
+  // Jika belum ada exam_id, kita perlu membuat exam terlebih dahulu via findOrCreate
+  if (!row.exam_id) {
+    try {
+      const classIdsInTingkat = classes.value
+        .filter((c) => String(c.tingkat) === String(row.tingkat))
+        .map((c) => c.id)
+
+      const classIdToUse = row.class_id || (classIdsInTingkat.length > 0 ? classIdsInTingkat[0] : null)
+
+      if (!classIdToUse) {
+        $q.notify({ type: 'negative', message: 'Tidak ada kelas yang terdaftar di tingkat ini.' })
+        return
+      }
+
+      const res = await ExamService.findOrCreate({
+        jenis_ujian_id: examTypeId.value,
+        subject_id: row.subject_id,
+        class_id: classIdToUse,
+        academic_period_id: academicStore.active_period_id,
+      })
+
+      const exam = res?.data?.data
+      if (exam?.id) {
+        importExamId.value = exam.id
+        importExamTitle.value = `${row.nama} (Tingkat ${row.tingkat})`
+        importDialogOpen.value = true
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || err.message
+      $q.notify({ type: 'negative', message: `Gagal menyiapkan import. \n ${msg}` })
+    }
+    return
+  }
+
+  // Jika sudah ada exam_id, langsung buka
+  importExamId.value = row.exam_id
+  importExamTitle.value = `${row.nama} (Tingkat ${row.tingkat})`
+  importDialogOpen.value = true
+}
+
+const onImportSuccess = () => {
+  // Trigger reload data tabel
+  window.location.reload()
 }
 
 const onDelete = (row) => {
+  if (!row.exam_id) {
+    $q.notify({
+      type: 'warning',
+      icon: 'warning',
+      message: `Belum ada soal yang bisa dihapus untuk "${row.nama}".`,
+    })
+    return
+  }
+
   $q.dialog({
-    title: 'Hapus Soal',
-    message: `Hapus semua soal untuk <b>${row.nama}</b> di kelas <b>${row.class_nama}</b>?`,
+    title: 'Hapus Semua Soal',
+    message: `Hapus <b>semua soal</b> untuk mata pelajaran <b>${row.nama}</b> (Tingkat ${row.tingkat})?<br/><br/><span class="text-negative">Tindakan ini tidak dapat dibatalkan.</span>`,
     html: true,
     cancel: { label: 'Batal', flat: true },
-    ok: { label: 'Hapus', color: 'negative', flat: true },
+    ok: { label: 'Hapus Semua', color: 'negative' },
     persistent: true,
-  }).onOk(() => {
-    $q.notify({ type: 'info', message: 'Fitur hapus soal akan tersedia di Fase 2b.' })
+  }).onOk(async () => {
+    try {
+      await ExamService.deleteQuestionsByExam(row.exam_id)
+      $q.notify({ type: 'positive', message: `Semua soal untuk "${row.nama}" berhasil dihapus.` })
+      window.location.reload()
+    } catch (err) {
+      const msg = err?.response?.data?.error || err.message
+      $q.notify({ type: 'negative', message: `Gagal menghapus: ${msg}` })
+    }
   })
 }
 </script>

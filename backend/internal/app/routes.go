@@ -47,6 +47,7 @@ func newCBTHandler(infra *Infrastructure) *cbtHttp.CBTHandler {
 	d := infra.HandlerDeps
 	// Buat keahlianDB dari PlatformDB (shared platform-level)
 	keahlianDB := platformRepo.NewKeahlianDB(infra.PlatformDB)
+
 	handler := cbtHttp.NewCBTHandler(
 		d.SchedulingUC,
 		d.AdminLoginUC,
@@ -61,8 +62,9 @@ func newCBTHandler(infra *Infrastructure) *cbtHttp.CBTHandler {
 		d.PaymentUC,
 		keahlianDB,
 	)
+
 	// Attach factory untuk tenant-scoped handlers (Phase 3A migration path)
-	handler.SetFactory(infra.Factory, infra.TenantUC, infra.PlatformUser, infra.PlatformKeahlian)
+	handler.SetFactory(infra.Factory, infra.TenantUC, infra.PlatformUser, infra.PlatformKeahlian, infra.PlatformAdminDB)
 	log.Info().Msg("✅ Handler + factory siap")
 
 	return handler
@@ -110,6 +112,18 @@ func registerPlatformRoutes(api fiber.Router, handler *cbtHttp.CBTHandler) {
 		middleware.RequireRole("SUPER_ADMIN"),
 		middleware.RateLimiter(middleware.RateGeneral),
 		handler.HandleSuperSetSyncLock,
+	)
+
+	// ── FASE 3: Admin management
+	platformPub.Get("/schools/:tenant_id/admins",
+		middleware.RequireRole("SUPER_ADMIN"),
+		middleware.RateLimiter(middleware.RateGeneral),
+		handler.HandleSuperListAdmins,
+	)
+	platformPub.Post("/schools/:tenant_id/admin/reset-password",
+		middleware.RequireRole("SUPER_ADMIN"),
+		middleware.RateLimiter(middleware.RateGeneral),
+		handler.HandleSuperResetAdminPassword,
 	)
 
 	// === NEW BE-P1: Super admin approval queue ===
@@ -219,15 +233,21 @@ func registerTenantRoutes(tenantAPI fiber.Router, handler *cbtHttp.CBTHandler, i
 }
 
 func registerAdminRoutes(admin fiber.Router, h *cbtHttp.CBTHandler) {
+	admin.Get("/dashboard/stats", h.HandleDashboardStats)
+	// ===============================================
+	// PAYMENT
+	// ===============================================
 	admin.Get("/payments/blocked", h.HandleListBlockedPayments)
 	admin.Post("/payments/block", h.HandleBlockPayment)
 	admin.Post("/payments/unblock", h.HandleUnblockPayment)
 	admin.Post("/makeup/approve", h.HandleApproveMakeup)
+	// ===============================================
+	// SYNCRON
+	// ===============================================
 	admin.Post("/sync", h.HandleSync)
-	admin.Get("/dashboard/stats", h.HandleDashboardStats)
-	admin.Get("/exams", h.HandleListExams)
-	admin.Post("/exams/find-or-create", h.HandleFindOrCreateExam)
-	admin.Delete("/exams/:id", h.HandleDeleteExam)
+	// ===============================================
+	// SESSION
+	// ===============================================
 	admin.Post("/session", h.HandleCreateSession)
 	admin.Get("/sessions", h.HandleListSessions)
 	admin.Get("/sessions/:sessionId/token", h.HandleGetCurrentToken)
@@ -243,14 +263,20 @@ func registerAdminRoutes(admin fiber.Router, h *cbtHttp.CBTHandler) {
 	admin.Post("/sessions/:sessionId/end", h.HandleEndSession)
 	admin.Post("/sessions/:sessionId/force-submit", h.HandleForceSubmitSession)
 	admin.Post("/archive", h.HandleArchive)
-	admin.Post("/participants/import-external", h.HandleImportExternalCSV)
-	admin.Get("/exams/:id", h.HandleGetExam)
+	// ===============================================
+	// QUESTIONS
+	// ===============================================
 	admin.Get("/questions", h.HandleListQuestions)
+	admin.Get("/questions/:id", h.HandleGetQuestionByID)
 	admin.Post("/questions", h.HandleCreateQuestion)
+	admin.Post("/questions/import", h.HandleImportQuestions)
 	admin.Put("/questions/:id", h.HandleUpdateQuestion)
 	admin.Delete("/questions/:id", h.HandleDeleteQuestion)
-
+	admin.Delete("/exams/:id/questions", h.HandleDeleteQuestionsByExam)
 	admin.Get("/questions/template", h.HandleDownloadTemplate)
+	// ===============================================
+	// CREDETIALS
+	// ===============================================
 	admin.Post("/credentials/generate", h.HandleGenerateCredentials)
 	admin.Get("/credentials/view", h.HandleViewCredentials)
 	admin.Get("/proctors", h.HandleListProctors)
@@ -268,119 +294,104 @@ func registerAdminRoutes(admin fiber.Router, h *cbtHttp.CBTHandler) {
 	admin.Get("/students/template", h.HandleStudentsTemplate)
 	admin.Post("/students/import", h.HandleImportStudents)
 
-	// BCR-3: Master Kelas
-
-	admin.Get("/classes", h.HandleListClasses)
-
 	// FASE C.1: Academic Periods
-
 	admin.Get("/academic-periods", h.HandleListAcademicPeriods)
-
 	admin.Post("/academic-periods", h.HandleCreateAcademicPeriod)
-
 	admin.Post("/academic-periods/:id/activate", h.HandleActivateAcademicPeriod)
-
 	// BCR-4: Master Subjects
-
 	admin.Get("/subjects", h.HandleListSubjects)
 
 	// BCR-5: Master Exam Types
-
 	admin.Get("/exam-types", h.HandleListExamTypes)
-
-	// BCR-6: Master Lessons (Pembelajaran)
-
-	admin.Get("/lessons", h.HandleListLessons)
-
-	// BCR-7: Exam Schedules
-
-	admin.Get("/exam-schedules", h.HandleListExamSchedules)
-
-	admin.Post("/exam-schedules", h.HandleCreateExamSchedule)
-
-	admin.Put("/exam-schedules/:id", h.HandleUpdateExamSchedule)
-
-	admin.Delete("/exam-schedules/:id", h.HandleDeleteExamSchedule)
-
-	admin.Delete("/exam-schedules/:id", h.HandleDeleteExamSchedule)
-
-	admin.Post("/lessons", h.HandleCreateLesson)
-
-	admin.Put("/lessons/:id", h.HandleUpdateLesson)
-
-	admin.Delete("/lessons/:id", h.HandleDeleteLesson)
-
-	admin.Get("/lessons/template", h.HandleLessonsTemplate)
-
-	admin.Post("/lessons/import", h.HandleImportLessons)
-
 	admin.Post("/exam-types", h.HandleCreateExamType)
-
+	admin.Get("/exam-types/template", h.HandleExamTypesTemplate)
+	admin.Post("/exam-types/import", h.HandleImportExamTypes)
 	admin.Put("/exam-types/:id", h.HandleUpdateExamType)
-
 	admin.Delete("/exam-types/:id", h.HandleDeleteExamType)
 
-	admin.Get("/exam-types/template", h.HandleExamTypesTemplate)
+	// BCR-7: Exam Schedules
+	admin.Get("/exam-schedules", h.HandleListExamSchedules)
+	admin.Post("/exam-schedules", h.HandleCreateExamSchedule)
+	admin.Put("/exam-schedules/:id", h.HandleUpdateExamSchedule)
+	// EXAM SCHEDULE
+	admin.Delete("/exam-schedules/:id", h.HandleDeleteExamSchedule)
+	admin.Delete("/exam-schedules/:id", h.HandleDeleteExamSchedule)
+	admin.Get("/exams/:id", h.HandleGetExam)
+	admin.Get("/exams", h.HandleListExams)
+	admin.Post("/exams/find-or-create", h.HandleFindOrCreateExam)
+	admin.Post("/exam-mode", h.HandleToggleExamMode)
 
-	admin.Post("/exam-types/import", h.HandleImportExamTypes)
-
+	// LESSON
+	admin.Get("/lessons", h.HandleListLessons)
+	admin.Post("/lessons", h.HandleCreateLesson)
+	admin.Get("/lessons/template", h.HandleLessonsTemplate)
+	admin.Post("/lessons/import", h.HandleImportLessons)
+	admin.Put("/lessons/:id", h.HandleUpdateLesson)
+	admin.Delete("/lessons/:id", h.HandleDeleteLesson)
+	// ===============================================
+	// Subject
+	// ===============================================
 	admin.Post("/subjects", h.HandleCreateSubject)
-
 	admin.Put("/subjects/:id", h.HandleUpdateSubject)
-
 	admin.Delete("/subjects/:id", h.HandleDeleteSubject)
-
 	admin.Get("/subjects/template", h.HandleSubjectsTemplate)
-
 	admin.Post("/subjects/import", h.HandleImportSubjects)
 
+	// ===============================================
+	// TEACHER
+	// ===============================================
 	admin.Get("/teachers", h.HandleListTeachers)
 	admin.Post("/teachers", h.HandleCreateTeacher)
-
 	// Rute statis HARUS di atas rute dinamis (:id) di Fiber
 	admin.Get("/teachers/template", h.HandleTeachersTemplate)
 	admin.Post("/teachers/import", h.HandleImportTeachers)
-
 	// Rute dinamis
 	admin.Put("/teachers/:id", h.HandleUpdateTeacher)
 	admin.Post("/teachers/:id/reset-password", h.HandleResetTeacherPassword)
 	admin.Delete("/teachers/:id", h.HandleDeleteTeacher)
 
+	// ===============================================
+	// ROOMS
+	// ===============================================
 	admin.Put("/rooms/:id", h.HandleUpdateRoom)
-
 	admin.Delete("/rooms/:id", h.HandleDeleteRoom)
-
 	admin.Get("/rooms", h.HandleListRooms)
-
 	admin.Post("/rooms", h.HandleCreateRoom)
-
+	// ===============================================
+	// CLASS
+	// ===============================================
+	admin.Get("/classes", h.HandleListClasses)
 	admin.Post("/classes", h.HandleCreateClass)
-
 	admin.Put("/classes/:id", h.HandleUpdateClass)
-
 	admin.Delete("/classes/:id", h.HandleDeleteClass)
-
 	admin.Get("/classes/template", h.HandleClassesTemplate)
-
 	admin.Post("/classes/import", h.HandleImportClasses)
 
+	// ===============================================
 	// BCR-2: School Profile
-
+	// ===============================================
 	admin.Get("/school-profile", h.HandleGetSchoolProfile)
-
 	admin.Put("/school-profile", h.HandleUpdateSchoolProfile)
 
+	// ===============================================
 	// BCR-1: Participants (derived)
+	// ===============================================
 	admin.Get("/participants", h.HandleListParticipants)
+	admin.Post("/participants/:id/reset-password", h.HandleResetParticipantPassword)
+	admin.Post("/participants/import-external", h.HandleImportExternalCSV)
+	// ===============================================
+	// CARDS
+	// ===============================================
 	admin.Get("/cards", h.HandleGetExamCards)
-	admin.Post("/exam-mode", h.HandleToggleExamMode)
 	admin.Post("/cards/:id/mark-printed", h.HandleMarkCardPrinted)
 	admin.Post("/cards/:nis/revoke", h.HandleRevokeCard)
 	admin.Post("/cards/:nis/reset-device", h.HandleResetDevice)
 	admin.Post("/cards/:nis/generate-qr", h.HandleGenerateQrToken)
+	// ===============================================
+	// CARD SETINGS
+	// ===============================================
 	admin.Get("/settings/print-preferences", h.HandleGetPrintPreferences)
 	admin.Put("/settings/print-preferences", h.HandleUpdatePrintPreferences)
-	admin.Post("/participants/:id/reset-password", h.HandleResetParticipantPassword)
 }
 
 func registerProctorRoutes(proctor fiber.Router, h *cbtHttp.CBTHandler) {

@@ -25,6 +25,31 @@ const buildEmptyForm = () => ({
 })
 const EMPTY_FORM = buildEmptyForm()
 
+// ── Helper Parsing JSON dari Database ──
+const parseJSONField = (val, fallback = []) => {
+  if (!val) return fallback
+  if (typeof val === 'string') {
+    try {
+      return JSON.parse(val)
+    } catch {
+      return fallback
+    }
+  }
+  return val
+}
+
+const parseQuestions = (list) => {
+  if (!Array.isArray(list)) return []
+  return list.map((q) => ({
+    ...q,
+    options: parseJSONField(q.options, []),
+    pairs: parseJSONField(q.pairs, []),
+    statements: parseJSONField(q.statements, []),
+    accepted_answers: parseJSONField(q.accepted_answers, []),
+    test_cases: parseJSONField(q.test_cases, []),
+  }))
+}
+
 export function useQuestionEditor() {
   const $q = useQuasar()
   const route = useRoute()
@@ -71,7 +96,9 @@ export function useQuestionEditor() {
     try {
       const res = await QuestionService.listQuestions(examId.value)
       const data = res?.data?.data ?? res?.data
-      questions.value = Array.isArray(data) ? data : []
+
+      // Parsing data agar options menjadi Array yang siap dipakai komponen
+      questions.value = parseQuestions(data)
       errorState.value = null
     } catch (err) {
       const status = err?.response?.status
@@ -97,16 +124,35 @@ export function useQuestionEditor() {
     isEditing.value = true
     editingId.value = row.id
 
-    // Normalize options: dukung array baru & objek lama { A, B, C, D }
+    // Normalize options
     let opts = []
     if (Array.isArray(row.options)) {
-      opts = row.options.map((o) => ({
-        id: o.id || `opt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        text: o.text || '',
-        media_url: o.media_url || null,
-        is_correct: !!o.is_correct || o.id === row.correct_option_id,
-        is_other: !!o.is_other,
-      }))
+      opts = row.options.map((o, idx) => {
+        // Cek kunci jawaban dari berbagai kemungkinan format
+        let isCorr = false
+        if (
+          o.is_correct === true ||
+          o.is_correct === 'true' ||
+          o.is_correct === 1 ||
+          o.is_correct === '1'
+        ) {
+          isCorr = true
+        } else if (row.correct_option) {
+          // Fallback: cocokkan huruf (A, B, C) atau ID opsi
+          const letter = String.fromCharCode(65 + idx)
+          if (row.correct_option === letter || row.correct_option === o.id) {
+            isCorr = true
+          }
+        }
+
+        return {
+          id: o.id || `opt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          text: o.text || '',
+          media_url: o.media_url || null,
+          is_correct: isCorr,
+          is_other: !!o.is_other,
+        }
+      })
     } else if (row.options && typeof row.options === 'object') {
       // Legacy: { A: 'text', B: 'text', ... }
       opts = Object.entries(row.options).map(([key, text]) => ({

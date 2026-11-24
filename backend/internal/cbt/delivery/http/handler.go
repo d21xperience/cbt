@@ -11,6 +11,7 @@ import (
 	platformUsecase "cbt-engine-service/internal/platform/usecase"
 	proctoringUsecase "cbt-engine-service/internal/proctoring/usecase"
 	schedulingDomain "cbt-engine-service/internal/scheduling/domain"
+	schedRepo "cbt-engine-service/internal/scheduling/repository"
 	schedulingUsecase "cbt-engine-service/internal/scheduling/usecase"
 	"cbt-engine-service/internal/tenant"
 	tenantPkg "cbt-engine-service/internal/tenant"
@@ -32,14 +33,14 @@ import (
 )
 
 type CBTHandler struct {
-	factory        *tenant.Factory
-	tenantUC       *platformUsecase.TenantUseCase
-	platformUserDB *platformRepo.PlatformUserDB
-
+	factory           *tenant.Factory
+	tenantUC          *platformUsecase.TenantUseCase
+	platformUserDB    *platformRepo.PlatformUserDB
+	platformAdminDB   *schedRepo.AdminDB // FASE 3: admin di platform DB
 	schedulingUC      *schedulingUsecase.SchedulingUseCase
 	adminLoginUC      *schedulingUsecase.AdminLoginUseCase
-	participantAuthUC *schedulingUsecase.ParticipantAuthUseCase // ← NEW
-	credentialsUC     *schedulingUsecase.CredentialsUseCase     // ← NEW
+	participantAuthUC *schedulingUsecase.ParticipantAuthUseCase
+	credentialsUC     *schedulingUsecase.CredentialsUseCase
 	examUC            *cbtUC.ExamUseCase
 	archiveUC         *archiveUsecase.ArchiveUseCase
 	proctoringUC      *proctoringUsecase.ProctoringUseCase
@@ -97,11 +98,15 @@ func (h *CBTHandler) SetFactory(
 	tenantUC *platformUsecase.TenantUseCase,
 	platformUserDB *platformRepo.PlatformUserDB,
 	keahlianDB *platformRepo.KeahlianDB,
+	platformAdminDB ...*schedRepo.AdminDB,
 ) {
 	h.factory = factory
 	h.tenantUC = tenantUC
 	h.platformUserDB = platformUserDB
 	h.keahlianDB = keahlianDB
+	if len(platformAdminDB) > 0 {
+		h.platformAdminDB = platformAdminDB[0]
+	}
 }
 
 type CreateSessionRequest struct {
@@ -502,7 +507,8 @@ func (h *CBTHandler) HandleImportExternalCSV(c *fiber.Ctx) error {
 	})
 }
 
-// HandleAdminLogin (Dummy: Hardcoded untuk testing. Di produksi hubungkan ke DB Admin)
+// HandleAdminLogin — login admin tenant.
+// FASE 3b: prioritas tenant DB (dev), fallback ke platform DB (tenant baru).
 func (h *CBTHandler) HandleAdminLogin(c *fiber.Ctx) error {
 	var req AdminLoginRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -534,10 +540,39 @@ func (h *CBTHandler) HandleAdminLogin(c *fiber.Ctx) error {
 		if tenantKey == "" {
 			tenantKey = "default"
 		}
+
+		// ── FASE 3b STEP 1: coba login di tenant DB dulu (kompatibilitas dev)
 		res, err := uc.AdminLoginUC.Login(c.Context(), tenantKey, req.Username, req.Password)
-		if err != nil {
+
+		// ── FASE 3b STEP 2: fallback ke platform DB jika gagal
+		if (err != nil || res == nil) && h.platformAdminDB != nil {
+			log.Printf("[Handler] Login tenant DB gagal, fallback ke platform DB (tenant=%s, err=%v)", tenantKey, err)
+
+			platformAdmin, pErr := h.platformAdminDB.FindByUsername(c.Context(), info.TenantID, req.Username)
+			if pErr != nil {
+				log.Printf("[Handler] platformAdminDB.FindByUsername error: %v", pErr)
+			} else if platformAdmin == nil {
+				log.Printf("[Handler] Admin '%s' tidak ditemukan di platform DB (tenant=%s)", req.Username, tenantKey)
+			} else if !platformAdmin.IsActive {
+				log.Printf("[Handler] Admin '%s' di platform DB tidak aktif", req.Username)
+			} else if bcrypt.CompareHashAndPassword([]byte(platformAdmin.PasswordHash), []byte(req.Password)) != nil {
+				log.Printf("[Handler] Password admin '%s' di platform DB salah", req.Username)
+			} else {
+				// Login sukses via platform DB
+				res = &schedulingUsecase.AdminLoginResult{
+					AdminID:  platformAdmin.ID,
+					Username: platformAdmin.Username,
+					Role:     platformAdmin.Role,
+					TenantID: platformAdmin.TenantID,
+				}
+				err = nil
+			}
+		}
+
+		if err != nil || res == nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Username atau password salah"})
 		}
+
 		if res.Role != "ADMIN" && res.Role != "SUPER_ADMIN" {
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 				"error": "Role tidak diizinkan di endpoint ini",
@@ -588,7 +623,7 @@ func (h *CBTHandler) HandleAdminLogin(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"token":     token,
 		"role":      res.Role,
-		"exam_mode": "", // Legacy fallback tidak mengambil exam_mode
+		"exam_mode": "",
 		"user": fiber.Map{
 			"id":        res.AdminID,
 			"username":  res.Username,
@@ -779,15 +814,45 @@ func (h *CBTHandler) HandleDownloadTemplate(c *fiber.Ctx) error {
 // admin.Post("/questions/import", h.HandleImportQuestions)
 
 func (h *CBTHandler) HandleImportQuestions(c *fiber.Ctx) error {
+	uc, err := h.factory.Usecases(c.UserContext())
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "tenant_db_unavailable"})
+	}
+
+	// 1. Cek apakah request berupa JSON (mode Paste)
+	if c.Get("Content-Type") == "application/json" || strings.Contains(c.Get("Content-Type"), "application/json") {
+		var req struct {
+			ExamID    string            `json:"exam_id"`
+			Questions []domain.Question `json:"questions"`
+		}
+		
+		if err := c.BodyParser(&req); err != nil {
+			return c.Status(400).JSON(fiber.Map{"error": "invalid_json_body", "detail": err.Error()})
+		}
+		if req.ExamID == "" || len(req.Questions) == 0 {
+			return c.Status(400).JSON(fiber.Map{"error": "validation_failed", "message": "exam_id dan questions wajib diisi"})
+		}
+
+		// Asumsi: ImportQuestionsFromPaste sudah ada di Usecase (dari audit sebelumnya)
+		count, errImport := uc.ExamUC.ImportQuestionsFromPaste(c.Context(), req.ExamID, req.Questions)
+		if errImport != nil {
+			return c.Status(500).JSON(fiber.Map{"error": errImport.Error()})
+		}
+
+		return c.JSON(fiber.Map{
+			"message":        "Import (Paste) berhasil",
+			"imported_count": count,
+		})
+	}
+
+	// 2. Fallback: Mode File Upload (CSV / Excel)
 	examID := c.FormValue("exam_id")
 	fileHeader, err := c.FormFile("file_soal")
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "File tidak ditemukan"})
+		return c.Status(400).JSON(fiber.Map{"error": "File tidak ditemukan atau Content-Type tidak dikenali"})
 	}
 
-	// Deteksi tipe file
 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
-
 	file, _ := fileHeader.Open()
 	defer file.Close()
 
@@ -796,9 +861,9 @@ func (h *CBTHandler) HandleImportQuestions(c *fiber.Ctx) error {
 
 	switch ext {
 	case ".csv":
-		count, errImport = h.examUC.ImportQuestionsFromCSV(c.Context(), examID, file)
+		count, errImport = uc.ExamUC.ImportQuestionsFromCSV(c.Context(), examID, file)
 	case ".xlsx", ".xls":
-		count, errImport = h.examUC.ImportQuestionsFromExcel(c.Context(), examID, file)
+		count, errImport = uc.ExamUC.ImportQuestionsFromExcel(c.Context(), examID, file)
 	default:
 		return c.Status(400).JSON(fiber.Map{"error": "Format file harus .csv atau .xlsx"})
 	}
@@ -808,7 +873,7 @@ func (h *CBTHandler) HandleImportQuestions(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"message":        "Import berhasil",
+		"message":        "Import (File) berhasil",
 		"format":         ext,
 		"imported_count": count,
 	})
@@ -1439,11 +1504,17 @@ func (h *CBTHandler) HandleProctorLogin(c *fiber.Ctx) error {
 	}
 
 	// ✅ Proctor login pakai SUBDOMAIN (DB query) bukan UUID
-	res, err := h.proctorUC.Login(c.Context(), info.Subdomain, req.Username, req.Password)
+	uc, err := h.factory.Usecases(c.UserContext())
+	if err != nil || uc.ProctorUC == nil {
+		log.Printf("[Handler] factory.Usecases (proctor-login): %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "tenant_db_unavailable",
+		})
+	}
+	res, err := uc.ProctorUC.Login(c.Context(), info.TenantID, req.Username, req.Password)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Username atau password salah"})
 	}
-
 	// ✅ JWT pakai UUID (untuk TenantGuard)
 	token, err := auth.GenerateTokenFull(res.ProctorID, res.Role, "", info.TenantID, 12*time.Hour)
 	if err != nil {

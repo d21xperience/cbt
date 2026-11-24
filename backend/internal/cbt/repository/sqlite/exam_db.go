@@ -299,3 +299,43 @@ func (r *ExamDB) DeleteQuestion(ctx context.Context, id string) error {
 	_, err := r.DB.ExecContext(ctx, `DELETE FROM questions WHERE id = ?`, id)
 	return err
 }
+
+// GetQuestionByID mengambil 1 soal spesifik berdasarkan ID (untuk editor).
+func (r *ExamDB) GetQuestionByID(ctx context.Context, id string) (*domain.Question, error) {
+	const q = `
+		SELECT id, exam_id, question_text,
+		       COALESCE(media_url, ''),
+		       COALESCE(options, '{}'),
+		       COALESCE(correct_option, ''),
+		       COALESCE(question_type, 'PG'),
+		       COALESCE(score, 10),
+		       COALESCE(rubric, ''),
+		       COALESCE(coding_category, ''),
+		       COALESCE(programming_lang, ''),
+		       COALESCE(coding_mode, '')
+		FROM questions
+		WHERE id = ?`
+
+	var res domain.Question
+	var optsStr string
+	err := r.DB.QueryRowContext(ctx, q, id).Scan(
+		&res.ID, &res.ExamID, &res.QuestionText,
+		&res.MediaURL, &optsStr, &res.CorrectOption,
+		&res.QuestionType, &res.Score, &res.Rubric,
+		&res.CodingCategory, &res.ProgrammingLang, &res.CodingMode,
+	)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	res.Options = json.RawMessage(optsStr)
+	return &res, nil
+}
+
+// DeleteQuestionsByExamID menghapus semua soal dalam satu ujian.
+func (r *ExamDB) DeleteQuestionsByExamID(ctx context.Context, examID string) error {
+	_, err := r.DB.ExecContext(ctx, `DELETE FROM questions WHERE exam_id = ?`, examID)
+	return err
+}
