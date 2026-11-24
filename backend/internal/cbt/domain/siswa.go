@@ -22,10 +22,10 @@ type Siswa struct {
 	Nama         string  `json:"nama"`
 	JenisKelamin string  `json:"jenis_kelamin"`
 	TanggalLahir string  `json:"tanggal_lahir,omitempty"`
+	PhotoURL     *string `json:"photo_url"`
 	KelasID      string  `json:"kelas_id"`
 	KelasNama    string  `json:"kelas_nama"`
-	Status       string  `json:"status"`
-	PhotoURL     *string `json:"photo_url"`
+	Tingkat      int     `json:"tingkat"`
 
 	// Field berikut di-inject saat read, tidak dari tabel siswa:
 	ExamPassword string `json:"exam_password,omitempty"` // decrypt dari participant_credentials
@@ -38,6 +38,7 @@ type SiswaFilter struct {
 	Search           string
 	KelasID          string
 	Status           string
+	Tingkat          string
 	AcademicYear     string
 	Semester         string
 	AcademicPeriodID string

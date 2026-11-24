@@ -30,9 +30,7 @@ func (r *SiswaDB) getActivePeriodID(ctx context.Context) string {
 	return id
 }
 
-const siswaCols = `id, nis, COALESCE(nisn, '') AS nisn, nama, jenis_kelamin,
-	COALESCE(tanggal_lahir, '') AS tanggal_lahir, kelas_id, kelas_nama,
-	status, photo_url, created_at, updated_at`
+const siswaCols = `id, nis, COALESCE(nisn, '') AS nisn, nama, jenis_kelamin, COALESCE(tanggal_lahir, '') AS tanggal_lahir, photo_url, created_at, updated_at`
 
 func (r *SiswaDB) scan(row interface{ Scan(...any) error }) (*domain.Siswa, error) {
 	var s domain.Siswa
@@ -40,7 +38,7 @@ func (r *SiswaDB) scan(row interface{ Scan(...any) error }) (*domain.Siswa, erro
 	var createdAt, updatedAt sql.NullTime
 	if err := row.Scan(
 		&s.ID, &s.NIS, &s.NISN, &s.Nama, &s.JenisKelamin, &s.TanggalLahir,
-		&s.KelasID, &s.KelasNama, &s.Status, &photoURL, &createdAt, &updatedAt,
+		&photoURL, &createdAt, &updatedAt,
 	); err != nil {
 		return nil, err
 	}
@@ -55,33 +53,43 @@ func (r *SiswaDB) List(ctx context.Context, f domain.SiswaFilter) ([]domain.Sisw
 	if periodID == "" {
 		periodID = r.getActivePeriodID(ctx)
 	}
+	if periodID == "" {
+		return nil, fmt.Errorf("list siswa: tidak ada academic_period aktif")
+	}
 
 	q := `
 		SELECT 
-			s.id, s.nis, COALESCE(s.nisn, '') AS nisn, s.nama, s.jenis_kelamin,
-			COALESCE(s.tanggal_lahir, '') AS tanggal_lahir,
-			COALESCE(cm.class_id, s.kelas_id) AS kelas_id,
-			COALESCE(c.nama, s.kelas_nama) AS kelas_nama,
-			s.status, s.photo_url, s.created_at, s.updated_at
-		FROM siswa s
-		INNER JOIN class_members cm ON cm.siswa_id = s.id AND cm.is_active = 1
-		LEFT JOIN classes c ON c.id = cm.class_id
-		WHERE cm.academic_period_id = ?`
+		s.id, s.nis, COALESCE(s.nisn, '') AS nisn, s.nama, s.jenis_kelamin,
+		COALESCE(s.tanggal_lahir, '') AS tanggal_lahir,
+		s.photo_url,
+		c.id AS class_id, c.nama AS class_nama, c.tingkat
+		FROM class_members cm
+		JOIN siswa s ON cm.siswa_id = s.id
+		JOIN classes c ON c.id = cm.class_id
+		WHERE cm.academic_period_id = ? AND cm.is_active = 1`
+
 	args := []any{periodID}
-	if f.Status != "" {
-		q += ` AND s.status = ?`
-		args = append(args, f.Status)
-	}
+
+	// Filter Kelas (jika dipilih dari dropdown)
 	if f.KelasID != "" {
-		q += ` AND COALESCE(cm.class_id, s.kelas_id) = ?`
+		q += ` AND cm.class_id = ?`
 		args = append(args, f.KelasID)
 	}
+
+	// ✅ Filter Tingkat (jika dipilih dari dropdown)
+	if f.Tingkat != "" {
+		q += ` AND c.tingkat = ?`
+		args = append(args, f.Tingkat)
+	}
+
+	// Filter Search (Nama/NIS/NISN)
 	if f.Search != "" {
 		q += ` AND (s.nama LIKE ? OR s.nis LIKE ? OR COALESCE(s.nisn,'') LIKE ?)`
 		like := "%" + f.Search + "%"
 		args = append(args, like, like, like)
 	}
-	q += ` ORDER BY s.nama ASC`
+
+	q += ` ORDER BY c.tingkat ASC, c.nama ASC, s.nama ASC`
 
 	rows, err := r.DB.QueryContext(ctx, q, args...)
 	if err != nil {
@@ -91,11 +99,21 @@ func (r *SiswaDB) List(ctx context.Context, f domain.SiswaFilter) ([]domain.Sisw
 
 	out := []domain.Siswa{}
 	for rows.Next() {
-		s, err := r.scan(rows)
-		if err != nil {
+		var s domain.Siswa
+		var photoURL sql.NullString
+
+		// Scan manual 10 kolom sesuai SELECT di atas
+		if err := rows.Scan(
+			&s.ID, &s.NIS, &s.NISN, &s.Nama, &s.JenisKelamin, &s.TanggalLahir,
+			&photoURL, &s.KelasID, &s.KelasNama, &s.Tingkat,
+		); err != nil {
 			return nil, err
 		}
-		out = append(out, *s)
+
+		if photoURL.Valid {
+			s.PhotoURL = &photoURL.String
+		}
+		out = append(out, s)
 	}
 	return out, rows.Err()
 }
@@ -138,20 +156,18 @@ func (r *SiswaDB) ExistsNISN(ctx context.Context, nisn string) (bool, error) {
 }
 
 func (r *SiswaDB) Create(ctx context.Context, s *domain.Siswa) error {
-	// ✅ FIX: class_members.academic_period_id HARUS mengikuti classes.academic_period_id.
-	//    Lookup SEBELUM BeginTx (HARD RULE #7: jangan query r.DB dalam tx).
 	var classPeriodID string
-	if s.KelasID != "" {
-		if err := r.DB.QueryRowContext(ctx,
-			`SELECT COALESCE(academic_period_id, '') FROM classes WHERE id = ?`,
-			s.KelasID,
-		).Scan(&classPeriodID); err != nil {
-			return fmt.Errorf("lookup class period: %w", err)
-		}
-		if classPeriodID == "" {
-			return fmt.Errorf("class %s has no academic_period_id", s.KelasID)
-		}
-	}
+	// if s.KelasID != "" {
+	// 	if err := r.DB.QueryRowContext(ctx,
+	// 		`SELECT COALESCE(academic_period_id, '') FROM classes WHERE id = ?`,
+	// 		s.KelasID,
+	// 	).Scan(&classPeriodID); err != nil {
+	// 		return fmt.Errorf("lookup class period: %w", err)
+	// 	}
+	// 	if classPeriodID == "" {
+	// 		return fmt.Errorf("class %s has no academic_period_id", s.KelasID)
+	// 	}
+	// }
 	periodID := classPeriodID
 	if periodID == "" {
 		// fallback: hanya untuk siswa tanpa kelas (jarang, tapi aman)
@@ -165,11 +181,11 @@ func (r *SiswaDB) Create(ctx context.Context, s *domain.Siswa) error {
 	defer tx.Rollback()
 
 	const q = `INSERT INTO siswa
-            (id, nis, nisn, nama, jenis_kelamin, tanggal_lahir, kelas_id, kelas_nama, status, photo_url)
-            VALUES (?, ?, NULLIF(?, ''), ?, ?, NULLIF(?, ''), ?, ?, ?, ?)`
+            (id, nis, nisn, nama, jenis_kelamin, tanggal_lahir,  photo_url)
+            VALUES (?, ?, NULLIF(?, ''), ?, ?, NULLIF(?, ''), ?)`
 	if _, err = tx.ExecContext(ctx, q,
 		s.ID, s.NIS, s.NISN, s.Nama, s.JenisKelamin, s.TanggalLahir,
-		s.KelasID, s.KelasNama, s.Status, s.PhotoURL,
+		s.PhotoURL,
 	); err != nil {
 		return err
 	}
@@ -210,7 +226,7 @@ func (r *SiswaDB) Update(ctx context.Context, s *domain.Siswa) error {
 		WHERE id = ?`
 	_, err = tx.ExecContext(ctx, q,
 		s.NIS, s.NISN, s.Nama, s.JenisKelamin, s.TanggalLahir,
-		s.KelasID, s.KelasNama, s.Status, s.PhotoURL, s.ID,
+		s.KelasID, s.KelasNama, s.PhotoURL, s.ID,
 	)
 	if err != nil {
 		return err
@@ -257,38 +273,82 @@ func (r *SiswaDB) Count(ctx context.Context, status string) (int, error) {
 }
 
 // BulkCreate — untuk import CSV (single transaction).
+// BulkCreate — untuk import CSV (single transaction, atomik).
+// Alur: siswa + class_members dalam satu TX.
+// - Resolve active period di dalam repo (Q1: signature tetap).
+// - Skip total baris tanpa KelasID (Q2b).
+// - Skip duplicate NIS via ON CONFLICT (Q5) + safety net UNIQUE.
+// - UPSERT class_members: jika sudah aktif di period sama, UPDATE kelasnya (Q3).
 func (r *SiswaDB) BulkCreate(ctx context.Context, list []domain.Siswa) (int, error) {
 	if len(list) == 0 {
 		return 0, nil
 	}
+
+	// Resolve active period SEBELUM BeginTx (hindari lock/deadlock, sama pola Update()).
+	periodID := r.getActivePeriodID(ctx)
+	if periodID == "" {
+		return 0, fmt.Errorf("bulk_create: tidak ada academic_period aktif")
+	}
+
 	tx, err := r.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return 0, err
 	}
 	defer tx.Rollback()
 
-	stmt, err := tx.PrepareContext(ctx, `INSERT INTO siswa
-		(id, nis, nisn, nama, jenis_kelamin, tanggal_lahir, kelas_id, kelas_nama, status, photo_url)
-		VALUES (?, ?, NULLIF(?, ''), ?, ?, NULLIF(?, ''), ?, ?, ?, ?)`)
+	// Prepared: INSERT siswa. Skip duplicate NIS (Q5).
+	stmtSiswa, err := tx.PrepareContext(ctx, `INSERT INTO siswa
+		(id, nis, nisn, nama, jenis_kelamin, tanggal_lahir, photo_url)
+		VALUES (?, ?, NULLIF(?, ''), ?, ?, NULLIF(?, ''), NULLIF(?, ''))
+		ON CONFLICT(nis) DO NOTHING`)
 	if err != nil {
 		return 0, err
 	}
-	defer stmt.Close()
+	defer stmtSiswa.Close()
+
+	// Prepared: UPSERT class_members (Q3: update kelas jika sudah ada aktif di period sama).
+	stmtCM, err := tx.PrepareContext(ctx, `INSERT INTO class_members
+		(id, siswa_id, class_id, academic_period_id, is_active, created_at, updated_at)
+		VALUES (?, ?, ?, ?, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+		ON CONFLICT(siswa_id, academic_period_id) WHERE is_active = 1
+		DO UPDATE SET class_id = excluded.class_id, updated_at = CURRENT_TIMESTAMP`)
+	if err != nil {
+		return 0, err
+	}
+	defer stmtCM.Close()
 
 	count := 0
 	for _, s := range list {
-		if _, err := stmt.ExecContext(ctx,
+		// Q2b: skip total siswa tanpa kelas.
+		if s.KelasID == "" {
+			continue
+		}
+
+		res, err := stmtSiswa.ExecContext(ctx,
 			s.ID, s.NIS, s.NISN, s.Nama, s.JenisKelamin, s.TanggalLahir,
-			s.KelasID, s.KelasNama, s.Status, s.PhotoURL,
-		); err != nil {
-			// skip duplicates (nis/nisn unique constraint)
+			s.PhotoURL,
+		)
+		if err != nil {
+			// Safety net (Q5): skip duplicate (nis/nisn unique constraint).
 			if strings.Contains(err.Error(), "UNIQUE") {
 				continue
 			}
-			return count, fmt.Errorf("insert %s: %w", s.NIS, err)
+			return count, fmt.Errorf("insert siswa %s: %w", s.NIS, err)
+		}
+
+		// NIS sudah ada (DO NOTHING) → RowsAffected=0 → skip class_members.
+		if n, _ := res.RowsAffected(); n == 0 {
+			continue
+		}
+
+		// cmID deterministik (idempoten), sama pola dengan Create().
+		cmID := fmt.Sprintf("cm-%s-%s", s.ID, periodID)
+		if _, err := stmtCM.ExecContext(ctx, cmID, s.ID, s.KelasID, periodID); err != nil {
+			return count, fmt.Errorf("insert class_members %s: %w", s.NIS, err)
 		}
 		count++
 	}
+
 	if err := tx.Commit(); err != nil {
 		return count, err
 	}

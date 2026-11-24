@@ -38,6 +38,7 @@ func (h *CBTHandler) HandleListStudents(c *fiber.Ctx) error {
 		Search:           c.Query("search"),
 		KelasID:          c.Query("kelas_id"),
 		Status:           c.Query("status"),
+		Tingkat:          c.Query("tingkat"),
 		AcademicPeriodID: c.Query("academic_period_id"),
 	}
 	list, err := uc.SiswaUC.List(c.Context(), filter)
@@ -302,7 +303,6 @@ func (h *CBTHandler) HandleImportStudents(c *fiber.Ctx) error {
 			TanggalLahir: r.TanggalLahir,
 			KelasID:      kelasID,
 			KelasNama:    r.KelasNama,
-			Status:       "AKTIF",
 		})
 	}
 
@@ -347,7 +347,6 @@ func (h *CBTHandler) HandleListParticipants(c *fiber.Ctx) error {
 			"nama":          s.Nama,
 			"kelas_id":      s.KelasID,
 			"kelas_nama":    s.KelasNama,
-			"status":        s.Status,
 			"exam_password": s.ExamPassword, // plaintext, sudah didekripsi di usecase
 			"source":        "SISWA",
 			"tenant_slug":   tenantSlug,
